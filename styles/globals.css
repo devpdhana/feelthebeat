@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F5FAFF;
+  --foreground: #111827;
+  --primary: #1E90FF; /* Primary Blue */
+  --primary-hover: #0c7cd5;
+  --secondary: #FFF200; /* Secondary Yellow */
+  --secondary-hover: #e6d900;
+  --surface: #FFFFFF;
+  --surface-hover: #F5FAFF;
+  --border: #DCEBFF;
+  --border-active: #5184EE;
+  --text-muted: #6B7280;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-brand-primary: var(--primary);
+  --color-brand-primary-hover: var(--primary-hover);
+  --color-brand-secondary: var(--secondary);
+  --color-brand-secondary-hover: var(--secondary-hover);
+  --color-brand-surface: var(--surface);
+  --color-brand-surface-hover: var(--surface-hover);
+  
+  --color-brand-background: var(--background);
+  --color-brand-text: var(--foreground);
+  --color-brand-muted: var(--text-muted);
+  
+  --color-border-custom: var(--border);
+  --color-border-active: var(--border-active);
+  --color-text-muted: var(--text-muted);
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-montserrat), system-ui, -apple-system, sans-serif;
+  --font-jost: var(--font-jost), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  /* Custom animations */
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-spin-slow: spin 20s linear infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+}
+
+/* Base custom classes */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #111827;
+}
+
+p {
+  color: #4B5563;
+}
+
+/* Custom Glassmorphism Panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #DCEBFF;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F5FAFF;
+}
+::-webkit-scrollbar-thumb {
+  background: #DCEBFF;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Hide default cursor on desktop when custom cursor is active */
+@media (min-width: 1024px) {
+  .custom-cursor-active,
+  .custom-cursor-active * {
+    cursor: none !important;
+  }
+}
+
+/* Telemetry Grid Decoration */
+.telemetry-grid {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(81, 132, 238, 0.04) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(81, 132, 238, 0.04) 1px, transparent 1px);
+}
+
+/* Custom Hide Scrollbar Utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animated Border effect */
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(81, 132, 238, 0.2); }
+  50% { border-color: rgba(255, 242, 0, 0.8); }
+}
+
+.glow-border:hover {
+  animation: borderGlow 3s infinite ease-in-out;
+}
+
+/* Swiper custom overrides */
+.swiper-pagination-bullet {
+  background: rgba(9, 14, 19, 0.2) !important;
+  opacity: 1 !important;
+}
+.swiper-pagination-bullet-active {
+  background: var(--primary) !important;
+  width: 24px !important;
+  border-radius: 4px !important;
+  transition: all 0.3s ease;
+}
+
+/* Lenis smooth scroll layout fix */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+

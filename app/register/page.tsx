@@ -1,0 +1,618 @@
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { racePrices } from "@/data/registrationConfig";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import { registrationConfig } from "@/data/navigation";
+
+// Extend window interface for Razorpay
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+function RegisterForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Selected category from query string parameter
+  const initialCategory = searchParams.get("category") || "10km";
+
+  // Form State
+  const [formData, setFormData] = useState({
+    raceCategory: initialCategory,
+    fullName: "",
+    mobile: "",
+    email: "",
+    dob: "",
+    gender: "",
+    tshirtSize: "",
+    emergencyContactName: "",
+    emergencyContactNumber: "",
+    bloodGroup: "",
+    medicalCondition: "None",
+    nationality: "Indian",
+    firstTimeRunner: "No",
+    runningClub: "",
+    disabilityStatus: "No",
+    timingCertificate: "No",
+    fitConfirm: false,
+    termsConfirm: false,
+    privacyConfirm: false,
+    correctConfirm: false,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Sync category from URL queries
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat && racePrices[cat]) {
+      setFormData((prev) => ({ ...prev, raceCategory: cat }));
+    }
+  }, [searchParams]);
+
+  // Load Razorpay Checkout SDK
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const selectedCategory = racePrices[formData.raceCategory] || racePrices["10km"];
+
+  // Client side validation
+  const validateForm = () => {
+    const errs: { [key: string]: string } = {};
+
+    if (!formData.fullName.trim()) errs.fullName = "Full Name is required";
+    if (!/^\d{10}$/.test(formData.mobile)) errs.mobile = "Mobile Number must be 10 digits";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = "Invalid Email Address";
+    if (!formData.dob) errs.dob = "Date of Birth is required";
+    if (!formData.gender) errs.gender = "Gender selection is required";
+    if (!formData.tshirtSize) errs.tshirtSize = "T-Shirt Size is required";
+    if (!formData.emergencyContactName.trim()) errs.emergencyContactName = "Emergency Contact Name is required";
+    if (!/^\d{10}$/.test(formData.emergencyContactNumber)) errs.emergencyContactNumber = "Emergency Mobile must be 10 digits";
+    if (formData.mobile === formData.emergencyContactNumber) errs.emergencyContactNumber = "Emergency contact cannot be same as main mobile";
+    if (!formData.bloodGroup) errs.bloodGroup = "Blood Group is required";
+    if (!formData.nationality.trim()) errs.nationality = "Nationality is required";
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  // Payment Handler
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      const banner = document.getElementById("error-banner");
+      if (banner) banner.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 1. Create order at backend
+      const res = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: formData.raceCategory,
+          email: formData.email,
+          mobile: formData.mobile,
+        }),
+      });
+
+      const orderData = await res.json();
+
+      if (!res.ok) {
+        throw new Error(orderData.message || "Failed to create payment order.");
+      }
+
+      // 2. Open Razorpay checkout options
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_mockkey",
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Feel The Beat Run 2026",
+        description: `Registration fee for ${selectedCategory.name}`,
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          setLoading(true);
+          try {
+            // 3. Verify payment signature and submit registration
+            const verifyRes = await fetch("/api/payment/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                ...formData,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+
+            if (verifyRes.ok) {
+              // Redirect to success route
+              router.push(
+                `/register/success?regNo=${verifyData.registrationNumber}&name=${encodeURIComponent(
+                  formData.fullName
+                )}&category=${formData.raceCategory}`
+              );
+            } else {
+              alert(verifyData.message || "Payment verification failed.");
+            }
+          } catch (err: any) {
+            alert(err.message || "An error occurred during verification.");
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: formData.fullName,
+          email: formData.email,
+          contact: formData.mobile,
+        },
+        theme: {
+          color: "#0698F3",
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      alert(err.message || "An error occurred during order generation.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative pt-32 pb-24 text-brand-text bg-[#F5FAFF]">
+      <div className="absolute inset-0 telemetry-grid opacity-[0.03] pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+
+        {/* Headline banner */}
+        <div className="mb-12 border-b border-brand-primary/12 pb-8 flex flex-col gap-2">
+          <span className="font-mono text-xs text-brand-primary tracking-[0.25em] uppercase font-semibold">
+            FTB_REGISTRY_INBOUND_GATE_2026
+          </span>
+          <h1 className="font-display text-4xl sm:text-5xl font-black uppercase tracking-tight">
+            EVENT REGISTRATION
+          </h1>
+        </div>
+
+        {Object.keys(errors).length > 0 && (
+          <div
+            id="error-banner"
+            className="mb-8 border border-red-500/25 bg-red-50/50 p-4 font-mono text-xs text-red-600 flex flex-col gap-1 rounded-lg shadow-sm"
+          >
+            <span className="font-bold uppercase"> VALIDATION ERROR DETECTED:</span>
+            <ul className="list-disc pl-4 space-y-0.5">
+              {Object.values(errors).map((err, idx) => (
+                <li key={idx}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <form onSubmit={handlePayment} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          {/* Left Column Form Slots */}
+          <div className="lg:col-span-8 flex flex-col gap-6">
+
+            {/* Event Details Category */}
+            <Card className="flex flex-col gap-6 p-6 md:p-8">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                  [01] RACE PARAMETERS
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                  SELECT CATEGORY
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {Object.values(racePrices).map((priceObj) => {
+                  const isSelected = formData.raceCategory === priceObj.id;
+                  return (
+                    <div
+                      key={priceObj.id}
+                      onClick={() => setFormData({ ...formData, raceCategory: priceObj.id })}
+                      className={`border p-4 cursor-pointer flex flex-col gap-2 transition-all duration-300 relative rounded-lg ${isSelected
+                        ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm"
+                        : "bg-white border-brand-primary/12 text-brand-muted hover:border-brand-primary/30 hover:text-brand-text shadow-sm"
+                        }`}
+                    >
+                      {isSelected && (
+                        <div className="absolute top-0 right-0 w-2 h-2 bg-brand-primary" />
+                      )}
+                      <span className="font-mono text-[9px] uppercase tracking-wider"> TIMED RUN</span>
+                      <span className="font-display text-base font-black text-brand-text">{priceObj.name}</span>
+                      <span className="font-mono text-lg font-extrabold text-brand-primary">₹{priceObj.fee}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            {/* Personal Information */}
+            <Card className="flex flex-col gap-6 p-6 md:p-8">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                  [02] IDENTITY METRICS
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                  PERSONAL INFORMATION
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">FULL NAME *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    placeholder="ENTER FULL NAME"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">MOBILE NUMBER *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.mobile}
+                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                    placeholder="ENTER 10-DIGIT MOBILE"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">EMAIL ADDRESS *</label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="ENTER EMAIL ADDRESS"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">DATE OF BIRTH *</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.dob}
+                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">GENDER *</label>
+                  <select
+                    required
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                  >
+                    <option value="">SELECT GENDER</option>
+                    <option value="Male">MALE</option>
+                    <option value="Female">FEMALE</option>
+                    <option value="Other">OTHER</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">T-SHIRT SIZE *</label>
+                  <select
+                    required
+                    value={formData.tshirtSize}
+                    onChange={(e) => setFormData({ ...formData, tshirtSize: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                  >
+                    <option value="">SELECT SIZE</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                  </select>
+                </div>
+              </div>
+            </Card>
+
+            {/* Emergency & Medical details */}
+            <Card className="flex flex-col gap-6 p-6 md:p-8">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                  [03] SUPPORT & HEALTH PROFILE
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                  EMERGENCY & MEDICAL LOGS
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">EMERGENCY CONTACT NAME *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.emergencyContactName}
+                    onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
+                    placeholder="ENTER CONTACT PERSON NAME"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">EMERGENCY MOBILE NUMBER *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.emergencyContactNumber}
+                    onChange={(e) => setFormData({ ...formData, emergencyContactNumber: e.target.value })}
+                    placeholder="ENTER 10-DIGIT MOBILE"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">BLOOD GROUP *</label>
+                  <select
+                    required
+                    value={formData.bloodGroup}
+                    onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                  >
+                    <option value="">SELECT BLOOD GROUP</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">MEDICAL CONDITIONS *</label>
+                  <select
+                    required
+                    value={formData.medicalCondition}
+                    onChange={(e) => setFormData({ ...formData, medicalCondition: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                  >
+                    <option value="None">NONE</option>
+                    <option value="Asthma">ASTHMA</option>
+                    <option value="Diabetes">DIABETES</option>
+                    <option value="Heart Condition">HEART CONDITION</option>
+                    <option value="Other">OTHER</option>
+                  </select>
+                </div>
+              </div>
+            </Card>
+
+            {/* Runner details */}
+            <Card className="flex flex-col gap-6 p-6 md:p-8">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                  [04] ATHLETIC SPECIFICATIONS
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                  RUNNER SPECIFICATIONS
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">NATIONALITY *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.nationality}
+                    onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
+                    placeholder="ENTER NATIONALITY"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">FIRST TIME RUNNER *</label>
+                  <select
+                    value={formData.firstTimeRunner}
+                    onChange={(e) => setFormData({ ...formData, firstTimeRunner: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                  >
+                    <option value="No">NO</option>
+                    <option value="Yes">YES</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">RUNNING CLUB / GROUP (OPTIONAL)</label>
+                  <input
+                    type="text"
+                    value={formData.runningClub}
+                    onChange={(e) => setFormData({ ...formData, runningClub: e.target.value })}
+                    placeholder="ENTER CLUB NAME"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">DISABILITY STATUS *</label>
+                  <select
+                    value={formData.disabilityStatus}
+                    onChange={(e) => setFormData({ ...formData, disabilityStatus: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                  >
+                    <option value="No">NO</option>
+                    <option value="Yes">YES</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">OFFICIAL TIMING CERTIFICATE REQUIRED *</label>
+                  <select
+                    value={formData.timingCertificate}
+                    onChange={(e) => setFormData({ ...formData, timingCertificate: e.target.value })}
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                  >
+                    <option value="No">NO</option>
+                    <option value="Yes">YES</option>
+                  </select>
+                </div>
+              </div>
+            </Card>
+
+            {/* Declarations */}
+            <Card className="flex flex-col gap-6 p-6 md:p-8">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                  [05] VERIFICATION STATEMENTS
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                  DECLARATION & CONSENT
+                </h3>
+              </div>
+
+              <div className="flex flex-col gap-4 font-mono text-xs text-brand-text">
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={formData.fitConfirm}
+                    onChange={(e) => setFormData({ ...formData, fitConfirm: e.target.checked })}
+                    className="mt-1 accent-brand-primary"
+                  />
+                  <span>I confirm I am medically fit to participate.</span>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={formData.termsConfirm}
+                    onChange={(e) => setFormData({ ...formData, termsConfirm: e.target.checked })}
+                    className="mt-1 accent-brand-primary"
+                  />
+                  <span>I agree to the Terms & Conditions.</span>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={formData.privacyConfirm}
+                    onChange={(e) => setFormData({ ...formData, privacyConfirm: e.target.checked })}
+                    className="mt-1 accent-brand-primary"
+                  />
+                  <span>I agree to the Privacy Policy.</span>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={formData.correctConfirm}
+                    onChange={(e) => setFormData({ ...formData, correctConfirm: e.target.checked })}
+                    className="mt-1 accent-brand-primary"
+                  />
+                  <span>I confirm that the information provided is correct.</span>
+                </label>
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column Sticky summary card */}
+          <div className="lg:col-span-4 lg:sticky lg:top-32">
+            <Card className="flex flex-col gap-6 p-6">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-muted/40 tracking-widest block uppercase">
+                  PRICE_CALCULATION
+                </span>
+                <h3 className="font-display text-sm font-bold uppercase tracking-wider text-brand-text">
+                  ORDER SUMMARY
+                </h3>
+              </div>
+
+              <div className="flex flex-col gap-3 font-mono text-xs">
+                <div className="flex justify-between">
+                  <span className="text-brand-muted/50">CATEGORY:</span>
+                  <span className="text-brand-text font-bold">{selectedCategory.name.toUpperCase()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-brand-muted/50">TICKET FEE:</span>
+                  <span className="text-brand-text font-bold">₹{selectedCategory.fee}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-brand-muted/50">PLATFORM CHARGE:</span>
+                  <span className="text-brand-primary font-bold">₹0 (FREE)</span>
+                </div>
+                <div className="h-[1px] bg-brand-primary/8 my-2" />
+                <div className="flex justify-between text-base">
+                  <span className="text-brand-text font-bold">TOTAL AMOUNT:</span>
+                  <span className="text-brand-primary font-black">₹{selectedCategory.fee}</span>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full py-4 text-xs font-black tracking-widest shadow-md"
+                disabled={loading}
+              >
+                {loading ? "PROCESSING PAYMENT..." : "PROCEED TO PAYMENT"}
+              </Button>
+
+              <div className="text-center font-mono text-[9px] text-brand-muted/30">
+                SECURE SECURE TRANSACTION PROTOCOL  POWERED BY RAZORPAY
+              </div>
+            </Card>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center p-4 text-brand-text font-mono text-xs"> INITIALIZING SECURE REGISTRY PORTAL...</div>
+    }>
+      <RegisterForm />
+    </Suspense>
+  );
+}
