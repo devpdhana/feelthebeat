@@ -16,10 +16,10 @@ export default function RaceCategories() {
         
         {/* Section Title */}
         <div className="mb-16 flex flex-col items-center text-center gap-2">
-          <span className="font-mono text-xs tracking-[0.35em] text-white font-semibold">
+          <span className="font-mono text-xs tracking-[0.35em] text-white-default font-semibold">
             [04] TIER_REGISTRY
           </span>
-          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-white md:text-5xl">
+          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-white-default md:text-5xl">
             RACE CATEGORIES & LOGISTICS
           </h2>
           <div className="h-[1px] w-24 bg-brand-primary mt-2" />
@@ -49,10 +49,10 @@ export default function RaceCategories() {
               </div>
 
               <div>
-                <span className="font-mono text-[9px] tracking-widest text-[#D1D5DB] uppercase">
+                <span className="font-mono text-[9px] tracking-widest text-muted-white uppercase">
                   CLASSIFICATION: TIMED_RUN
                 </span>
-                <h3 className="font-display text-2xl font-black uppercase tracking-tight text-white mt-1 group-hover:text-brand-primary transition-colors">
+                <h3 className="font-display text-2xl font-black uppercase tracking-tight text-white-default mt-1 group-hover:text-brand-primary transition-colors">
                   {category.name}
                 </h3>
                 
@@ -61,23 +61,23 @@ export default function RaceCategories() {
                   {category.distance}
                 </div>
 
-                <p className="text-xs font-mono text-white mt-4 leading-relaxed max-w-lg">
+                <p className="text-xs font-mono text-muted-white mt-4 leading-relaxed max-w-lg">
                   {category.description}
                 </p>
 
                 {/* Key specs */}
-                <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-5 mt-6 font-mono text-[11px] text-[#D1D5DB]">
+                <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-5 mt-6 font-mono text-[11px] text-muted-white">
                   <div className="flex items-center gap-2">
                     <HiOutlineClock className="text-brand-primary text-sm shrink-0" />
                     <div>
-                      <div className="text-[9px] text-[#D1D5DB]">START TIMING</div>
-                      <div className="font-bold text-white">{category.startTime}</div>
+                      <div className="text-[9px] text-muted-white">START TIMING</div>
+                      <div className="font-bold text-white-default">{category.startTime}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <HiOutlineMap className="text-brand-primary text-sm shrink-0" />
                     <div>
-                      <div className="text-[9px] text-[#D1D5DB]">CUT-OFF TIME</div>
+                      <div className="text-[9px] text-muted-white">CUT-OFF TIME</div>
                       <div className="text-brand-primary font-bold">{category.cutoffTime}</div>
                     </div>
                   </div>
@@ -85,12 +85,12 @@ export default function RaceCategories() {
 
                 {/* Route Highlights list */}
                 <div className="mt-5 border-t border-white/10 pt-4">
-                  <span className="font-mono text-[9px] text-[#D1D5DB] tracking-widest uppercase block mb-2 font-semibold">
+                  <span className="font-mono text-[9px] text-muted-white tracking-widest uppercase block mb-2 font-semibold">
                     KEY CHECKPOINTS
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {category.routeHighlights.map((hl, hlIdx) => (
-                      <span key={hlIdx} className="bg-white/5 border border-white/12 px-2.5 py-1 font-mono text-[9px] text-white rounded">
+                      <span key={hlIdx} className="bg-white/5 border border-white/12 px-2.5 py-1 font-mono text-[9px] text-white-default rounded">
                         {hl}
                       </span>
                     ))}

@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center p-4 text-brand-text relative">
+    <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center p-4 text-default relative">
       <div className="absolute inset-0 telemetry-grid opacity-[0.03] pointer-events-none" />
 
       <div className="max-w-md w-full relative z-10">
@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
             <span className="font-mono text-[9px] text-brand-primary tracking-[0.25em] uppercase font-bold">
               SUPABASE_AUTH_GATE
             </span>
-            <h2 className="font-display text-2xl font-black uppercase tracking-tight text-brand-text">
+            <h2 className="font-display text-2xl font-black uppercase tracking-tight text-default">
               ADMINISTRATOR LOGIN
             </h2>
           </div>
@@ -70,26 +70,26 @@ export default function AdminLoginPage() {
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1 font-mono">
-              <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">EMAIL ADDRESS</label>
+              <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">EMAIL ADDRESS</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ADMIN@FEELTHEBEATRUN.COM"
-                className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
               />
             </div>
 
             <div className="flex flex-col gap-1 font-mono">
-              <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">PASSWORD</label>
+              <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">PASSWORD</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
+                className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
               />
             </div>
 
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          <div className="text-center font-mono text-[9px] text-brand-muted/30">
+          <div className="text-center font-mono text-[9px] text-muted-default/30">
             SECURE ACCESS  AUDITED VIA SUPABASE AUTH
           </div>
         </Card>

@@ -45,14 +45,14 @@ export default function RouteInformation() {
         {/* Title Section */}
         <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="flex flex-col gap-2">
-            <span className="font-mono text-xs tracking-[0.35em] text-white font-semibold">
+            <span className="font-mono text-xs tracking-[0.35em] text-white-default font-semibold">
               [05] NAVIGATIONAL_MAP
             </span>
-            <h2 className="font-display text-3xl font-black uppercase tracking-tight text-white md:text-5xl">
+            <h2 className="font-display text-3xl font-black uppercase tracking-tight text-white-default md:text-5xl">
               ROUTE DIRECTIVES
             </h2>
           </div>
-          <p className="max-w-md font-mono text-xs leading-relaxed text-white">
+          <p className="max-w-md font-mono text-xs leading-relaxed text-muted-white">
             Telemetry map showing the official loops of Feel The Beat Run 2026. Toggle tabs to preview different courses.
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function RouteInformation() {
                     className={`flex-1 py-3 px-4 text-center font-display text-xs font-black uppercase tracking-widest border transition-all duration-300 active:scale-95 cursor-pointer relative rounded-lg ${
                       isActive
                         ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm"
-                        : "bg-[#111111] border-white/12 text-[#D1D5DB] hover:text-brand-primary hover:border-brand-primary/30 shadow-sm"
+                        : "bg-[#111111] border-white/12 text-muted-white hover:text-brand-primary hover:border-brand-primary/30 shadow-sm"
                     }`}
                   >
                     {isActive && (
@@ -101,19 +101,19 @@ export default function RouteInformation() {
                   <span className="bg-brand-primary/10 border border-white/12 px-3 py-1 font-mono text-[9px] text-brand-primary uppercase tracking-wider rounded font-semibold">
                     TARGET: {selectedRoute.distance}
                   </span>
-                  <span className="bg-white/5 border border-white/12 px-3 py-1 font-mono text-[9px] text-[#D1D5DB] uppercase tracking-wider rounded">
+                  <span className="bg-white/5 border border-white/12 px-3 py-1 font-mono text-[9px] text-muted-white uppercase tracking-wider rounded">
                     EST_TIME: {selectedRoute.estimatedDuration}
                   </span>
-                  <span className="bg-white/5 border border-white/12 px-3 py-1 font-mono text-[9px] text-[#D1D5DB] uppercase tracking-wider rounded">
+                  <span className="bg-white/5 border border-white/12 px-3 py-1 font-mono text-[9px] text-muted-white uppercase tracking-wider rounded">
                     GAIN: {selectedRoute.elevationGain}
                   </span>
                 </div>
 
-                <h3 className="font-display text-xl font-bold text-white uppercase">
+                <h3 className="font-display text-xl font-bold text-white-default uppercase">
                   {selectedRoute.title}
                 </h3>
 
-                <p className="text-xs font-mono text-white leading-relaxed mb-4">
+                <p className="text-xs font-mono text-muted-white leading-relaxed mb-4">
                   {selectedRoute.description}
                 </p>
 
@@ -172,11 +172,11 @@ export default function RouteInformation() {
 
                         {/* Checkpoint labels right beside it */}
                         <div className="flex flex-col gap-0.5 pl-2 select-none">
-                          <span className="font-mono text-[9px] tracking-wider text-[#D1D5DB]">
+                          <span className="font-mono text-[9px] tracking-wider text-muted-white">
                             CHECKPOINT {String(idx + 1).padStart(2, "0")}
                           </span>
                           <span className={`font-display text-base font-bold transition-colors ${
-                            isSelected ? "text-brand-primary" : "text-white group-hover:text-brand-primary"
+                            isSelected ? "text-brand-primary" : "text-white-default group-hover:text-brand-primary"
                           }`}>
                             {cp.location}
                           </span>
@@ -197,13 +197,13 @@ export default function RouteInformation() {
               <button
                 suppressHydrationWarning
                 onClick={handleZoom}
-                className="absolute top-4 right-4 z-20 font-mono text-[9px] border border-white/12 px-3 py-1.5 bg-[#111111] text-white hover:border-brand-primary hover:text-brand-primary transition-all uppercase cursor-pointer shadow-sm rounded"
+                className="absolute top-4 right-4 z-20 font-mono text-[9px] border border-white/12 px-3 py-1.5 bg-[#111111] text-white-default hover:border-brand-primary hover:text-brand-primary transition-all uppercase cursor-pointer shadow-sm rounded"
               >
                 ZOOM: {zoomLevel === 1 ? "1.0X" : "1.3X"}
               </button>
 
               {/* Live coordinates telemetry banner */}
-              <div className="absolute bottom-4 left-4 z-20 font-mono text-[8px] text-[#D1D5DB] flex flex-col gap-0.5 bg-[#111111]/90 p-2 border border-white/12 rounded shadow-sm">
+              <div className="absolute bottom-4 left-4 z-20 font-mono text-[8px] text-muted-white flex flex-col gap-0.5 bg-[#111111]/90 p-2 border border-white/12 rounded shadow-sm">
                 <span>TARGET_SYS: AFLI_FTB_GRID</span>
                 <span className="text-brand-primary font-bold">NODE: {selectedNode.name.toUpperCase()}</span>
                 <span>COORD_MAP: {selectedNode.coordinates.x}X, {selectedNode.coordinates.y}Y</span>

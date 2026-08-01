@@ -35,11 +35,11 @@ export default function Accordion({ items }: AccordionProps) {
             <button
               suppressHydrationWarning
               onClick={() => toggleItem(item.id)}
-              className="flex w-full items-center justify-between p-5 text-left font-display text-sm font-semibold uppercase tracking-wider text-brand-text hover:text-brand-primary transition-colors cursor-pointer"
+              className="flex w-full items-center justify-between p-5 text-left font-display text-sm font-semibold uppercase tracking-wider text-default hover:text-brand-primary transition-colors cursor-pointer"
             >
               <span>{item.question}</span>
               <span className={`flex h-6 w-6 items-center justify-center rounded border transition-colors ${
-                isOpen ? "border-brand-primary text-brand-primary" : "border-brand-primary/20 text-brand-muted"
+                isOpen ? "border-brand-primary text-brand-primary" : "border-brand-primary/20 text-muted-default"
               }`}>
                 {isOpen ? <HiMinus size={12} /> : <HiPlus size={12} />}
               </span>
@@ -53,7 +53,7 @@ export default function Accordion({ items }: AccordionProps) {
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                   className="overflow-hidden"
                 >
-                  <div className="border-t border-brand-primary/8 p-5 text-xs font-mono leading-relaxed text-brand-muted bg-white">
+                  <div className="border-t border-brand-primary/8 p-5 text-xs font-mono leading-relaxed text-muted-default bg-white">
                     {item.answer}
                   </div>
                 </motion.div>

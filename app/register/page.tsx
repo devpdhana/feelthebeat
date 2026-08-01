@@ -185,16 +185,14 @@ function RegisterForm() {
   };
 
   return (
-    <div className="relative pt-32 pb-24 text-brand-text bg-[#F5FAFF]">
+    <div className="relative pt-32 pb-24 text-default bg-[#F5FAFF]">
       <div className="absolute inset-0 telemetry-grid opacity-[0.03] pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
 
         {/* Headline banner */}
         <div className="mb-12 border-b border-brand-primary/12 pb-8 flex flex-col gap-2">
-          <span className="font-mono text-xs text-brand-primary tracking-[0.25em] uppercase font-semibold">
-            FTB_REGISTRY_INBOUND_GATE_2026
-          </span>
+
           <h1 className="font-display text-4xl sm:text-5xl font-black uppercase tracking-tight">
             EVENT REGISTRATION
           </h1>
@@ -225,7 +223,7 @@ function RegisterForm() {
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
                   [01] RACE PARAMETERS
                 </span>
-                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   SELECT CATEGORY
                 </h3>
               </div>
@@ -239,14 +237,14 @@ function RegisterForm() {
                       onClick={() => setFormData({ ...formData, raceCategory: priceObj.id })}
                       className={`border p-4 cursor-pointer flex flex-col gap-2 transition-all duration-300 relative rounded-lg ${isSelected
                         ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm"
-                        : "bg-white border-brand-primary/12 text-brand-muted hover:border-brand-primary/30 hover:text-brand-text shadow-sm"
+                        : "bg-white border-brand-primary/12 text-muted-default hover:border-brand-primary/30 hover:text-default shadow-sm"
                         }`}
                     >
                       {isSelected && (
                         <div className="absolute top-0 right-0 w-2 h-2 bg-brand-primary" />
                       )}
                       <span className="font-mono text-[9px] uppercase tracking-wider"> TIMED RUN</span>
-                      <span className="font-display text-base font-black text-brand-text">{priceObj.name}</span>
+                      <span className="font-display text-base font-black text-default">{priceObj.name}</span>
                       <span className="font-mono text-lg font-extrabold text-brand-primary">₹{priceObj.fee}</span>
                     </div>
                   );
@@ -260,66 +258,66 @@ function RegisterForm() {
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
                   [02] IDENTITY METRICS
                 </span>
-                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   PERSONAL INFORMATION
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">FULL NAME *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">FULL NAME *</label>
                   <input
                     type="text"
                     required
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     placeholder="ENTER FULL NAME"
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">MOBILE NUMBER *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">MOBILE NUMBER *</label>
                   <input
                     type="tel"
                     required
                     value={formData.mobile}
                     onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                     placeholder="ENTER 10-DIGIT MOBILE"
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">EMAIL ADDRESS *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">EMAIL ADDRESS *</label>
                   <input
                     type="email"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="ENTER EMAIL ADDRESS"
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">DATE OF BIRTH *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">DATE OF BIRTH *</label>
                   <input
                     type="date"
                     required
                     value={formData.dob}
                     onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">GENDER *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">GENDER *</label>
                   <select
                     required
                     value={formData.gender}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
                   >
                     <option value="">SELECT GENDER</option>
                     <option value="Male">MALE</option>
@@ -329,12 +327,12 @@ function RegisterForm() {
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">T-SHIRT SIZE *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">T-SHIRT SIZE *</label>
                   <select
                     required
                     value={formData.tshirtSize}
                     onChange={(e) => setFormData({ ...formData, tshirtSize: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
                   >
                     <option value="">SELECT SIZE</option>
                     <option value="XS">XS</option>
@@ -354,43 +352,43 @@ function RegisterForm() {
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
                   [03] SUPPORT & HEALTH PROFILE
                 </span>
-                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   EMERGENCY & MEDICAL LOGS
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">EMERGENCY CONTACT NAME *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">EMERGENCY CONTACT NAME *</label>
                   <input
                     type="text"
                     required
                     value={formData.emergencyContactName}
                     onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
                     placeholder="ENTER CONTACT PERSON NAME"
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">EMERGENCY MOBILE NUMBER *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">EMERGENCY MOBILE NUMBER *</label>
                   <input
                     type="tel"
                     required
                     value={formData.emergencyContactNumber}
                     onChange={(e) => setFormData({ ...formData, emergencyContactNumber: e.target.value })}
                     placeholder="ENTER 10-DIGIT MOBILE"
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">BLOOD GROUP *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">BLOOD GROUP *</label>
                   <select
                     required
                     value={formData.bloodGroup}
                     onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
                   >
                     <option value="">SELECT BLOOD GROUP</option>
                     <option value="A+">A+</option>
@@ -405,12 +403,12 @@ function RegisterForm() {
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">MEDICAL CONDITIONS *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">MEDICAL CONDITIONS *</label>
                   <select
                     required
                     value={formData.medicalCondition}
                     onChange={(e) => setFormData({ ...formData, medicalCondition: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
                   >
                     <option value="None">NONE</option>
                     <option value="Asthma">ASTHMA</option>
@@ -428,30 +426,30 @@ function RegisterForm() {
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
                   [04] ATHLETIC SPECIFICATIONS
                 </span>
-                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   RUNNER SPECIFICATIONS
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">NATIONALITY *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">NATIONALITY *</label>
                   <input
                     type="text"
                     required
                     value={formData.nationality}
                     onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
                     placeholder="ENTER NATIONALITY"
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">FIRST TIME RUNNER *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">FIRST TIME RUNNER *</label>
                   <select
                     value={formData.firstTimeRunner}
                     onChange={(e) => setFormData({ ...formData, firstTimeRunner: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
                   >
                     <option value="No">NO</option>
                     <option value="Yes">YES</option>
@@ -459,22 +457,22 @@ function RegisterForm() {
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">RUNNING CLUB / GROUP (OPTIONAL)</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">RUNNING CLUB / GROUP (OPTIONAL)</label>
                   <input
                     type="text"
                     value={formData.runningClub}
                     onChange={(e) => setFormData({ ...formData, runningClub: e.target.value })}
                     placeholder="ENTER CLUB NAME"
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">DISABILITY STATUS *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">DISABILITY STATUS *</label>
                   <select
                     value={formData.disabilityStatus}
                     onChange={(e) => setFormData({ ...formData, disabilityStatus: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
                   >
                     <option value="No">NO</option>
                     <option value="Yes">YES</option>
@@ -482,11 +480,11 @@ function RegisterForm() {
                 </div>
 
                 <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-brand-muted uppercase tracking-wider font-semibold">OFFICIAL TIMING CERTIFICATE REQUIRED *</label>
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">OFFICIAL TIMING CERTIFICATE REQUIRED *</label>
                   <select
                     value={formData.timingCertificate}
                     onChange={(e) => setFormData({ ...formData, timingCertificate: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-brand-text focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
                   >
                     <option value="No">NO</option>
                     <option value="Yes">YES</option>
@@ -501,12 +499,12 @@ function RegisterForm() {
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
                   [05] VERIFICATION STATEMENTS
                 </span>
-                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-brand-text">
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   DECLARATION & CONSENT
                 </h3>
               </div>
 
-              <div className="flex flex-col gap-4 font-mono text-xs text-brand-text">
+              <div className="flex flex-col gap-4 font-mono text-xs text-default">
                 <label className="flex items-start gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -561,27 +559,27 @@ function RegisterForm() {
                 <span className="font-mono text-[9px] text-brand-muted/40 tracking-widest block uppercase">
                   PRICE_CALCULATION
                 </span>
-                <h3 className="font-display text-sm font-bold uppercase tracking-wider text-brand-text">
+                <h3 className="font-display text-sm font-bold uppercase tracking-wider text-default">
                   ORDER SUMMARY
                 </h3>
               </div>
 
               <div className="flex flex-col gap-3 font-mono text-xs">
                 <div className="flex justify-between">
-                  <span className="text-brand-muted/50">CATEGORY:</span>
-                  <span className="text-brand-text font-bold">{selectedCategory.name.toUpperCase()}</span>
+                  <span className="text-muted-default/55">CATEGORY:</span>
+                  <span className="text-default font-bold">{selectedCategory.name.toUpperCase()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-brand-muted/50">TICKET FEE:</span>
-                  <span className="text-brand-text font-bold">₹{selectedCategory.fee}</span>
+                  <span className="text-muted-default/55">TICKET FEE:</span>
+                  <span className="text-default font-bold">₹{selectedCategory.fee}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-brand-muted/50">PLATFORM CHARGE:</span>
+                  <span className="text-muted-default/55">PLATFORM CHARGE:</span>
                   <span className="text-brand-primary font-bold">₹0 (FREE)</span>
                 </div>
                 <div className="h-[1px] bg-brand-primary/8 my-2" />
                 <div className="flex justify-between text-base">
-                  <span className="text-brand-text font-bold">TOTAL AMOUNT:</span>
+                  <span className="text-default font-bold">TOTAL AMOUNT:</span>
                   <span className="text-brand-primary font-black">₹{selectedCategory.fee}</span>
                 </div>
               </div>
@@ -595,7 +593,7 @@ function RegisterForm() {
                 {loading ? "PROCESSING PAYMENT..." : "PROCEED TO PAYMENT"}
               </Button>
 
-              <div className="text-center font-mono text-[9px] text-brand-muted/30">
+              <div className="text-center font-mono text-[9px] text-muted-default/30">
                 SECURE SECURE TRANSACTION PROTOCOL  POWERED BY RAZORPAY
               </div>
             </Card>
@@ -610,7 +608,7 @@ function RegisterForm() {
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center p-4 text-brand-text font-mono text-xs"> INITIALIZING SECURE REGISTRY PORTAL...</div>
+      <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center p-4 text-default font-mono text-xs"> INITIALIZING SECURE REGISTRY PORTAL...</div>
     }>
       <RegisterForm />
     </Suspense>

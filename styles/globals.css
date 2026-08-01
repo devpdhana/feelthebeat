@@ -56,12 +56,20 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.text-default {
   color: #111827;
 }
 
-p {
+.text-muted-default {
   color: #4B5563;
+}
+
+.text-white-default {
+  color: #FFFFFF;
+}
+
+.text-muted-white {
+  color: #D1D5DB;
 }
 
 /* Custom Glassmorphism Panels */

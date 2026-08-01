@@ -24,23 +24,16 @@ export default function Hero() {
       {/* Main Center Content */}
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 text-center md:text-left flex flex-col items-center md:items-start gap-4">
         {/* Index telemetry prefix */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="font-mono text-[9px] md:text-xs tracking-[0.3em] text-white font-semibold"
-        >
-          INBOUND_METRICS_ACTIVE
-        </motion.div>
+
 
         {/* Big Bold Headline with Pulse Beat Effect */}
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-4xl font-display text-4xl font-black uppercase leading-[0.95] tracking-tighter text-white sm:text-6xl md:text-7xl lg:text-8xl flex flex-wrap items-center justify-center md:justify-start gap-x-4 md:gap-x-6"
+          className="max-w-4xl font-display text-4xl font-black uppercase leading-[0.95] tracking-tighter text-white-default sm:text-6xl md:text-7xl lg:text-8xl flex flex-wrap items-center justify-center md:justify-start gap-x-4 md:gap-x-6"
         >
-          <span className="text-white">FEEL THE</span>
+          <span className="text-white-default">FEEL THE</span>
           <motion.span
             animate={{
               scale: [1, 1.12, 1],
@@ -97,7 +90,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-          className="max-w-2xl font-jost text-xs md:text-sm font-semibold tracking-widest text-white uppercase text-center md:text-left mt-2"
+          className="max-w-2xl font-jost text-xs md:text-sm font-semibold tracking-widest text-white-default uppercase text-center md:text-left mt-2"
         >
           {heroData.subtitle}
         </motion.p>
@@ -135,7 +128,7 @@ export default function Hero() {
               <span className="font-mono text-[8px] md:text-[9px] tracking-widest text-white/75">
                 [{idx + 1}]  {tel.label}
               </span>
-              <span className="font-mono text-xs md:text-sm font-bold tracking-wider text-white">
+              <span className="font-mono text-xs md:text-sm font-bold tracking-wider text-white-default">
                 {tel.value}
               </span>
             </div>
@@ -143,18 +136,7 @@ export default function Hero() {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="mt-8 flex items-center justify-between text-white/75">
-          <span className="font-mono text-[9px] tracking-widest">
-            HEART_RATE_STANDBY: 72BPM  SIGNAL_OK
-          </span>
-          <a
-            href="#highlights"
-            className="flex items-center gap-1.5 font-mono text-[9px] tracking-widest text-white hover:text-white transition-colors cursor-pointer"
-          >
-            SCROLL DOWN
-            <HiArrowDown className="animate-bounce" />
-          </a>
-        </div>
+
       </motion.div>
     </section>
   );

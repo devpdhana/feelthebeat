@@ -28,27 +28,27 @@ export default function AboutEvent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Text Column */}
           <div className="lg:col-span-7 flex flex-col gap-6">
-            <span className="font-mono text-xs tracking-[0.35em] text-white font-semibold">
-              [02] ABOUT THE EVENT
+            <span className="font-mono text-xs tracking-[0.35em] text-white-default font-semibold">
+              ABOUT THE EVENT
             </span>
 
-            <h2 className="font-display text-4xl sm:text-5xl font-black uppercase tracking-tighter text-white leading-none">
+            <h2 className="font-display text-4xl sm:text-5xl font-black uppercase tracking-tighter text-white-default leading-none">
               FEEL THE BEAT RUN 2026
             </h2>
 
             <div className="h-[1px] w-16 bg-brand-primary" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs text-white mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs text-muted-white mt-2">
               <div className="flex flex-col gap-4">
-                <p className="leading-relaxed">
-                  <span className="text-white font-bold">RUN FOR YOUR HEART:</span> Feel The Beat Run 2026 is a community running event held in Vellore to celebrate World Heart Day. The event encourages people of all ages to embrace a healthy lifestyle through running while raising awareness about cardiovascular health.
+                <p className="leading-relaxed text-muted-white">
+                  <span className="text-white-default font-bold">RUN FOR YOUR HEART:</span> Feel The Beat Run 2026 is a community running event held in Vellore to celebrate World Heart Day. The event encourages people of all ages to embrace a healthy lifestyle through running while raising awareness about cardiovascular health.
                 </p>
-                <p className="leading-relaxed text-white">
+                <p className="leading-relaxed text-muted-white">
                   Every step taken during the event represents a commitment to stronger hearts, healthier lives, and a more active community.
                 </p>
               </div>
               <div className="flex flex-col gap-4">
-                <p className="leading-relaxed text-white font-bold">
+                <p className="leading-relaxed text-white-default font-bold">
                   TELEMETRY RECON:
                   <br />
                   • VENUE: Deboer Ground, Vellore, TN
@@ -56,10 +56,8 @@ export default function AboutEvent() {
                   • DATE: Sunday, September 27, 2026
                   <br />
                   • OCCASION: World Heart Day
-                  <br />
-                  • ELEVATION: Flat asphalt Fort loop.
                 </p>
-                <p className="leading-relaxed text-white">
+                <p className="leading-relaxed text-muted-white">
                   Whether you are a beginner, a family group running the 2K, or an experienced runner tackling the 10K, join us to celebrate fitness and heart health.
                 </p>
               </div>
@@ -81,7 +79,7 @@ export default function AboutEvent() {
               </motion.div>
 
               {/* HUD corner borders */}
-              <div className="absolute top-4 left-4 font-mono text-[9px] text-[#D1D5DB] bg-[#111111]/85 px-2 py-1 backdrop-blur-sm border border-white/8 rounded">
+              <div className="absolute top-4 left-4 font-mono text-[9px] text-muted-white bg-[#111111]/85 px-2 py-1 backdrop-blur-sm border border-white/8 rounded">
                 SYS: ACTIVE_CAM_01
               </div>
               <div className="absolute bottom-4 right-4 font-mono text-[9px] text-brand-primary bg-[#111111]/85 px-2 py-1 backdrop-blur-sm border border-white/8 rounded">

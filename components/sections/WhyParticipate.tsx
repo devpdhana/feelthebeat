@@ -47,7 +47,7 @@ export default function WhyParticipate() {
           <span className="font-mono text-xs tracking-[0.35em] text-brand-primary font-semibold">
             [03] MISSION_VALUES
           </span>
-          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-brand-text md:text-5xl">
+          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-default md:text-5xl">
             WHY FEEL THE BEAT
           </h2>
           <div className="h-[1px] w-24 bg-brand-primary mt-2" />
@@ -68,10 +68,10 @@ export default function WhyParticipate() {
                   {reason.icon}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <h3 className="font-display text-sm font-bold text-brand-text tracking-wider">
+                  <h3 className="font-display text-sm font-bold text-default tracking-wider">
                     {reason.title}
                   </h3>
-                  <p className="text-xs font-mono text-brand-muted leading-relaxed">
+                  <p className="text-xs font-mono text-muted-default leading-relaxed">
                     {reason.desc}
                   </p>
                 </div>

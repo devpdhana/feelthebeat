@@ -235,14 +235,14 @@ export default function AdminDashboard() {
 
   if (!stats) {
     return (
-      <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center p-4 text-brand-text font-mono text-xs">
+      <div className="min-h-screen bg-[#F5FAFF] flex items-center justify-center p-4 text-default font-mono text-xs">
         LOADING SECURE ADMIN SHELL...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F5FAFF] text-brand-text p-6 relative">
+    <div className="min-h-screen bg-[#F5FAFF] text-default p-6 relative">
       <div className="absolute inset-0 telemetry-grid opacity-[0.02] pointer-events-none" />
 
       <div className="mx-auto max-w-7xl relative z-10 flex flex-col gap-8 print:hidden">
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
             <span className="font-mono text-xs text-brand-primary tracking-[0.25em] uppercase font-semibold">
               TELEMETRY_DASHBOARD_SHELL
             </span>
-            <h1 className="font-display text-3xl font-black uppercase tracking-tight text-brand-text">
+            <h1 className="font-display text-3xl font-black uppercase tracking-tight text-default">
               ADMIN CONTROL CENTER
             </h1>
           </div>
@@ -283,23 +283,23 @@ export default function AdminDashboard() {
         {/* Analytics stats counters */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-wider font-semibold">TOTAL REGISTRATIONS</span>
-            <div className="font-display text-3xl font-black text-brand-text">{stats.summary.totalRegistrations}</div>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TOTAL REGISTRATIONS</span>
+            <div className="font-display text-3xl font-black text-default">{stats.summary.totalRegistrations}</div>
           </Card>
           <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-wider font-semibold">TOTAL REVENUE</span>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TOTAL REVENUE</span>
             <div className="font-display text-3xl font-black text-brand-primary">₹{stats.summary.totalRevenue}</div>
           </Card>
           <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-wider font-semibold">TODAY'S REGISTRATIONS</span>
-            <div className="font-display text-3xl font-black text-brand-text">{stats.summary.todayRegistrations}</div>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TODAY'S REGISTRATIONS</span>
+            <div className="font-display text-3xl font-black text-default">{stats.summary.todayRegistrations}</div>
           </Card>
           <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-wider font-semibold">PENDING INVOICES</span>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">PENDING INVOICES</span>
             <div className="font-display text-3xl font-black text-yellow-600">{stats.summary.pendingPayments}</div>
           </Card>
           <Card className="p-5 flex flex-col gap-1 col-span-2 lg:col-span-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-wider font-semibold">SUCCESSFUL PAYMENTS</span>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">SUCCESSFUL PAYMENTS</span>
             <div className="font-display text-3xl font-black text-green-600">{stats.summary.successfulPayments}</div>
           </Card>
         </div>
@@ -308,7 +308,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Daily Registers Area chart */}
           <Card className="lg:col-span-8 p-6 flex flex-col gap-4 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-widest font-semibold"> DAILY REGISTRATION TIMELINE</span>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold"> DAILY REGISTRATION TIMELINE</span>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.charts.daily} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
 
           {/* Category Pie chart */}
           <Card className="lg:col-span-4 p-6 flex flex-col gap-4 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-widest font-semibold"> CATEGORIES RATIOS</span>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold"> CATEGORIES RATIOS</span>
             <div className="h-64 w-full flex items-center justify-center relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
                 {stats.charts.categories.map((c: any, idx: number) => (
                   <div key={idx} className="flex items-center gap-1">
                     <span className="w-2 h-2" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                    <span className="uppercase text-brand-muted">{c.category.split(" ")[0]} ({c.count})</span>
+                    <span className="uppercase text-muted-default">{c.category.split(" ")[0]} ({c.count})</span>
                   </div>
                 ))}
               </div>
@@ -357,7 +357,7 @@ export default function AdminDashboard() {
         {/* Data Search and Table controls */}
         <Card className="p-6 flex flex-col gap-6 rounded-2xl shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-brand-primary/12 pb-4 gap-4">
-            <span className="font-mono text-[9px] text-brand-muted/40 uppercase tracking-widest font-semibold"> RUNNERS_TELEMETRY_LOG</span>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold"> RUNNERS_TELEMETRY_LOG</span>
 
             {/* Search form bar */}
             <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full md:w-auto max-w-sm">
@@ -366,7 +366,7 @@ export default function AdminDashboard() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="SEARCH NAME/EMAIL/PHONE/REG#"
-                className="bg-white border border-[#DCE8F8] px-4 py-2 text-xs text-brand-text placeholder-brand-muted/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase w-full font-mono"
+                className="bg-white border border-[#DCE8F8] px-4 py-2 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase w-full font-mono"
               />
               <button type="submit" className="bg-brand-primary text-white px-4 py-2 font-mono text-xs font-black uppercase tracking-wider cursor-pointer rounded shadow">
                 QUERY
@@ -377,11 +377,11 @@ export default function AdminDashboard() {
           {/* Filtering panels */}
           <div className="flex flex-wrap gap-4 font-mono text-[10px]">
             <div className="flex items-center gap-2">
-              <span className="text-brand-muted/50">CATEGORY:</span>
+              <span className="text-muted-default/50">CATEGORY:</span>
               <select
                 value={category}
                 onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-                className="bg-white border border-[#DCE8F8] px-3 py-1.5 text-brand-text focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase"
+                className="bg-white border border-[#DCE8F8] px-3 py-1.5 text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase"
               >
                 <option value="">ALL CATEGORIES</option>
                 <option value="2 KM Fun Run">2 KM Fun Run</option>
@@ -391,11 +391,11 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-brand-muted/50">PAYMENT:</span>
+              <span className="text-muted-default/50">PAYMENT:</span>
               <select
                 value={paymentStatus}
                 onChange={(e) => { setPaymentStatus(e.target.value); setPage(1); }}
-                className="bg-white border border-[#DCE8F8] px-3 py-1.5 text-brand-text focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase"
+                className="bg-white border border-[#DCE8F8] px-3 py-1.5 text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase"
               >
                 <option value="">ALL STATUSES</option>
                 <option value="SUCCESSFUL">PAID / SUCCESSFUL</option>
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
           <div className="overflow-x-auto w-full">
             <table className="w-full text-left font-mono text-[11px] border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-brand-primary/12 text-brand-muted/50 uppercase">
+                <tr className="border-b border-brand-primary/12 text-muted-default/50 uppercase">
                   <th className="py-3 px-2">REG NUMBER</th>
                   <th className="py-3 px-2">RUNNER NAME</th>
                   <th className="py-3 px-2">CATEGORY</th>
@@ -422,20 +422,20 @@ export default function AdminDashboard() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-brand-muted/40 uppercase"> RUNNING QUERY FOR TELEMETRY...</td>
+                    <td colSpan={7} className="py-8 text-center text-muted-default/40 uppercase"> RUNNING QUERY FOR TELEMETRY...</td>
                   </tr>
                 ) : registrations.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-brand-muted/40 uppercase"> NO MATCHING ENTRIES FOUND</td>
+                    <td colSpan={7} className="py-8 text-center text-muted-default/40 uppercase"> NO MATCHING ENTRIES FOUND</td>
                   </tr>
                 ) : (
                   registrations.map((reg) => (
                     <tr key={reg.id} className="border-b border-brand-primary/8 hover:bg-[#F8FAFD] transition-colors">
                       <td className="py-3 px-2 text-brand-primary font-bold">{reg.registrationNumber}</td>
-                      <td className="py-3 px-2 text-brand-text font-bold">{reg.fullName.toUpperCase()}</td>
-                      <td className="py-3 px-2 text-brand-text font-medium">{reg.raceCategory.toUpperCase()}</td>
-                      <td className="py-3 px-2 text-brand-muted">{reg.mobile}</td>
-                      <td className="py-3 px-2 text-brand-muted">{reg.gender.toUpperCase()} / {reg.age} YRS</td>
+                      <td className="py-3 px-2 text-default font-bold">{reg.fullName.toUpperCase()}</td>
+                      <td className="py-3 px-2 text-default font-medium">{reg.raceCategory.toUpperCase()}</td>
+                      <td className="py-3 px-2 text-muted-default">{reg.mobile}</td>
+                      <td className="py-3 px-2 text-muted-default">{reg.gender.toUpperCase()} / {reg.age} YRS</td>
                       <td className="py-3 px-2">
                         <span className={`px-2 py-0.5 border text-[9px] rounded font-bold ${reg.paymentStatus === "SUCCESSFUL"
                             ? "border-green-500/30 text-green-600 bg-green-50"
@@ -448,7 +448,7 @@ export default function AdminDashboard() {
                         <div className="flex justify-end gap-2 text-sm">
                           <button
                             onClick={() => fetchIndividual(reg.id)}
-                            className="p-1 border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary text-brand-muted hover:bg-brand-primary/5 rounded cursor-pointer"
+                            className="p-1 border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary text-muted-default hover:bg-brand-primary/5 rounded cursor-pointer"
                             title="View Metrics"
                           >
                             <HiOutlineEye />
@@ -472,19 +472,19 @@ export default function AdminDashboard() {
           {/* Pagination controls */}
           {pagination.totalPages > 1 && (
             <div className="flex justify-between items-center font-mono text-[10px] border-t border-brand-primary/12 pt-4 mt-2">
-              <span className="text-brand-muted/50">PAGE {pagination.page} OF {pagination.totalPages}</span>
+              <span className="text-muted-default/50">PAGE {pagination.page} OF {pagination.totalPages}</span>
               <div className="flex gap-2">
                 <button
                   disabled={page === 1}
                   onClick={() => setPage(page - 1)}
-                  className="border border-brand-primary/12 bg-white hover:border-brand-primary px-3 py-1 text-brand-text disabled:opacity-30 cursor-pointer uppercase transition-colors rounded"
+                  className="border border-brand-primary/12 bg-white hover:border-brand-primary px-3 py-1 text-default disabled:opacity-30 cursor-pointer uppercase transition-colors rounded"
                 >
                   PREV
                 </button>
                 <button
                   disabled={page === pagination.totalPages}
                   onClick={() => setPage(page + 1)}
-                  className="border border-brand-primary/12 bg-white hover:border-brand-primary px-3 py-1 text-brand-text disabled:opacity-30 cursor-pointer uppercase transition-colors rounded"
+                  className="border border-brand-primary/12 bg-white hover:border-brand-primary px-3 py-1 text-default disabled:opacity-30 cursor-pointer uppercase transition-colors rounded"
                 >
                   NEXT
                 </button>
@@ -508,109 +508,109 @@ export default function AdminDashboard() {
               <div className="flex justify-end gap-3 mb-6 print:hidden">
                 <button
                   onClick={printDetails}
-                  className="flex items-center gap-1.5 border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary px-3 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-brand-text bg-[#F8FAFD] shadow-sm rounded"
+                  className="flex items-center gap-1.5 border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary px-3 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-default bg-[#F8FAFD] shadow-sm rounded"
                 >
                   <HiOutlinePrinter /> PRINT RECEIPT
                 </button>
                 <button
                   onClick={() => setActiveReg(null)}
-                  className="border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary px-3 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-brand-text bg-[#F8FAFD] shadow-sm rounded"
+                  className="border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary px-3 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-default bg-[#F8FAFD] shadow-sm rounded"
                 >
                   CLOSE
                 </button>
               </div>
 
               {/* Printable receipt block */}
-              <div className="flex flex-col gap-6 text-brand-text">
+              <div className="flex flex-col gap-6 text-default">
                 <div className="border-b border-brand-primary/12 pb-4">
                   <span className="font-mono text-[9px] text-brand-primary tracking-[0.2em] uppercase font-bold">
                     TIER_REGISTRY_VOUCHER_METRICS
                   </span>
-                  <h3 className="font-display text-xl font-black uppercase text-brand-text tracking-tight">
+                  <h3 className="font-display text-xl font-black uppercase text-default tracking-tight">
                     RUNNER TELEMETRY LOG
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 font-mono text-xs">
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">REGISTRATION NO:</span>
+                    <span className="text-muted-default/50">REGISTRATION NO:</span>
                     <span className="text-brand-primary font-bold">{activeReg.registrationNumber}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">RACE CATEGORY:</span>
-                    <span className="text-brand-text font-bold">{activeReg.raceCategory.toUpperCase()}</span>
+                    <span className="text-muted-default/50">RACE CATEGORY:</span>
+                    <span className="text-default font-bold">{activeReg.raceCategory.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">RUNNER NAME:</span>
-                    <span className="text-brand-text font-bold">{activeReg.fullName.toUpperCase()}</span>
+                    <span className="text-muted-default/50">RUNNER NAME:</span>
+                    <span className="text-default font-bold">{activeReg.fullName.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">MOBILE NUMBER:</span>
-                    <span className="text-brand-text font-bold">{activeReg.mobile}</span>
+                    <span className="text-muted-default/50">MOBILE NUMBER:</span>
+                    <span className="text-default font-bold">{activeReg.mobile}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">EMAIL ADDRESS:</span>
-                    <span className="text-brand-text font-bold lowercase">{activeReg.email}</span>
+                    <span className="text-muted-default/50">EMAIL ADDRESS:</span>
+                    <span className="text-default font-bold lowercase">{activeReg.email}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">DATE OF BIRTH / AGE:</span>
-                    <span className="text-brand-text font-bold">{activeReg.dob} / {activeReg.age} YRS</span>
+                    <span className="text-muted-default/50">DATE OF BIRTH / AGE:</span>
+                    <span className="text-default font-bold">{activeReg.dob} / {activeReg.age} YRS</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">GENDER / T-SHIRT:</span>
-                    <span className="text-brand-text font-bold">{activeReg.gender.toUpperCase()} / {activeReg.tshirtSize}</span>
+                    <span className="text-muted-default/50">GENDER / T-SHIRT:</span>
+                    <span className="text-default font-bold">{activeReg.gender.toUpperCase()} / {activeReg.tshirtSize}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">BLOOD GROUP:</span>
-                    <span className="text-brand-text font-bold">{activeReg.bloodGroup}</span>
+                    <span className="text-muted-default/50">BLOOD GROUP:</span>
+                    <span className="text-default font-bold">{activeReg.bloodGroup}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">MEDICAL CONDITIONS:</span>
-                    <span className="text-brand-text font-bold">{activeReg.medicalCondition.toUpperCase()}</span>
+                    <span className="text-muted-default/50">MEDICAL CONDITIONS:</span>
+                    <span className="text-default font-bold">{activeReg.medicalCondition.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">EMERGENCY CONTACT:</span>
-                    <span className="text-brand-text font-bold">{activeReg.emergencyContactName.toUpperCase()} ({activeReg.emergencyContactNumber})</span>
+                    <span className="text-muted-default/50">EMERGENCY CONTACT:</span>
+                    <span className="text-default font-bold">{activeReg.emergencyContactName.toUpperCase()} ({activeReg.emergencyContactNumber})</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">NATIONALITY:</span>
-                    <span className="text-brand-text font-bold">{activeReg.nationality.toUpperCase()}</span>
+                    <span className="text-muted-default/50">NATIONALITY:</span>
+                    <span className="text-default font-bold">{activeReg.nationality.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">FIRST TIME RUNNER:</span>
-                    <span className="text-brand-text font-bold">{activeReg.firstTimeRunner.toUpperCase()}</span>
+                    <span className="text-muted-default/50">FIRST TIME RUNNER:</span>
+                    <span className="text-default font-bold">{activeReg.firstTimeRunner.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">RUNNING CLUB:</span>
-                    <span className="text-brand-text font-bold">{activeReg.runningClub.toUpperCase()}</span>
+                    <span className="text-muted-default/50">RUNNING CLUB:</span>
+                    <span className="text-default font-bold">{activeReg.runningClub.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">DISABILITY STATUS:</span>
-                    <span className="text-brand-text font-bold">{activeReg.disabilityStatus.toUpperCase()}</span>
+                    <span className="text-muted-default/50">DISABILITY STATUS:</span>
+                    <span className="text-default font-bold">{activeReg.disabilityStatus.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">TIMING CERTIFICATE:</span>
-                    <span className="text-brand-text font-bold">{activeReg.timingCertificate.toUpperCase()}</span>
+                    <span className="text-muted-default/50">TIMING CERTIFICATE:</span>
+                    <span className="text-default font-bold">{activeReg.timingCertificate.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-brand-muted/50">PAYMENT STATUS:</span>
+                    <span className="text-muted-default/50">PAYMENT STATUS:</span>
                     <span className="text-green-600 font-bold">{activeReg.paymentStatus}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-brand-muted/50">RAZORPAY PAYMENT ID:</span>
-                    <span className="text-brand-text font-bold">{activeReg.razorpayPaymentId}</span>
+                    <span className="text-muted-default/50">RAZORPAY PAYMENT ID:</span>
+                    <span className="text-default font-bold">{activeReg.razorpayPaymentId}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-brand-muted/50">ORDER ID:</span>
-                    <span className="text-brand-text font-bold">{activeReg.orderId}</span>
+                    <span className="text-muted-default/50">ORDER ID:</span>
+                    <span className="text-default font-bold">{activeReg.orderId}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-brand-muted/50">SIGNATURE MATCH:</span>
-                    <span className="text-brand-text font-bold truncate max-w-sm">{activeReg.signature}</span>
+                    <span className="text-muted-default/50">SIGNATURE MATCH:</span>
+                    <span className="text-default font-bold truncate max-w-sm">{activeReg.signature}</span>
                   </div>
                   <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-brand-muted/50">REGISTRATION DATE:</span>
-                    <span className="text-brand-text font-bold">{activeReg.createdAt}</span>
+                    <span className="text-muted-default/50">REGISTRATION DATE:</span>
+                    <span className="text-default font-bold">{activeReg.createdAt}</span>
                   </div>
                 </div>
               </div>

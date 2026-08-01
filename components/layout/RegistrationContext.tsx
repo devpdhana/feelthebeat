@@ -37,9 +37,24 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
 
   // Handle incoming redirect scrolls via hash values
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash === "#event-highlights") {
+    if (typeof window !== "undefined" && window.location.hash) {
+      const hashToIdMap: Record<string, string> = {
+        "#hero": "hero",
+        "#highlights": "event-highlights",
+        "#about": "about",
+        "#categories": "categories",
+        "#route-map": "route",
+        "#sponsors": "sponsors",
+        "#gallery": "gallery",
+        "#faqs": "faq",
+      };
+
       const scrollTrigger = () => {
-        const target = document.getElementById("event-highlights");
+        const hash = window.location.hash;
+        const targetId = hashToIdMap[hash];
+        if (!targetId) return;
+
+        const target = document.getElementById(targetId);
         if (target) {
           if (lenis) {
             lenis.scrollTo(target, {
@@ -55,8 +70,10 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
             });
           }
 
-          setShouldHighlight(true);
-          setTimeout(() => setShouldHighlight(false), 1600);
+          if (targetId === "event-highlights") {
+            setShouldHighlight(true);
+            setTimeout(() => setShouldHighlight(false), 1600);
+          }
         }
       };
 

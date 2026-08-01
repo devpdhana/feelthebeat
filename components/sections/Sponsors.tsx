@@ -33,7 +33,7 @@ export default function Sponsors() {
           <span className="font-mono text-xs tracking-[0.35em] text-brand-primary font-semibold">
             [06] PARTNERS_NETWORK
           </span>
-          <h2 className="font-display text-2xl font-black uppercase tracking-tight text-[#111827] md:text-4xl">
+          <h2 className="font-display text-2xl font-black uppercase tracking-tight text-default md:text-4xl">
             SPONSORS & BRAND COLLABORATORS
           </h2>
           <div className="h-[1px] w-16 bg-brand-primary mt-2" />
@@ -66,7 +66,7 @@ export default function Sponsors() {
 
               {/* Sponsor info */}
               <div>
-                <h4 className="font-display text-sm font-bold text-[#111827] truncate max-w-[200px]">
+                <h4 className="font-display text-sm font-bold text-default truncate max-w-[200px]">
                   {sponsor.name}
                 </h4>
                 <p className="font-mono text-[10px] text-brand-primary font-bold uppercase tracking-wider mt-0.5">

@@ -5,14 +5,14 @@ export interface NavLink {
 }
 
 export const navLinks: NavLink[] = [
-  { label: "Home", href: "#hero" },
-  { label: "Highlights", href: "#highlights" },
-  { label: "About", href: "#about" },
-  { label: "Categories", href: "#categories" },
-  { label: "Route Map", href: "#route" },
-  { label: "Sponsors", href: "#sponsors" },
-  { label: "Gallery", href: "#gallery" },
-  { label: "FAQs", href: "#faq" },
+  { label: "Home", href: "/" },
+  { label: "Highlights", href: "/#highlights" },
+  { label: "About", href: "/#about" },
+  { label: "Categories", href: "/#categories" },
+  { label: "Route Map", href: "/#route-map" },
+  { label: "Sponsors", href: "/#sponsors" },
+  { label: "Gallery", href: "/#gallery" },
+  { label: "FAQs", href: "/#faqs" },
 ];
 
 export const registrationConfig = {

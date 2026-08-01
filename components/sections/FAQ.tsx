@@ -13,7 +13,7 @@ export default function FAQ() {
           <span className="font-mono text-xs tracking-[0.35em] text-brand-primary font-semibold">
             [09] DECLASSIFIED_FAQ
           </span>
-          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-brand-text md:text-5xl">
+          <h2 className="font-display text-3xl font-black uppercase tracking-tight text-default md:text-5xl">
             QUESTIONS & TIMING DIRECTIVES
           </h2>
           <div className="h-[1px] w-24 bg-brand-primary mt-2" />

@@ -19,11 +19,11 @@ export default function Gallery() {
             <span className="font-mono text-xs tracking-[0.35em] text-brand-primary font-semibold">
               [07] PHOTO_TELEMETRY
             </span>
-            <h2 className="font-display text-3xl font-black uppercase tracking-tight text-brand-text md:text-5xl">
+            <h2 className="font-display text-3xl font-black uppercase tracking-tight text-default md:text-5xl">
               MEDIA RECON EXPO
             </h2>
           </div>
-          <p className="max-w-md font-mono text-xs leading-relaxed text-brand-muted">
+          <p className="max-w-md font-mono text-xs leading-relaxed text-muted-default">
             Highlights from the previous Ageas Federal Life Insurance Mumbai Half Marathon editions. Hover to expand metadata logs.
           </p>
         </div>
@@ -48,15 +48,15 @@ export default function Gallery() {
               {/* Hover tags */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5 rounded-2xl">
                 <span className="font-mono text-[9px] text-brand-primary uppercase font-bold">// {img.category}</span>
-                <h4 className="font-display text-sm font-bold text-white uppercase mt-0.5">{img.title}</h4>
-                <div className="flex items-center justify-between text-[9px] font-mono text-white/50 border-t border-white/10 pt-2.5 mt-3">
+                <h4 className="font-display text-sm font-bold text-white-default uppercase mt-0.5">{img.title}</h4>
+                <div className="flex items-center justify-between text-[9px] font-mono text-muted-white border-t border-white/10 pt-2.5 mt-3">
                   <span>EXP: {img.year}</span>
                   <span className="flex items-center gap-1 text-brand-primary">VIEW DETECT <HiPlus /></span>
                 </div>
               </div>
 
               {/* Static corner HUD tag (always visible) */}
-              <div className="absolute top-3 left-3 font-mono text-[8px] text-brand-muted bg-white/80 px-1.5 py-0.5 backdrop-blur-sm border border-brand-primary/10 rounded select-none">
+              <div className="absolute top-3 left-3 font-mono text-[8px] text-muted-default bg-white/80 px-1.5 py-0.5 backdrop-blur-sm border border-brand-primary/10 rounded select-none">
                 {img.year} // {img.id.toUpperCase()}
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function Gallery() {
               {/* Close Button */}
               <button
                 onClick={() => setActiveImage(null)}
-                className="absolute -top-12 right-0 flex items-center gap-1.5 font-mono text-[10px] text-brand-muted hover:text-brand-primary uppercase cursor-pointer"
+                className="absolute -top-12 right-0 flex items-center gap-1.5 font-mono text-[10px] text-muted-default hover:text-brand-primary uppercase cursor-pointer"
               >
                 CLOSE <HiX className="text-sm" />
               </button>
@@ -104,16 +104,16 @@ export default function Gallery() {
               <div className="mt-5 border-t border-brand-primary/8 pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono">
                 <div className="flex flex-col">
                   <span className="text-[10px] text-brand-primary uppercase font-bold">// CLASSIFICATION: {activeImage.category}</span>
-                  <h3 className="font-display text-lg font-bold text-brand-text uppercase mt-1">{activeImage.title}</h3>
+                  <h3 className="font-display text-lg font-bold text-default uppercase mt-1">{activeImage.title}</h3>
                 </div>
-                <div className="flex gap-4 border-l border-brand-primary/8 pl-4 text-[10px] text-brand-muted">
+                <div className="flex gap-4 border-l border-brand-primary/8 pl-4 text-[10px] text-muted-default">
                   <div className="flex flex-col">
                     <span>INDEX_YEAR</span>
-                    <span className="text-brand-text font-bold">{activeImage.year}</span>
+                    <span className="text-default font-bold">{activeImage.year}</span>
                   </div>
                   <div className="flex flex-col">
                     <span>RECORD_ID</span>
-                    <span className="text-brand-text font-bold">{activeImage.id.toUpperCase()}</span>
+                    <span className="text-default font-bold">{activeImage.id.toUpperCase()}</span>
                   </div>
                 </div>
               </div>

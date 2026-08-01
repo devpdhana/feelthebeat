@@ -107,36 +107,36 @@ function SuccessContent() {
 
         <div className="flex flex-col gap-1.5 mt-2">
           <span className="font-mono text-[9px] text-brand-primary tracking-[0.2em] uppercase font-bold"> INBOUND_COMPLETE</span>
-          <h2 className="font-display text-2xl font-black uppercase text-brand-text tracking-tight">
+          <h2 className="font-display text-2xl font-black uppercase text-default tracking-tight">
             REGISTRATION CONFIRMED
           </h2>
         </div>
 
         {/* Invoice specifications summary */}
-        <div className="border border-brand-primary/12 bg-[#F8FAFD] p-4 font-mono text-[11px] text-left text-brand-muted w-full flex flex-col gap-2 rounded-xl">
-          <div className="flex justify-between border-b border-brand-primary/8 pb-2 mb-1 text-brand-text font-bold">
+        <div className="border border-brand-primary/12 bg-[#F8FAFD] p-4 font-mono text-[11px] text-left text-muted-default w-full flex flex-col gap-2 rounded-xl">
+          <div className="flex justify-between border-b border-brand-primary/8 pb-2 mb-1 text-default font-bold">
             <span>REGISTRATION NO:</span>
             <span className="text-brand-primary">{regNo}</span>
           </div>
           <div className="flex justify-between">
             <span>RUNNER NAME:</span>
-            <span className="text-brand-text font-semibold">{name.toUpperCase()}</span>
+            <span className="text-default font-semibold">{name.toUpperCase()}</span>
           </div>
           <div className="flex justify-between">
             <span>RACE CATEGORY:</span>
-            <span className="text-brand-text font-semibold">{category.toUpperCase()}</span>
+            <span className="text-default font-semibold">{category.toUpperCase()}</span>
           </div>
           <div className="flex justify-between">
             <span>EVENT DATE:</span>
-            <span className="text-brand-text font-semibold">27 SEPTEMBER 2026</span>
+            <span className="text-default font-semibold">27 SEPTEMBER 2026</span>
           </div>
           <div className="flex justify-between">
             <span>VENUE:</span>
-            <span className="text-brand-text font-semibold">VELLORE, TN</span>
+            <span className="text-default font-semibold">VELLORE, TN</span>
           </div>
           <div className="flex justify-between">
             <span>START TIME:</span>
-            <span className="text-brand-text font-semibold">6:30 AM</span>
+            <span className="text-default font-semibold">6:30 AM</span>
           </div>
           <div className="flex justify-between">
             <span>PAYMENT STATUS:</span>
@@ -163,10 +163,10 @@ function SuccessContent() {
 
 export default function RegistrationSuccessPage() {
   return (
-    <div className="relative pt-40 pb-24 text-brand-text bg-[#F5FAFF]">
+    <div className="relative pt-40 pb-24 text-default bg-[#F5FAFF]">
       <div className="absolute inset-0 telemetry-grid opacity-[0.03] pointer-events-none" />
       <Suspense fallback={
-        <div className="text-center font-mono text-xs text-brand-muted"> LOADING RECEIPT...</div>
+        <div className="text-center font-mono text-xs text-muted-default"> LOADING RECEIPT...</div>
       }>
         <SuccessContent />
       </Suspense>
