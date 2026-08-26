@@ -76,11 +76,7 @@ export default function Navbar() {
 
   const handleRegisterClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (pathname === "/") {
-      scrollToOverview();
-    } else {
-      router.push("/#event-highlights");
-    }
+    router.push("/register");
   };
 
   useEffect(() => {
@@ -170,6 +166,7 @@ export default function Navbar() {
             {/* Right Side Call To Action */}
             <div className="hidden lg:flex items-center gap-4">
               <button
+                suppressHydrationWarning
                 onClick={handleRegisterClick}
                 className="group relative overflow-hidden bg-brand-primary px-6 py-2.5 font-display text-xs font-black uppercase tracking-widest text-white transition-all hover:bg-brand-primary-hover cursor-pointer border border-brand-primary rounded"
               >
@@ -179,6 +176,7 @@ export default function Navbar() {
 
             {/* Hamburger Button */}
             <button
+              suppressHydrationWarning
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="flex items-center justify-center rounded border border-brand-primary/10 bg-brand-primary/5 p-2 text-default hover:bg-brand-primary/10 lg:hidden"
             >
@@ -272,6 +270,7 @@ export default function Navbar() {
           {/* Bottom Call To Action */}
           <div className="flex flex-col gap-4">
             <button
+              suppressHydrationWarning
               onClick={(e) => {
                 setMobileMenuOpen(false);
                 handleRegisterClick(e);

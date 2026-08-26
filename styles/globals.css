@@ -96,13 +96,6 @@ body {
   background: var(--primary);
 }
 
-/* Hide default cursor on desktop when custom cursor is active */
-@media (min-width: 1024px) {
-  .custom-cursor-active,
-  .custom-cursor-active * {
-    cursor: none !important;
-  }
-}
 
 /* Telemetry Grid Decoration */
 .telemetry-grid {
@@ -147,4 +140,99 @@ html.lenis,
 html.lenis body {
   height: auto;
 }
+
+/* Print Receipt Styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide background dashboard elements */
+  nav,
+  footer,
+  header,
+  .print-hidden,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset fixed backdrop overlay to standard block flow */
+  .print-receipt-overlay {
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    z-index: auto !important;
+  }
+
+  .print-receipt-card {
+    position: static !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: 2px solid #0698F3 !important;
+    border-radius: 12px !important;
+    padding: 24px 28px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+
+  .print-receipt-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    column-gap: 32px !important;
+    row-gap: 12px !important;
+  }
+
+  .print-receipt-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: baseline !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding-bottom: 6px !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-receipt-col-2 {
+    grid-column: span 2 !important;
+  }
+
+  .print-receipt-row span:first-child {
+    font-size: 8.5pt !important;
+    color: #4b5563 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    flex-shrink: 0 !important;
+    margin-right: 16px !important;
+  }
+
+  .print-receipt-row span:last-child {
+    font-size: 9.5pt !important;
+    color: #111827 !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+    word-break: break-word !important;
+  }
+}
+
 

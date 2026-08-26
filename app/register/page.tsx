@@ -14,6 +14,40 @@ declare global {
   }
 }
 
+export const VENUE_DETAILS: Record<
+  string,
+  { label: string; address: string; mapLink?: string }
+> = {
+  School: {
+    label: "Sree Jayam School, Vellore, Tamil Nadu",
+    address: "Ezhil Nagar Main Rd, Ezhil Nagar, Krishna Nagar, RV Nagar, Vellore, Tamil Nadu 632002.",
+    mapLink: "https://share.google/7S3CijcYuC9YXqWSY",
+  },
+  marathonlocation: {
+    label: "Deboer ground, Vellore, Tamil Nadu",
+    address: "Deboer ground,Vellore, Tamil Nadu 632001.",
+    mapLink: "https://maps.app.goo.gl/AE9NEwWmErWwgUfBA",
+
+  },
+
+};
+
+export const DAV_FAMILY_TYPES = [
+  "Student",
+  "Parent",
+  "Staff / Teacher",
+  "Alumni",
+  "Family Member",
+];
+
+export const HEAR_ABOUT_OPTIONS = [
+  "Social Media",
+  "Ambassadors",
+  "Through friends of friends",
+  "Offline platforms (Banners/posters)",
+  "None of the above",
+];
+
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,12 +58,17 @@ function RegisterForm() {
   // Form State
   const [formData, setFormData] = useState({
     raceCategory: initialCategory,
+    schoolName: "",
     fullName: "",
     mobile: "",
     email: "",
     dob: "",
     gender: "",
     tshirtSize: "",
+    tshirtBibVenue: "",
+    davFamilyMember: "",
+    davFamilyType: "",
+    davHearAbout: "",
     emergencyContactName: "",
     emergencyContactNumber: "",
     bloodGroup: "",
@@ -79,6 +118,25 @@ function RegisterForm() {
     if (!formData.dob) errs.dob = "Date of Birth is required";
     if (!formData.gender) errs.gender = "Gender selection is required";
     if (!formData.tshirtSize) errs.tshirtSize = "T-Shirt Size is required";
+
+    // T-Shirt & Bib venue validation
+    if (!formData.tshirtBibVenue) {
+      errs.tshirtBibVenue = "Please select a venue to collect your T-Shirt & Bib";
+    }
+
+    // D.A.V Family & Referral conditional validation
+    if (!formData.davFamilyMember) {
+      errs.davFamilyMember = "Please select whether you are part of the D.A.V Family";
+    } else if (formData.davFamilyMember === "Yes") {
+      if (!formData.davFamilyType) {
+        errs.davFamilyType = "Please select your D.A.V Family role";
+      }
+    } else if (formData.davFamilyMember === "No") {
+      if (!formData.davHearAbout) {
+        errs.davHearAbout = "Please select how you heard about the D.A.V. Marathon";
+      }
+    }
+
     if (!formData.emergencyContactName.trim()) errs.emergencyContactName = "Emergency Contact Name is required";
     if (!/^\d{10}$/.test(formData.emergencyContactNumber)) errs.emergencyContactNumber = "Emergency Mobile must be 10 digits";
     if (formData.mobile === formData.emergencyContactNumber) errs.emergencyContactNumber = "Emergency contact cannot be same as main mobile";
@@ -139,6 +197,11 @@ function RegisterForm() {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 ...formData,
+                tshirt_bib_venue: formData.tshirtBibVenue,
+                tshirt_bib_venue_address: VENUE_DETAILS[formData.tshirtBibVenue]?.address || "",
+                dav_family_member: formData.davFamilyMember,
+                dav_family_type: formData.davFamilyMember === "Yes" ? formData.davFamilyType : null,
+                dav_hear_about: formData.davFamilyMember === "No" ? formData.davHearAbout : null,
               }),
             });
 
@@ -149,7 +212,10 @@ function RegisterForm() {
               router.push(
                 `/register/success?regNo=${verifyData.registrationNumber}&name=${encodeURIComponent(
                   formData.fullName
-                )}&category=${formData.raceCategory}`
+                )}&category=${formData.raceCategory}${formData.raceCategory === "2km-kids" && formData.schoolName
+                  ? `&schoolName=${encodeURIComponent(formData.schoolName)}`
+                  : ""
+                }`
               );
             } else {
               alert(verifyData.message || "Payment verification failed.");
@@ -264,6 +330,21 @@ function RegisterForm() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.raceCategory === "2km-kids" && (
+                  <div className="flex flex-col gap-1 font-mono md:col-span-2">
+                    <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">
+                      SCHOOL NAME (OPTIONAL)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.schoolName}
+                      onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+                      placeholder="Enter your school name"
+                      className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                    />
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-1 font-mono">
                   <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">FULL NAME *</label>
                   <input
@@ -346,14 +427,223 @@ function RegisterForm() {
               </div>
             </Card>
 
+            {/* T-Shirt & Bib Distribution Details */}
+            <Card className="flex flex-col gap-6 p-6 md:p-8">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                  [03] DISTRIBUTION LOGISTICS
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
+                  T-SHIRT & BIB DISTRIBUTION DETAILS
+                </h3>
+              </div>
+
+              <div className="flex flex-col gap-4 font-mono">
+                <label className="text-xs font-bold text-default">
+                  Please select any one of the below venues to collect your T shirt &amp; Bibs *
+                </label>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {Object.entries(VENUE_DETAILS).map(([key, venue]) => {
+                    const isSelected = formData.tshirtBibVenue === key;
+                    return (
+                      <label
+                        key={key}
+                        className={`flex items-start gap-3 p-3.5 border rounded-lg cursor-pointer transition-all ${isSelected
+                          ? "bg-brand-primary/5 border-brand-primary text-brand-primary font-bold shadow-sm"
+                          : "bg-white border-[#DCE8F8] text-default hover:border-brand-primary/40"
+                          }`}
+                      >
+                        <input
+                          type="radio"
+                          name="tshirtBibVenue"
+                          value={key}
+                          checked={isSelected}
+                          onChange={() =>
+                            setFormData({ ...formData, tshirtBibVenue: key })
+                          }
+                          className="mt-0.5 accent-brand-primary cursor-pointer"
+                          required
+                        />
+                        <span className="text-xs">{venue.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {/* Dynamically displayed address box */}
+                {formData.tshirtBibVenue && VENUE_DETAILS[formData.tshirtBibVenue] && (
+                  <div className="mt-2 p-4 bg-[#F8FAFD] border border-brand-primary/20 rounded-lg flex flex-col gap-2 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-brand-primary uppercase font-bold tracking-wider">
+                        COLLECTION VENUE ADDRESS:
+                      </span>
+                      <span className="text-[10px] text-muted-default/60 italic">(Display only)</span>
+                    </div>
+                    <p className="text-xs text-default whitespace-pre-line leading-relaxed font-sans font-medium">
+                      {VENUE_DETAILS[formData.tshirtBibVenue].address}
+                    </p>
+                    {VENUE_DETAILS[formData.tshirtBibVenue].mapLink && (
+                      <div className="mt-1 pt-2 border-t border-brand-primary/10">
+                        <a
+                          href={VENUE_DETAILS[formData.tshirtBibVenue].mapLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs text-brand-primary font-bold hover:underline"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          View Location on Google Maps
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* D.A.V. Family & Referral */}
+            <Card className="flex flex-col gap-6 p-6 md:p-8">
+              <div className="border-b border-brand-primary/12 pb-4">
+                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                  [04] COMMUNITY AFFILIATION
+                </span>
+                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
+                  Sree Jayam COMMUNITY &amp; REFERRAL
+                </h3>
+              </div>
+
+              <div className="flex flex-col gap-6 font-mono">
+                {/* Question 1: I'm part of D.A.V Family? */}
+                <div className="flex flex-col gap-3">
+                  <label className="text-xs font-bold text-default">
+                    I&apos;m part of Sree Jayam Family? *
+                  </label>
+                  <div className="flex flex-wrap gap-4">
+                    {["Yes", "No"].map((option) => {
+                      const isSelected = formData.davFamilyMember === option;
+                      return (
+                        <label
+                          key={option}
+                          className={`flex items-center gap-2.5 px-4 py-2.5 border rounded-lg cursor-pointer transition-all ${isSelected
+                            ? "bg-brand-primary/5 border-brand-primary text-brand-primary font-bold shadow-sm"
+                            : "bg-white border-[#DCE8F8] text-default hover:border-brand-primary/40"
+                            }`}
+                        >
+                          <input
+                            type="radio"
+                            name="davFamilyMember"
+                            value={option}
+                            checked={isSelected}
+                            onChange={() => {
+                              if (option === "Yes") {
+                                setFormData({
+                                  ...formData,
+                                  davFamilyMember: "Yes",
+                                  davHearAbout: "", // clear other option
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  davFamilyMember: "No",
+                                  davFamilyType: "", // clear DAV family role
+                                });
+                              }
+                            }}
+                            className="accent-brand-primary cursor-pointer"
+                            required
+                          />
+                          <span className="text-xs font-bold">{option}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Conditional Question for YES: D.A.V Family Type */}
+                {formData.davFamilyMember === "Yes" && (
+                  <div className="flex flex-col gap-3 pt-4 border-t border-brand-primary/10 animate-fadeIn">
+                    <label className="text-xs font-bold text-default">
+                      Sree jayam Family *
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {DAV_FAMILY_TYPES.map((type) => {
+                        const isSelected = formData.davFamilyType === type;
+                        return (
+                          <label
+                            key={type}
+                            className={`flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer transition-all ${isSelected
+                              ? "bg-brand-primary/5 border-brand-primary text-brand-primary font-bold shadow-sm"
+                              : "bg-white border-[#DCE8F8] text-default hover:border-brand-primary/40"
+                              }`}
+                          >
+                            <input
+                              type="radio"
+                              name="davFamilyType"
+                              value={type}
+                              checked={isSelected}
+                              onChange={() =>
+                                setFormData({ ...formData, davFamilyType: type })
+                              }
+                              className="accent-brand-primary cursor-pointer"
+                              required
+                            />
+                            <span className="text-xs">{type}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Conditional Question for NO: How did you hear about our D.A.V. Marathon? */}
+                {formData.davFamilyMember === "No" && (
+                  <div className="flex flex-col gap-3 pt-4 border-t border-brand-primary/10 animate-fadeIn">
+                    <label className="text-xs font-bold text-default">
+                      How did you hear about our Sree Jayam Marathon? *
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {HEAR_ABOUT_OPTIONS.map((item) => {
+                        const isSelected = formData.davHearAbout === item;
+                        return (
+                          <label
+                            key={item}
+                            className={`flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer transition-all ${isSelected
+                              ? "bg-brand-primary/5 border-brand-primary text-brand-primary font-bold shadow-sm"
+                              : "bg-white border-[#DCE8F8] text-default hover:border-brand-primary/40"
+                              }`}
+                          >
+                            <input
+                              type="radio"
+                              name="davHearAbout"
+                              value={item}
+                              checked={isSelected}
+                              onChange={() =>
+                                setFormData({ ...formData, davHearAbout: item })
+                              }
+                              className="accent-brand-primary cursor-pointer"
+                              required
+                            />
+                            <span className="text-xs">{item}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+
             {/* Emergency & Medical details */}
             <Card className="flex flex-col gap-6 p-6 md:p-8">
               <div className="border-b border-brand-primary/12 pb-4">
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
-                  [03] SUPPORT & HEALTH PROFILE
+                  [05] SUPPORT &amp; HEALTH PROFILE
                 </span>
                 <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
-                  EMERGENCY & MEDICAL LOGS
+                  EMERGENCY &amp; MEDICAL LOGS
                 </h3>
               </div>
 
@@ -419,6 +709,10 @@ function RegisterForm() {
                 </div>
               </div>
             </Card>
+
+
+
+
 
             {/* Runner details */}
             <Card className="flex flex-col gap-6 p-6 md:p-8">

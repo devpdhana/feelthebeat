@@ -252,9 +252,10 @@ function RegistrationFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full bg-[#101010] border border-white/8 px-4 py-2.5 text-xs text-white focus:border-brand-primary focus:outline-none transition-colors uppercase appearance-none cursor-pointer"
                 >
-                  <option value="2k-run">2K RUN - CHILDREN/FAMILIES</option>
-                  <option value="5k-run">5K RUN - CASUAL ATHLETES</option>
-                  <option value="10k-run">10K RUN - EXPERIENCED RUNNERS</option>
+                  <option value="2km-kids">2KM KIDS FUN RUN (₹1)</option>
+                  <option value="2km">2KM ADULTS FUN RUN (₹199)</option>
+                  <option value="5km">5KM RUN (₹299)</option>
+                  <option value="10km">10KM RUN (₹399)</option>
                 </select>
               </div>
 

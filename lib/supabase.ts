@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yqbvwsfryrqxvorvdjru.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_9M_r-dgDO4ga0wBNWZaxnQ_EF7f51HE";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "sb_secret_GBpHxtxuoH0cdLEJAXmWqw_2vd556eD";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 // Public Supabase client
 const globalForSupabase = globalThis as unknown as {

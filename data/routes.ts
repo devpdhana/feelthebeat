@@ -125,3 +125,97 @@ export const routesData: RouteData[] = [
     ]
   }
 ];
+
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+export interface CheckpointInfo {
+  name: string;
+  location: LatLng;
+  mileage: string;
+}
+
+export interface RouteDetail {
+  start: LatLng;
+  finish: LatLng;
+  waypoints: LatLng[];
+  checkpoints: CheckpointInfo[];
+  fallbackPath: LatLng[];
+}
+
+export const routes: Record<string, RouteDetail> = {
+  "2km": {
+    start: { lat: 12.8712, lng: 79.1400 },
+    finish: { lat: 12.8712, lng: 79.1400 },
+    waypoints: [
+      { lat: 12.8752, lng: 79.1412 }
+    ],
+    checkpoints: [
+      { name: "Start: Deboer Ground", location: { lat: 12.8712, lng: 79.1400 }, mileage: "0.0 KM" },
+      { name: "Checkpoint 1: Sree Jayam School", location: { lat: 12.8752, lng: 79.1412 }, mileage: "1.0 KM" },
+      { name: "Finish: Deboer Ground", location: { lat: 12.8712, lng: 79.1400 }, mileage: "2.0 KM" }
+    ],
+    fallbackPath: [
+      { lat: 12.8712, lng: 79.1400 },
+      { lat: 12.8732, lng: 79.1406 },
+      { lat: 12.8752, lng: 79.1412 },
+      { lat: 12.8732, lng: 79.1406 },
+      { lat: 12.8712, lng: 79.1400 }
+    ]
+  },
+  "5km": {
+    start: { lat: 12.8712, lng: 79.1400 },
+    finish: { lat: 12.8712, lng: 79.1400 },
+    waypoints: [
+      { lat: 12.8797, lng: 79.1437 },
+      { lat: 12.8805, lng: 79.1465 }
+    ],
+    checkpoints: [
+      { name: "Start: Deboer Ground", location: { lat: 12.8712, lng: 79.1400 }, mileage: "0.0 KM" },
+      { name: "Checkpoint 1: Bagayam", location: { lat: 12.8797, lng: 79.1437 }, mileage: "2.2 KM" },
+      { name: "Checkpoint 2: CHAD Hospital", location: { lat: 12.8805, lng: 79.1465 }, mileage: "2.5 KM" },
+      { name: "Finish: Deboer Ground", location: { lat: 12.8712, lng: 79.1400 }, mileage: "5.0 KM" }
+    ],
+    fallbackPath: [
+      { lat: 12.8712, lng: 79.1400 },
+      { lat: 12.8750, lng: 79.1410 },
+      { lat: 12.8797, lng: 79.1437 },
+      { lat: 12.8805, lng: 79.1465 },
+      { lat: 12.8797, lng: 79.1437 },
+      { lat: 12.8750, lng: 79.1410 },
+      { lat: 12.8712, lng: 79.1400 }
+    ]
+  },
+  "10km": {
+    start: { lat: 12.8712, lng: 79.1400 },
+    finish: { lat: 12.8712, lng: 79.1400 },
+    waypoints: [
+      { lat: 12.8797, lng: 79.1437 },
+      { lat: 12.8950, lng: 79.1450 },
+      { lat: 12.9130, lng: 79.1355 },
+      { lat: 12.9242, lng: 79.1348 },
+      { lat: 12.9165, lng: 79.1315 }
+    ],
+    checkpoints: [
+      { name: "Start: Deboer Ground", location: { lat: 12.8712, lng: 79.1400 }, mileage: "0.0 KM" },
+      { name: "Checkpoint 1: Bagayam", location: { lat: 12.8797, lng: 79.1437 }, mileage: "1.8 KM" },
+      { name: "Checkpoint 2: Otteri", location: { lat: 12.8950, lng: 79.1450 }, mileage: "3.5 KM" },
+      { name: "Checkpoint 3: Sankarapalayam", location: { lat: 12.9130, lng: 79.1355 }, mileage: "5.2 KM" },
+      { name: "Checkpoint 4: CMC Eye Hospital", location: { lat: 12.9242, lng: 79.1348 }, mileage: "7.0 KM" },
+      { name: "Checkpoint 5: Raymond Shop", location: { lat: 12.9165, lng: 79.1315 }, mileage: "8.5 KM" },
+      { name: "Finish: Deboer Ground", location: { lat: 12.8712, lng: 79.1400 }, mileage: "10.0 KM" }
+    ],
+    fallbackPath: [
+      { lat: 12.8712, lng: 79.1400 },
+      { lat: 12.8797, lng: 79.1437 },
+      { lat: 12.8950, lng: 79.1450 },
+      { lat: 12.9130, lng: 79.1355 },
+      { lat: 12.9242, lng: 79.1348 },
+      { lat: 12.9165, lng: 79.1315 },
+      { lat: 12.8712, lng: 79.1400 }
+    ]
+  }
+};
+

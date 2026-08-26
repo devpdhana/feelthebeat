@@ -103,7 +103,7 @@ export default function Hero() {
           className="mt-4 flex flex-col sm:flex-row gap-3 w-full sm:w-auto"
         >
           <Button
-            onClick={scrollToOverview}
+            href="/register"
             variant="primary"
             className="px-8"
           >

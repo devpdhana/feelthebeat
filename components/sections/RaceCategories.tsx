@@ -13,11 +13,11 @@ export default function RaceCategories() {
       <div className="absolute inset-0 telemetry-grid opacity-[0.03] pointer-events-none z-0" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Title */}
         <div className="mb-16 flex flex-col items-center text-center gap-2">
           <span className="font-mono text-xs tracking-[0.35em] text-white-default font-semibold">
-            [04] TIER_REGISTRY
+            TIER REGISTRY
           </span>
           <h2 className="font-display text-3xl font-black uppercase tracking-tight text-white-default md:text-5xl">
             RACE CATEGORIES & LOGISTICS
@@ -55,7 +55,7 @@ export default function RaceCategories() {
                 <h3 className="font-display text-2xl font-black uppercase tracking-tight text-white-default mt-1 group-hover:text-brand-primary transition-colors">
                   {category.name}
                 </h3>
-                
+
                 {/* Distance display with custom gradient styling */}
                 <div className={`text-4xl font-display font-black tracking-tighter bg-gradient-to-r ${category.gradientFrom} ${category.gradientTo} bg-clip-text text-transparent mt-2`}>
                   {category.distance}

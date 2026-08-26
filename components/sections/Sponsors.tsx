@@ -31,7 +31,7 @@ export default function Sponsors() {
         {/* Section title */}
         <div className="mb-12 flex flex-col items-center text-center gap-2">
           <span className="font-mono text-xs tracking-[0.35em] text-brand-primary font-semibold">
-            [06] PARTNERS_NETWORK
+            PARTNERS NETWORK
           </span>
           <h2 className="font-display text-2xl font-black uppercase tracking-tight text-default md:text-4xl">
             SPONSORS & BRAND COLLABORATORS

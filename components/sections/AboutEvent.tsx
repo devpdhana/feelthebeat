@@ -66,17 +66,15 @@ export default function AboutEvent() {
 
           {/* Image Column with Parallax Frame */}
           <div className="lg:col-span-5 relative">
-            <div className="relative aspect-[3/4] w-full overflow-hidden border border-white/8 bg-[#111111] rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
-              {/* Parallax Container */}
-              <motion.div style={{ y: yParallax }} className="absolute -top-[15%] left-0 w-full h-[130%]">
-                <Image
-                  src="https://images.unsplash.com/photo-1486218119243-13883505764c?q=80&w=800&auto=format&fit=crop"
-                  alt="Vellore Fort Running prep"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover brightness-75 contrast-125 filter grayscale hover:grayscale-0 transition-all duration-700"
-                />
-              </motion.div>
+            <div className="relative w-full border border-white/8 bg-[#111111] rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+              <Image
+                src="/images/about/about-event.png"
+                alt="Feel The Beat Run 2026"
+                width={1200}
+                height={800}
+                className="w-full h-auto object-contain rounded-[20px]"
+                priority
+              />
 
               {/* HUD corner borders */}
               <div className="absolute top-4 left-4 font-mono text-[9px] text-muted-white bg-[#111111]/85 px-2 py-1 backdrop-blur-sm border border-white/8 rounded">

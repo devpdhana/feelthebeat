@@ -2,22 +2,16 @@
 
 import { useState } from "react";
 import { routesData, RouteData, CheckpointNode, RouteCheckpointDisplay } from "@/data/routes";
-import Card from "@/components/ui/Card";
+import RouteMap from "@/components/maps/RouteMap";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RouteInformation() {
   const [selectedRoute, setSelectedRoute] = useState<RouteData>(routesData[2]); // Default 10K
   const [selectedNode, setSelectedNode] = useState<CheckpointNode>(routesData[2].checkpoints[0]);
-  const [zoomLevel, setZoomLevel] = useState(1);
 
   const handleRouteSelect = (route: RouteData) => {
     setSelectedRoute(route);
     setSelectedNode(route.checkpoints[0]);
-    setZoomLevel(1); // Reset zoom
-  };
-
-  const handleZoom = () => {
-    setZoomLevel(zoomLevel === 1 ? 1.3 : 1);
   };
 
   const getCheckpointState = (idx: number) => {
@@ -33,6 +27,12 @@ export default function RouteInformation() {
     }
   };
 
+  const getRouteType = (routeId: string): "2km" | "5km" | "10km" => {
+    if (routeId.includes("2k")) return "2km";
+    if (routeId.includes("5k")) return "5km";
+    return "10km";
+  };
+
   return (
     <section
       id="route"
@@ -41,12 +41,12 @@ export default function RouteInformation() {
       <div className="absolute inset-0 telemetry-grid opacity-[0.03] pointer-events-none z-0" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Title Section */}
         <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="flex flex-col gap-2">
             <span className="font-mono text-xs tracking-[0.35em] text-white-default font-semibold">
-              [05] NAVIGATIONAL_MAP
+              NAVIGATIONAL MAP
             </span>
             <h2 className="font-display text-3xl font-black uppercase tracking-tight text-white-default md:text-5xl">
               ROUTE DIRECTIVES
@@ -57,11 +57,11 @@ export default function RouteInformation() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+
           {/* Controls & Stepper Column (Left Side) */}
           <div className="lg:col-span-5 flex flex-col">
-            
+
             {/* Route Tab Selectors */}
             <div className="flex gap-2 border-b border-white/10 pb-6 mb-8 w-full">
               {routesData.map((route: RouteData) => {
@@ -71,11 +71,10 @@ export default function RouteInformation() {
                     suppressHydrationWarning
                     key={route.id}
                     onClick={() => handleRouteSelect(route)}
-                    className={`flex-1 py-3 px-4 text-center font-display text-xs font-black uppercase tracking-widest border transition-all duration-300 active:scale-95 cursor-pointer relative rounded-lg ${
-                      isActive
+                    className={`flex-1 py-3 px-4 text-center font-display text-xs font-black uppercase tracking-widest border transition-all duration-300 active:scale-95 cursor-pointer relative rounded-lg ${isActive
                         ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm"
                         : "bg-[#111111] border-white/12 text-muted-white hover:text-brand-primary hover:border-brand-primary/30 shadow-sm"
-                    }`}
+                      }`}
                   >
                     {isActive && (
                       <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#1E90FF]" />
@@ -122,7 +121,7 @@ export default function RouteInformation() {
                   {selectedRoute.checkpointsList.map((cp: RouteCheckpointDisplay, idx: number) => {
                     const state = getCheckpointState(idx);
                     const isSelected = state === "active";
-                    
+
                     return (
                       <div
                         key={idx}
@@ -175,9 +174,8 @@ export default function RouteInformation() {
                           <span className="font-mono text-[9px] tracking-wider text-muted-white">
                             CHECKPOINT {String(idx + 1).padStart(2, "0")}
                           </span>
-                          <span className={`font-display text-base font-bold transition-colors ${
-                            isSelected ? "text-brand-primary" : "text-white-default group-hover:text-brand-primary"
-                          }`}>
+                          <span className={`font-display text-base font-bold transition-colors ${isSelected ? "text-brand-primary" : "text-white-default group-hover:text-brand-primary"
+                            }`}>
                             {cp.location}
                           </span>
                         </div>
@@ -189,129 +187,9 @@ export default function RouteInformation() {
             </AnimatePresence>
           </div>
 
-          {/* Interactive SVG Telemetry Vector Map (Right Side) */}
-          <div className="lg:col-span-7 flex flex-col gap-4">
-            <Card className="relative overflow-hidden aspect-[4/3] w-full flex items-center justify-center" hoverEffect={false} dark={true}>
-              
-              {/* Zoom control toggle */}
-              <button
-                suppressHydrationWarning
-                onClick={handleZoom}
-                className="absolute top-4 right-4 z-20 font-mono text-[9px] border border-white/12 px-3 py-1.5 bg-[#111111] text-white-default hover:border-brand-primary hover:text-brand-primary transition-all uppercase cursor-pointer shadow-sm rounded"
-              >
-                ZOOM: {zoomLevel === 1 ? "1.0X" : "1.3X"}
-              </button>
-
-              {/* Live coordinates telemetry banner */}
-              <div className="absolute bottom-4 left-4 z-20 font-mono text-[8px] text-muted-white flex flex-col gap-0.5 bg-[#111111]/90 p-2 border border-white/12 rounded shadow-sm">
-                <span>TARGET_SYS: AFLI_FTB_GRID</span>
-                <span className="text-brand-primary font-bold">NODE: {selectedNode.name.toUpperCase()}</span>
-                <span>COORD_MAP: {selectedNode.coordinates.x}X, {selectedNode.coordinates.y}Y</span>
-              </div>
-
-              {/* Vector Map Container */}
-              <motion.div
-                animate={{ scale: zoomLevel }}
-                transition={{ duration: 0.4 }}
-                className="w-full h-full p-8 flex items-center justify-center"
-              >
-                <svg
-                  viewBox="0 0 600 450"
-                  className="w-full h-full max-h-[350px] opacity-85"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  {/* Decorative background radar circles */}
-                  <circle cx="300" cy="225" r="200" stroke="rgba(30, 144, 255, 0.12)" strokeWidth="1" strokeDasharray="5 5" />
-                  <circle cx="300" cy="225" r="120" stroke="rgba(30, 144, 255, 0.12)" strokeWidth="1" />
-
-                  {/* Grid Lines */}
-                  <line x1="0" y1="225" x2="600" y2="225" stroke="rgba(30, 144, 255, 0.12)" strokeWidth="1" />
-                  <line x1="300" y1="0" x2="300" y2="450" stroke="rgba(30, 144, 255, 0.12)" strokeWidth="1" />
-
-                  {/* Static trace path background */}
-                  <path
-                    d={selectedRoute.mapPath}
-                    stroke="rgba(30, 144, 255, 0.15)"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-
-                  {/* Animated Active Course Loop Overlay (Draws path from 0 to 1 on route switch) */}
-                  <motion.path
-                    key={selectedRoute.id}
-                    d={selectedRoute.mapPath}
-                    stroke="#1E90FF"
-                    strokeWidth="3.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 2.0, ease: "easeInOut" }}
-                  />
-
-                  {/* Interactive checkpoint markers */}
-                  {selectedRoute.checkpoints.map((checkpoint: CheckpointNode, checkpointIdx: number) => {
-                    const isSelected = selectedNode.name === checkpoint.name;
-                    const isStartOrFinish = checkpointIdx === 0 || checkpointIdx === selectedRoute.checkpoints.length - 1;
-
-                    return (
-                      <g key={checkpointIdx} className="cursor-pointer" onClick={() => setSelectedNode(checkpoint)}>
-                        {/* Glowing active node outer circle */}
-                        {isSelected && (
-                          <motion.circle
-                            cx={checkpoint.coordinates.x}
-                            cy={checkpoint.coordinates.y}
-                            r="14"
-                            fill="rgba(30, 144, 255, 0.2)"
-                            stroke="#1E90FF"
-                            strokeWidth="1"
-                            animate={{ scale: [1, 1.4, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          />
-                        )}
-
-                        {/* Start/Finish markers glowing pulse (always active) */}
-                        {isStartOrFinish && !isSelected && (
-                          <motion.circle
-                            cx={checkpoint.coordinates.x}
-                            cy={checkpoint.coordinates.y}
-                            r="10"
-                            fill="rgba(255, 90, 0, 0.15)"
-                            stroke="#FF5A00"
-                            strokeWidth="1"
-                            animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          />
-                        )}
-
-                        {/* Node point marker dot */}
-                        <circle
-                          cx={checkpoint.coordinates.x}
-                          cy={checkpoint.coordinates.y}
-                          r={isSelected ? "6" : isStartOrFinish ? "5" : "3.5"}
-                          fill={isSelected ? "#1E90FF" : isStartOrFinish ? "#FF5A00" : "#FFFFFF"}
-                          className="transition-all duration-300"
-                        />
-
-                        {/* Hover tag label text */}
-                        <text
-                          x={checkpoint.coordinates.x + 10}
-                          y={checkpoint.coordinates.y - 10}
-                          fill={isSelected ? "#1E90FF" : isStartOrFinish ? "rgba(255, 90, 0, 0.8)" : "#D1D5DB"}
-                          fontSize="9"
-                          fontFamily="monospace"
-                          fontWeight={isSelected ? "bold" : "normal"}
-                        >
-                          {checkpoint.mileage}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-              </motion.div>
-            </Card>
+          {/* Interactive Route Map (Right Side) */}
+          <div className="lg:col-span-7 flex flex-col w-full min-h-[350px] md:min-h-[400px]">
+            <RouteMap routeType={getRouteType(selectedRoute.id)} />
           </div>
         </div>
       </div>

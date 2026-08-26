@@ -16,7 +16,7 @@ export const navLinks: NavLink[] = [
 ];
 
 export const registrationConfig = {
-  registerUrl: "https://www.feelthebeatrun2026.com/register",
+  registerUrl: "/register",
   learnMoreUrl: "#about",
   ctaText: "REGISTER NOW",
 };

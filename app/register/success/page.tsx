@@ -5,13 +5,23 @@ import { Suspense } from "react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { jsPDF } from "jspdf";
+import { raceCategories } from "@/data/events";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const regNo = searchParams.get("regNo") || "FTB2026-000000";
   const name = searchParams.get("name") || "Runner";
   const category = searchParams.get("category") || "10 KM Run";
+  const schoolName = searchParams.get("schoolName") || "";
   const paymentId = searchParams.get("paymentId") || "pay_mockid";
+
+  const matchedCategory = raceCategories.find(
+    (c) =>
+      c.name.toLowerCase() === category.toLowerCase() ||
+      c.id.toLowerCase() === category.toLowerCase()
+  );
+  const startTime = matchedCategory?.startTime || "6:30 AM";
+  const formattedStartTime = startTime.length === 7 ? `0${startTime}` : startTime;
 
   const downloadPDF = () => {
     const doc = new jsPDF();
@@ -65,7 +75,7 @@ function SuccessContent() {
     doc.setTextColor(95, 99, 104);
     doc.text("START TIME:", 20, 134);
     doc.setTextColor(9, 14, 19);
-    doc.text("06:30 AM", 75, 134);
+    doc.text(formattedStartTime, 75, 134);
 
     doc.setTextColor(95, 99, 104);
     doc.text("VENUE LOCATION:", 20, 147);
@@ -77,10 +87,7 @@ function SuccessContent() {
     doc.setTextColor(0, 180, 100); // Darker Green for white contrast
     doc.text("PAID", 75, 160);
 
-    doc.setTextColor(95, 99, 104);
-    doc.text("TRANSACTION ID:", 20, 173);
-    doc.setTextColor(9, 14, 19);
-    doc.text(paymentId, 75, 173);
+
 
     doc.line(20, 185, 190, 185);
 
@@ -126,6 +133,12 @@ function SuccessContent() {
             <span>RACE CATEGORY:</span>
             <span className="text-default font-semibold">{category.toUpperCase()}</span>
           </div>
+          {schoolName && (
+            <div className="flex justify-between">
+              <span>SCHOOL NAME:</span>
+              <span className="text-default font-semibold">{schoolName.toUpperCase()}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>EVENT DATE:</span>
             <span className="text-default font-semibold">27 SEPTEMBER 2026</span>
@@ -136,7 +149,7 @@ function SuccessContent() {
           </div>
           <div className="flex justify-between">
             <span>START TIME:</span>
-            <span className="text-default font-semibold">6:30 AM</span>
+            <span className="text-default font-semibold">{startTime}</span>
           </div>
           <div className="flex justify-between">
             <span>PAYMENT STATUS:</span>

@@ -64,6 +64,14 @@ export default function EventHighlights() {
                 <div className="font-mono text-2xl font-black tracking-tight text-brand-primary">
                   {category.distance}
                 </div>
+                <div className="mt-4">
+                  <span className="font-mono text-[9px] tracking-widest text-muted-default uppercase block">
+                    REGISTRATION FEE
+                  </span>
+                  <span className="text-lg font-bold text-brand-primary">
+                    ₹{category.fee}
+                  </span>
+                </div>
                 <p className="text-xs text-muted-default leading-relaxed mt-4">
                   {category.description}
                 </p>

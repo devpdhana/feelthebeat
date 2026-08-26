@@ -16,7 +16,7 @@ export const sponsors: Sponsor[] = [
     id: 2,
     name: "VRG Cement Marketing",
     role: "Title Sponsor",
-    logo: "/images/sponsors/vrg.png",
+    logo: "/images/sponsors/vrg.jpeg",
   },
   {
     id: 3,

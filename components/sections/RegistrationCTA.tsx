@@ -28,7 +28,7 @@ export default function RegistrationCTA() {
 
       <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-6">
         <span className="font-mono text-xs tracking-[0.35em] text-brand-primary font-semibold">
-          [10] END_OF_MISSION_RECON
+          END OF MISSION RECON
         </span>
 
         <h2 className="font-display text-4xl sm:text-6xl font-black uppercase tracking-tighter text-default leading-none">
@@ -58,7 +58,7 @@ export default function RegistrationCTA() {
         {/* CTA Button */}
         <motion.div whileHover={{ scale: 1.05 }} className="mt-4">
           <Button
-            onClick={scrollToOverview}
+            href="/register"
             variant="primary"
             className="px-10 py-4 text-sm font-black"
           >

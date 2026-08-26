@@ -3,9 +3,15 @@ import { supabaseAdmin } from "@/lib/supabase";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { racePrices } from "@/data/registrationConfig";
+import { raceCategories } from "@/data/events";
 
 async function sendConfirmationEmail(registration: any, categoryName: string) {
   try {
+    const matchedCategory = raceCategories.find(
+      (c) => c.name.toLowerCase() === categoryName.toLowerCase()
+    );
+    const startTime = matchedCategory?.startTime || "6:30 AM";
+
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.mailtrap.io",
       port: Number(process.env.SMTP_PORT) || 2525,
@@ -36,13 +42,19 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">RACE CATEGORY:</td>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">${categoryName.toUpperCase()}</td>
             </tr>
+            ${registration.school_name ? `
+            <tr>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">SCHOOL NAME:</td>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">${registration.school_name.toUpperCase()}</td>
+            </tr>
+            ` : ""}
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">EVENT DATE:</td>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">SUNDAY, SEPTEMBER 27, 2026</td>
             </tr>
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">START TIME:</td>
-              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">06:30 AM</td>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">${startTime}</td>
             </tr>
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">VENUE:</td>
@@ -73,53 +85,33 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
   }
 }
 
-async function sendConfirmationSMS(registration: any, categoryName: string) {
-  try {
-    const textMsg = `Hi ${registration.full_name},
+import { sendRegistrationSMS } from "@/lib/sms";
+import { sendRegistrationWhatsApp } from "@/lib/whatsapp";
 
-Your registration for Feel The Beat Run 2026 has been successfully confirmed.
+const VENUE_ADDRESSES: Record<string, string> = {
+  School: "Ezhil Nagar Main Rd, Ezhil Nagar, Krishna Nagar, RV Nagar, Vellore, Tamil Nadu 632002.",
+  marathonlocation: "Deboer ground,Vellore, Tamil Nadu 632001.",
+  Gopalapuram: "D.A.V. Boys Senior Secondary School, Gopalapuram, Chennai.",
+  Mogappair: "D.A.V. Boys Senior Secondary School, Mogappair, Chennai.",
+  Pallikaranai: "D.A.V. School, Pallikaranai,\nMaxworth Nagar,\nKovilambakkam,\nChennai-600100.",
+};
 
-Registration No:
-${registration.registration_number}
-
-Category:
-${categoryName}
-
-Date:
-27 September 2026
-
-Venue:
-Vellore
-
-Start Time:
-6:30 AM
-
-Payment:
-Successful
-
-Thank you for registering.
-
-Team Feel The Beat`;
-
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-      const client = require("twilio")(
-        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_AUTH_TOKEN
-      );
-      await client.messages.create({
-        body: textMsg,
-        to: registration.mobile,
-        from: process.env.TWILIO_PHONE_NUMBER || "",
-      });
-    } else {
-      console.log("------------------- MOCK SMS OUT -------------------");
-      console.log(textMsg);
-      console.log("----------------------------------------------------");
-    }
-  } catch (err) {
-    console.error("SMS notification warning:", err);
-  }
-}
+const ALLOWED_VENUES = ["School", "marathonlocation", "Gopalapuram", "Mogappair", "Pallikaranai"];
+const ALLOWED_DAV_MEMBER = ["Yes", "No"];
+const ALLOWED_DAV_FAMILY_TYPES = [
+  "Student",
+  "Parent",
+  "Staff / Teacher",
+  "Alumni",
+  "Family Member",
+];
+const ALLOWED_HEAR_ABOUT = [
+  "Social Media",
+  "Ambassadors",
+  "Through friends of friends",
+  "Offline platforms (Banners/posters)",
+  "None of the above",
+];
 
 export async function POST(req: Request) {
   try {
@@ -129,6 +121,7 @@ export async function POST(req: Request) {
       razorpay_order_id,
       razorpay_signature,
       raceCategory,
+      schoolName,
       fullName,
       mobile,
       email,
@@ -145,6 +138,11 @@ export async function POST(req: Request) {
       disabilityStatus,
       timingCertificate,
     } = body;
+
+    const tshirt_bib_venue = (body.tshirt_bib_venue || body.tshirtBibVenue || "").trim();
+    const dav_family_member = (body.dav_family_member || body.davFamilyMember || "").trim();
+    const dav_family_type = (body.dav_family_type || body.davFamilyType || "").trim();
+    const dav_hear_about = (body.dav_hear_about || body.davHearAbout || "").trim();
 
     // 1. Verify payment signature
     const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "mocksecret");
@@ -165,6 +163,46 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Backend Validation for new fields
+    if (!tshirt_bib_venue || !ALLOWED_VENUES.includes(tshirt_bib_venue)) {
+      return NextResponse.json(
+        { message: "Invalid or missing T-Shirt & Bib distribution venue selection." },
+        { status: 400 }
+      );
+    }
+
+    if (!dav_family_member || !ALLOWED_DAV_MEMBER.includes(dav_family_member)) {
+      return NextResponse.json(
+        { message: "Invalid or missing D.A.V Family selection." },
+        { status: 400 }
+      );
+    }
+
+    let finalDavFamilyType: string | null = null;
+    let finalDavHearAbout: string | null = null;
+
+    if (dav_family_member === "Yes") {
+      if (!dav_family_type || !ALLOWED_DAV_FAMILY_TYPES.includes(dav_family_type)) {
+        return NextResponse.json(
+          { message: "Invalid or missing D.A.V Family type selection." },
+          { status: 400 }
+        );
+      }
+      finalDavFamilyType = dav_family_type;
+      finalDavHearAbout = null;
+    } else if (dav_family_member === "No") {
+      if (!dav_hear_about || !ALLOWED_HEAR_ABOUT.includes(dav_hear_about)) {
+        return NextResponse.json(
+          { message: "Invalid or missing 'How did you hear' selection." },
+          { status: 400 }
+        );
+      }
+      finalDavFamilyType = null;
+      finalDavHearAbout = dav_hear_about;
+    }
+
+    const finalTshirtVenueAddress = VENUE_ADDRESSES[tshirt_bib_venue] || "";
 
     // 2. Fetch payment record
     const { data: paymentLog, error: payGetError } = await supabaseAdmin
@@ -216,7 +254,13 @@ export async function POST(req: Request) {
         dob: dob,
         gender,
         race_category: priceObj.name,
+        school_name: raceCategory === "2km-kids" && schoolName && schoolName.trim() ? schoolName.trim() : null,
         tshirt_size: tshirtSize,
+        tshirt_bib_venue: tshirt_bib_venue,
+        tshirt_bib_venue_address: finalTshirtVenueAddress,
+        dav_family_member: dav_family_member,
+        dav_family_type: finalDavFamilyType,
+        dav_hear_about: finalDavHearAbout,
         emergency_name: emergencyContactName.trim(),
         emergency_mobile: emergencyContactNumber.trim(),
         blood_group: bloodGroup,
@@ -253,9 +297,85 @@ export async function POST(req: Request) {
       // Fail-safe audit logging could go here
     }
 
-    // 6. Trigger communications asynchronously
+    const runnerDetails = {
+      id: registration.id,
+      full_name: registration.full_name,
+      mobile: registration.mobile,
+      registration_number: registration.registration_number,
+      race_category: priceObj.name,
+      payment_amount: registration.payment_amount,
+      tshirt_bib_venue: registration.tshirt_bib_venue,
+      tshirt_bib_venue_address: registration.tshirt_bib_venue_address,
+    };
+
+    // 6. Trigger SMS notification (Independent execution)
+    try {
+      const smsResult = await sendRegistrationSMS(runnerDetails);
+
+      try {
+        if (smsResult.success) {
+          await supabaseAdmin
+            .from("registrations")
+            .update({
+              sms_sent: true,
+              sms_sent_at: new Date().toISOString(),
+              sms_message_id: smsResult.messageId || null,
+              sms_status: "SENT",
+              sms_error: null,
+            })
+            .eq("id", registration.id);
+        } else {
+          await supabaseAdmin
+            .from("registrations")
+            .update({
+              sms_sent: false,
+              sms_status: "FAILED",
+              sms_error: smsResult.error || "SMS provider failed to deliver",
+            })
+            .eq("id", registration.id);
+        }
+      } catch (dbErr) {
+        console.warn("Could not save SMS tracking columns to database:", dbErr);
+      }
+    } catch (smsErr: any) {
+      console.error("SMS notification processing exception:", smsErr);
+    }
+
+    // 7. Trigger WhatsApp notification (Independent execution)
+    try {
+      const waResult = await sendRegistrationWhatsApp(runnerDetails);
+
+      try {
+        if (waResult.success) {
+          await supabaseAdmin
+            .from("registrations")
+            .update({
+              whatsapp_sent: true,
+              whatsapp_sent_at: new Date().toISOString(),
+              whatsapp_message_id: waResult.messageId || null,
+              whatsapp_status: "SENT",
+              whatsapp_error: null,
+            })
+            .eq("id", registration.id);
+        } else {
+          await supabaseAdmin
+            .from("registrations")
+            .update({
+              whatsapp_sent: false,
+              whatsapp_status: "FAILED",
+              whatsapp_error: waResult.error || "WhatsApp provider failed to deliver",
+            })
+            .eq("id", registration.id);
+        }
+      } catch (dbErr) {
+        console.warn("Could not save WhatsApp tracking columns to database:", dbErr);
+      }
+    } catch (waErr: any) {
+      console.error("WhatsApp notification processing exception:", waErr);
+    }
+
+    // 8. Trigger Email notification asynchronously
     await sendConfirmationEmail(registration, priceObj.name);
-    await sendConfirmationSMS(registration, priceObj.name);
 
     return NextResponse.json({
       success: true,

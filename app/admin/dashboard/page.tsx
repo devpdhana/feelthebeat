@@ -28,12 +28,18 @@ interface RegistrationItem {
   registrationNumber: string;
   fullName: string;
   raceCategory: string;
+  schoolName?: string | null;
   mobile: string;
   email: string;
   gender: string;
   age: number;
   dob: string;
   tshirtSize: string;
+  tshirtBibVenue?: string;
+  tshirtBibVenueAddress?: string;
+  davFamilyMember?: string;
+  davFamilyType?: string;
+  davHearAbout?: string;
   bloodGroup: string;
   medicalCondition: string;
   emergencyContactName: string;
@@ -41,9 +47,20 @@ interface RegistrationItem {
   nationality: string;
   firstTimeRunner: string;
   runningClub: string;
-  disabilityStatus: string;
-  timingCertificate: string;
+  disabilityStatus?: string;
+  timingCertificate?: string;
   paymentStatus: string;
+  paymentAmount?: number;
+  smsSent?: boolean;
+  smsSentAt?: string | null;
+  smsStatus?: string;
+  smsMessageId?: string | null;
+  smsError?: string | null;
+  whatsappSent?: boolean;
+  whatsappSentAt?: string | null;
+  whatsappStatus?: string;
+  whatsappMessageId?: string | null;
+  whatsappError?: string | null;
   razorpayPaymentId: string;
   orderId: string;
   signature: string;
@@ -188,18 +205,93 @@ export default function AdminDashboard() {
     }
   };
 
+  const [resendingSms, setResendingSms] = useState(false);
+  const [resendSmsMessage, setResendSmsMessage] = useState<string | null>(null);
+  const [resendingWa, setResendingWa] = useState(false);
+  const [resendWaMessage, setResendWaMessage] = useState<string | null>(null);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     router.push("/admin/login");
   };
 
+  const handleResendSMS = async (id: string) => {
+    try {
+      setResendingSms(true);
+      setResendSmsMessage(null);
+      const token = await getAuthToken();
+      const res = await fetch(`/api/admin/registration/${id}/resend-sms`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendSmsMessage("SMS dispatched successfully!");
+        if (activeReg) {
+          setActiveReg({
+            ...activeReg,
+            smsSent: true,
+            smsStatus: "SENT",
+            smsSentAt: data.smsSentAt || new Date().toISOString(),
+            smsMessageId: data.messageId || activeReg.smsMessageId,
+            smsError: null,
+          });
+        }
+        fetchRegistrations();
+      } else {
+        setResendSmsMessage(`Failed: ${data.message || "Could not send SMS"}`);
+      }
+    } catch (err: any) {
+      setResendSmsMessage(`Error: ${err.message || "Failed to resend SMS"}`);
+    } finally {
+      setResendingSms(false);
+    }
+  };
+
+  const handleResendWhatsApp = async (id: string) => {
+    try {
+      setResendingWa(true);
+      setResendWaMessage(null);
+      const token = await getAuthToken();
+      const res = await fetch(`/api/admin/registration/${id}/resend-whatsapp`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendWaMessage("WhatsApp message dispatched successfully!");
+        if (activeReg) {
+          setActiveReg({
+            ...activeReg,
+            whatsappSent: true,
+            whatsappStatus: "SENT",
+            whatsappSentAt: data.whatsappSentAt || new Date().toISOString(),
+            whatsappMessageId: data.messageId || activeReg.whatsappMessageId,
+            whatsappError: null,
+          });
+        }
+        fetchRegistrations();
+      } else {
+        setResendWaMessage(`Failed: ${data.message || "Could not send WhatsApp"}`);
+      }
+    } catch (err: any) {
+      setResendWaMessage(`Error: ${err.message || "Failed to resend WhatsApp"}`);
+    } finally {
+      setResendingWa(false);
+    }
+  };
+
   const exportToExcel = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Registration Number,Full Name,Email,Mobile,Category,Payment Status,T-Shirt Size,Blood Group\n";
+    csvContent += "Registration Number,Full Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,SMS Status,WhatsApp Status,Blood Group\n";
 
     registrations.forEach((reg) => {
-      csvContent += `"${reg.registrationNumber}","${reg.fullName}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.paymentStatus}","${reg.tshirtSize}","${reg.bloodGroup}"\n`;
+      csvContent += `"${reg.registrationNumber}","${reg.fullName}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.smsStatus || (reg.smsSent ? "SENT" : "NOT_SENT")}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -212,10 +304,10 @@ export default function AdminDashboard() {
   const exportToCSV = () => {
     try {
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "Registration Number,Full Name,Email,Mobile,Category,Payment Status,T-Shirt Size,Blood Group\n";
+      csvContent += "Registration Number,Full Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,SMS Status,WhatsApp Status,Blood Group\n";
 
       registrations.forEach((reg) => {
-        csvContent += `"${reg.registrationNumber}","${reg.fullName}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.paymentStatus}","${reg.tshirtSize}","${reg.bloodGroup}"\n`;
+        csvContent += `"${reg.registrationNumber}","${reg.fullName}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.smsStatus || (reg.smsSent ? "SENT" : "NOT_SENT")}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
       });
 
       const link = document.createElement("a");
@@ -384,7 +476,10 @@ export default function AdminDashboard() {
                 className="bg-white border border-[#DCE8F8] px-3 py-1.5 text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase"
               >
                 <option value="">ALL CATEGORIES</option>
-                <option value="2 KM Fun Run">2 KM Fun Run</option>
+                <option value="2 KM Kids Fun Run">2 KM Kids Fun Run</option>
+                <option value="2 KM Adults Fun Run">2 KM Adults Fun Run</option>
+                <option value="2 KM Adult Run">2 KM Adult Run (Legacy)</option>
+                <option value="2 KM Kids Run">2 KM Kids Run (Legacy)</option>
                 <option value="5 KM Run">5 KM Run</option>
                 <option value="10 KM Run">10 KM Run</option>
               </select>
@@ -415,18 +510,19 @@ export default function AdminDashboard() {
                   <th className="py-3 px-2">CATEGORY</th>
                   <th className="py-3 px-2">MOBILE</th>
                   <th className="py-3 px-2">GENDER/AGE</th>
-                  <th className="py-3 px-2">PAYMENT STATUS</th>
+                  <th className="py-3 px-2">PAYMENT</th>
+                  <th className="py-3 px-2">SMS STATUS</th>
                   <th className="py-3 px-2 text-right">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-muted-default/40 uppercase"> RUNNING QUERY FOR TELEMETRY...</td>
+                    <td colSpan={8} className="py-8 text-center text-muted-default/40 uppercase"> RUNNING QUERY FOR TELEMETRY...</td>
                   </tr>
                 ) : registrations.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-muted-default/40 uppercase"> NO MATCHING ENTRIES FOUND</td>
+                    <td colSpan={8} className="py-8 text-center text-muted-default/40 uppercase"> NO MATCHING ENTRIES FOUND</td>
                   </tr>
                 ) : (
                   registrations.map((reg) => (
@@ -438,10 +534,20 @@ export default function AdminDashboard() {
                       <td className="py-3 px-2 text-muted-default">{reg.gender.toUpperCase()} / {reg.age} YRS</td>
                       <td className="py-3 px-2">
                         <span className={`px-2 py-0.5 border text-[9px] rounded font-bold ${reg.paymentStatus === "SUCCESSFUL"
-                            ? "border-green-500/30 text-green-600 bg-green-50"
-                            : "border-yellow-500/30 text-yellow-600 bg-yellow-50"
+                          ? "border-green-500/30 text-green-600 bg-green-50"
+                          : "border-yellow-500/30 text-yellow-600 bg-yellow-50"
                           }`}>
                           {reg.paymentStatus === "SUCCESSFUL" ? "PAID" : reg.paymentStatus}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className={`px-2 py-0.5 border text-[9px] rounded font-bold uppercase ${reg.smsStatus === "SENT" || reg.smsSent
+                          ? "border-green-500/30 text-green-600 bg-green-50"
+                          : reg.smsStatus === "FAILED"
+                            ? "border-red-500/30 text-red-600 bg-red-50"
+                            : "border-gray-400/30 text-gray-600 bg-gray-50"
+                          }`}>
+                          {reg.smsStatus === "SENT" || reg.smsSent ? "SENT" : reg.smsStatus === "FAILED" ? "FAILED" : "NOT SENT"}
                         </span>
                       </td>
                       <td className="py-3 px-2 text-right">
@@ -497,15 +603,31 @@ export default function AdminDashboard() {
       {/* Details drawer overlay / modal print setup */}
       <AnimatePresence>
         {activeReg && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="max-w-2xl w-full bg-white border border-brand-primary/12 p-6 md:p-8 relative max-h-[90vh] overflow-y-auto shadow-2xl rounded-2xl">
+          <div className="print-receipt-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="print-receipt-card max-w-2xl w-full bg-white border border-brand-primary/12 p-6 md:p-8 relative max-h-[90vh] overflow-y-auto shadow-2xl rounded-2xl">
 
               {/* Dynamic HUD decorators */}
               <span className="absolute top-0 left-0 w-2.5 h-[2px] bg-brand-primary print:hidden" />
               <span className="absolute top-0 left-0 w-[2px] h-2.5 bg-brand-primary print:hidden" />
 
               {/* Controls bar */}
-              <div className="flex justify-end gap-3 mb-6 print:hidden">
+              <div className="flex justify-end gap-2 mb-6 print:hidden flex-wrap">
+                <button
+                  onClick={() => handleResendSMS(activeReg.id)}
+                  disabled={resendingSms || activeReg.paymentStatus !== "SUCCESSFUL"}
+                  className="flex items-center gap-1 border border-brand-primary bg-brand-primary/10 hover:bg-brand-primary hover:text-white px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-brand-primary shadow-sm rounded disabled:opacity-40"
+                  title="Resend confirmation SMS"
+                >
+                  {resendingSms ? "SENDING SMS..." : "RESEND SMS"}
+                </button>
+                <button
+                  onClick={() => handleResendWhatsApp(activeReg.id)}
+                  disabled={resendingWa || activeReg.paymentStatus !== "SUCCESSFUL"}
+                  className="flex items-center gap-1 border border-green-600 bg-green-50 hover:bg-green-600 hover:text-white px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-green-700 shadow-sm rounded disabled:opacity-40"
+                  title="Resend confirmation WhatsApp"
+                >
+                  {resendingWa ? "SENDING WHATSAPP..." : "RESEND WHATSAPP"}
+                </button>
                 <button
                   onClick={printDetails}
                   className="flex items-center gap-1.5 border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary px-3 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-default bg-[#F8FAFD] shadow-sm rounded"
@@ -513,103 +635,163 @@ export default function AdminDashboard() {
                   <HiOutlinePrinter /> PRINT RECEIPT
                 </button>
                 <button
-                  onClick={() => setActiveReg(null)}
+                  onClick={() => { setActiveReg(null); setResendSmsMessage(null); setResendWaMessage(null); }}
                   className="border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary px-3 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-default bg-[#F8FAFD] shadow-sm rounded"
                 >
                   CLOSE
                 </button>
               </div>
 
+              {resendSmsMessage && (
+                <div className="mb-3 p-2.5 rounded text-xs font-mono border border-brand-primary/20 bg-brand-primary/5 text-brand-primary print:hidden">
+                  {resendSmsMessage}
+                </div>
+              )}
+              {resendWaMessage && (
+                <div className="mb-3 p-2.5 rounded text-xs font-mono border border-green-600/20 bg-green-50 text-green-700 print:hidden">
+                  {resendWaMessage}
+                </div>
+              )}
+
               {/* Printable receipt block */}
               <div className="flex flex-col gap-6 text-default">
-                <div className="border-b border-brand-primary/12 pb-4">
-                  <span className="font-mono text-[9px] text-brand-primary tracking-[0.2em] uppercase font-bold">
-                    TIER_REGISTRY_VOUCHER_METRICS
+                <div className="border-b-2 border-brand-primary/20 pb-4">
+                  <span className="font-mono text-[10px] text-brand-primary tracking-[0.2em] uppercase font-bold">
+                    FEEL THE BEAT RUN 2026
                   </span>
-                  <h3 className="font-display text-xl font-black uppercase text-default tracking-tight">
-                    RUNNER TELEMETRY LOG
+                  <h3 className="font-display text-xl font-black uppercase text-default tracking-tight mt-1">
+                    RUNNER REGISTRATION RECEIPT
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 font-mono text-xs">
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">REGISTRATION NO:</span>
+                <div className="print-receipt-grid grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 font-mono text-xs">
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">REGISTRATION NO:</span>
                     <span className="text-brand-primary font-bold">{activeReg.registrationNumber}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">RACE CATEGORY:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">RACE CATEGORY:</span>
                     <span className="text-default font-bold">{activeReg.raceCategory.toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">RUNNER NAME:</span>
+                  {activeReg.schoolName && (
+                    <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                      <span className="text-muted-default/60">SCHOOL NAME:</span>
+                      <span className="text-default font-bold">{activeReg.schoolName.toUpperCase()}</span>
+                    </div>
+                  )}
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">RUNNER NAME:</span>
                     <span className="text-default font-bold">{activeReg.fullName.toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">MOBILE NUMBER:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">MOBILE NUMBER:</span>
                     <span className="text-default font-bold">{activeReg.mobile}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">EMAIL ADDRESS:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">EMAIL ADDRESS:</span>
                     <span className="text-default font-bold lowercase">{activeReg.email}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">DATE OF BIRTH / AGE:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">DATE OF BIRTH / AGE:</span>
                     <span className="text-default font-bold">{activeReg.dob} / {activeReg.age} YRS</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">GENDER / T-SHIRT:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">GENDER / T-SHIRT:</span>
                     <span className="text-default font-bold">{activeReg.gender.toUpperCase()} / {activeReg.tshirtSize}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">BLOOD GROUP:</span>
+                  <div className="print-receipt-row print-receipt-col-2 flex justify-between border-b border-brand-primary/8 pb-2 col-span-1 md:col-span-2">
+                    <span className="text-muted-default/60">T-SHIRT &amp; BIB VENUE:</span>
+                    <span className="text-default font-bold">{activeReg.tshirtBibVenue || "N/A"} ({activeReg.tshirtBibVenueAddress || "N/A"})</span>
+                  </div>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">Sree Jayam FAMILY:</span>
+                    <span className="text-default font-bold">{activeReg.davFamilyMember || "N/A"}</span>
+                  </div>
+                  {activeReg.davFamilyMember === "Yes" ? (
+                    <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                      <span className="text-muted-default/60">FAMILY ROLE:</span>
+                      <span className="text-default font-bold">{activeReg.davFamilyType || "N/A"}</span>
+                    </div>
+                  ) : (
+                    <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                      <span className="text-muted-default/60">HOW HEARD ABOUT:</span>
+                      <span className="text-default font-bold">{activeReg.davHearAbout || "N/A"}</span>
+                    </div>
+                  )}
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">BLOOD GROUP:</span>
                     <span className="text-default font-bold">{activeReg.bloodGroup}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">MEDICAL CONDITIONS:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">MEDICAL CONDITIONS:</span>
                     <span className="text-default font-bold">{activeReg.medicalCondition.toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">EMERGENCY CONTACT:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">EMERGENCY CONTACT:</span>
                     <span className="text-default font-bold">{activeReg.emergencyContactName.toUpperCase()} ({activeReg.emergencyContactNumber})</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">NATIONALITY:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">NATIONALITY:</span>
                     <span className="text-default font-bold">{activeReg.nationality.toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">FIRST TIME RUNNER:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">FIRST TIME RUNNER:</span>
                     <span className="text-default font-bold">{activeReg.firstTimeRunner.toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">RUNNING CLUB:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">RUNNING CLUB:</span>
                     <span className="text-default font-bold">{activeReg.runningClub.toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">DISABILITY STATUS:</span>
-                    <span className="text-default font-bold">{activeReg.disabilityStatus.toUpperCase()}</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">DISABILITY STATUS:</span>
+                    <span className="text-default font-bold">{(activeReg.disabilityStatus || "NO").toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">TIMING CERTIFICATE:</span>
-                    <span className="text-default font-bold">{activeReg.timingCertificate.toUpperCase()}</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">TIMING CERTIFICATE:</span>
+                    <span className="text-default font-bold">{(activeReg.timingCertificate || "NO").toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/50">PAYMENT STATUS:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">PAYMENT STATUS:</span>
                     <span className="text-green-600 font-bold">{activeReg.paymentStatus}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-muted-default/50">RAZORPAY PAYMENT ID:</span>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">SMS NOTIFICATION:</span>
+                    <span className={`font-bold ${activeReg.smsStatus === "SENT" || activeReg.smsSent
+                      ? "text-green-600"
+                      : activeReg.smsStatus === "FAILED"
+                        ? "text-red-600"
+                        : "text-gray-500"
+                      }`}>
+                      {activeReg.smsStatus === "SENT" || activeReg.smsSent
+                        ? `SENT ${activeReg.smsSentAt ? `(${new Date(activeReg.smsSentAt).toLocaleString()})` : ""}`
+                        : activeReg.smsStatus === "FAILED"
+                          ? `FAILED ${activeReg.smsError ? `(${activeReg.smsError})` : ""}`
+                          : "NOT SENT"}
+                    </span>
+                  </div>
+                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
+                    <span className="text-muted-default/60">WHATSAPP NOTIFICATION:</span>
+                    <span className={`font-bold ${activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
+                      ? "text-green-600"
+                      : activeReg.whatsappStatus === "FAILED"
+                        ? "text-red-600"
+                        : "text-gray-500"
+                      }`}>
+                      {activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
+                        ? `SENT ${activeReg.whatsappSentAt ? `(${new Date(activeReg.whatsappSentAt).toLocaleString()})` : ""}`
+                        : activeReg.whatsappStatus === "FAILED"
+                          ? `FAILED ${activeReg.whatsappError ? `(${activeReg.whatsappError})` : ""}`
+                          : "NOT SENT"}
+                    </span>
+                  </div>
+
+                  <div className="print-receipt-row print-receipt-col-2 flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
+                    <span className="text-muted-default/60">RAZORPAY PAYMENT ID:</span>
                     <span className="text-default font-bold">{activeReg.razorpayPaymentId}</span>
                   </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-muted-default/50">ORDER ID:</span>
-                    <span className="text-default font-bold">{activeReg.orderId}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-muted-default/50">SIGNATURE MATCH:</span>
-                    <span className="text-default font-bold truncate max-w-sm">{activeReg.signature}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
-                    <span className="text-muted-default/50">REGISTRATION DATE:</span>
+
+                  <div className="print-receipt-row print-receipt-col-2 flex justify-between border-b border-brand-primary/8 pb-2 col-span-2">
+                    <span className="text-muted-default/60">REGISTRATION DATE:</span>
                     <span className="text-default font-bold">{activeReg.createdAt}</span>
                   </div>
                 </div>

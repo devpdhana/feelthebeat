@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Montserrat, Inter, Jost } from "next/font/google";
 import "../styles/globals.css";
 import SmoothScroll from "@/components/layout/SmoothScroll";
-import CustomCursor from "@/components/layout/CustomCursor";
 import { RegistrationProvider } from "@/components/layout/RegistrationContext";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -80,7 +79,6 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-brand-primary selection:text-black">
         <SmoothScroll>
           <RegistrationProvider>
-            <CustomCursor />
             <div className="min-h-screen flex flex-col">
               <Navbar />
               <main className="flex-1">

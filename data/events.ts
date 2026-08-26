@@ -12,19 +12,20 @@ export interface RaceCategory {
   gradientFrom: string;
   gradientTo: string;
   routeHighlights: string[];
+  fee: number;
 }
 
 export const raceCategories: RaceCategory[] = [
   {
-    id: "2km",
-    name: "2 KM Fun Run",
+    id: "2km-kids",
+    name: "2 KM Kids Fun Run",
     distance: "2 KM",
     description:
-      "Perfect for children, beginners, and families participating in Feel The Beat Run 2026.",
+      "Designed exclusively for children to encourage healthy habits, active lifestyles, and participation in World Heart Day. A safe and enjoyable run for young participants.",
     startTime: "6:30 AM",
     cutoffTime: "7:30 AM",
-    ageLimit: "8 – 17 Years",
-    eligibility: "Adults Only",
+    ageLimit: "8 – 16 Years",
+    eligibility: "Kids Only",
     gradientFrom: "from-cyan-400",
     gradientTo: "to-blue-500",
     routeHighlights: [
@@ -32,17 +33,19 @@ export const raceCategories: RaceCategory[] = [
       "Sree Jayam School",
       "Deboer Ground",
     ],
+    fee: 1,
   },
   {
-    id: "2km-kids",
-    name: "2 KM Kids Run",
+    id: "2km",
+    name: "2 KM Adults Fun Run",
     distance: "2 KM",
     description:
-      "Designed exclusively for children to encourage healthy habits, active lifestyles, and participation in World Heart Day. A safe and enjoyable run for young participants.",
+      "Perfect for beginners, adults, and families participating in Feel The Beat Run 2026.",
     startTime: "6:30 AM",
     cutoffTime: "7:30 AM",
-    ageLimit: "8 – 17 Years",
-    eligibility: "Kids Only",
+    fee: 199,
+    ageLimit: "8 – 17+ Years",
+    eligibility: "Adults Only",
     gradientFrom: "from-cyan-400",
     gradientTo: "to-blue-500",
     routeHighlights: [
@@ -57,7 +60,7 @@ export const raceCategories: RaceCategory[] = [
     distance: "5 KM",
     description:
       "Ideal for fitness enthusiasts and casual runners.",
-    startTime: "6:30 AM",
+    startTime: "6:00 AM",
     cutoffTime: "8:00 AM",
     ageLimit: "14+ Years",
     gradientFrom: "from-green-400",
@@ -68,6 +71,7 @@ export const raceCategories: RaceCategory[] = [
       "CHAD Hospital",
       "Deboer Ground",
     ],
+    fee: 299,
   },
   {
     id: "10km",
@@ -75,7 +79,7 @@ export const raceCategories: RaceCategory[] = [
     distance: "10 KM",
     description:
       "Designed for experienced runners looking for a greater challenge.",
-    startTime: "6:30 AM",
+    startTime: "5:30 AM",
     cutoffTime: "9:00 AM",
     ageLimit: "16+ Years",
     gradientFrom: "from-red-400",
@@ -89,6 +93,7 @@ export const raceCategories: RaceCategory[] = [
       "Raymond Shop",
       "Deboer Ground",
     ],
+    fee: 399,
   },
 ];
 
