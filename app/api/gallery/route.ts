@@ -41,10 +41,11 @@ export async function GET() {
           year: getYearFromFilename(baseName),
         };
       })
-      // Sort by newest modification time first
-      .sort((a, b) => b.mtime - a.mtime);
+      // Sort naturally by filename (gallery-1.png, gallery-2.png, ...)
+      .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 
     return NextResponse.json(images);
+
   } catch (error) {
     console.error("Failed to read gallery folder:", error);
     return NextResponse.json({ error: "Failed to load images" }, { status: 500 });

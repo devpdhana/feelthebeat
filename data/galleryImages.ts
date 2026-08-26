@@ -7,14 +7,14 @@ export interface GalleryImage {
 }
 
 export const galleryImageFiles = [
-  "ChatGPT Image Aug 4, 2026, 05_39_26 PM.png",
-  "ChatGPT Image Aug 4, 2026, 05_43_12 PM.png",
-  "ChatGPT Image Aug 4, 2026, 05_45_13 PM.png",
-  "ChatGPT Image Aug 5, 2026, 10_47_15 AM.png",
-  "ChatGPT Image Aug 5, 2026, 10_48_18 AM.png",
-  "ChatGPT Image Aug 5, 2026, 10_51_00 AM.png",
-  "ChatGPT Image Aug 5, 2026, 11_04_20 AM.png",
-  "ChatGPT Image Aug 5, 2026, 11_05_32 AM.png",
+  "gallery-1.png",
+  "gallery-2.png",
+  "gallery-3.png",
+  "gallery-4.png",
+  "gallery-5.png",
+  "gallery-6.png",
+  "gallery-7.png",
+  "gallery-8.png",
 ];
 
 // Helper function to generate clean descriptive titles from filenames
