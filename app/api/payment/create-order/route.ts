@@ -48,7 +48,8 @@ export async function POST(req: Request) {
       key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || "rzp_test_mockkey",
       key_secret: process.env.RAZORPAY_KEY_SECRET || "mocksecret",
     });
-
+    console.log("key-id", process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
+    console.log("key-secret", process.env.RAZORPAY_KEY_SECRET);
     // Create payment order
     const order = await instance.orders.create({
       amount: priceObj.fee * 100,
