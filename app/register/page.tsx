@@ -241,8 +241,8 @@ function RegisterForm() {
         },
       };
 
-      // const rzp = new window.Razorpay(options);
-      // rzp.open();
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err: any) {
       alert(err.message || "An error occurred during order generation.");
     } finally {
