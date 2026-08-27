@@ -178,7 +178,6 @@ function RegisterForm() {
       }
 
       // 2. Open Razorpay checkout options
-      let rzpInstance: any = null;
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_mockkey",
         amount: orderData.amount,
@@ -209,8 +208,7 @@ function RegisterForm() {
             const verifyData = await verifyRes.json();
 
             if (verifyRes.ok) {
-              // Close modal before navigating to avoid modal staying open in production
-              if (rzpInstance) rzpInstance.close();
+              // Redirect to success route
               router.push(
                 `/register/success?regNo=${verifyData.registrationNumber}&name=${encodeURIComponent(
                   formData.fullName
@@ -243,12 +241,8 @@ function RegisterForm() {
         },
       };
 
-      rzpInstance = new window.Razorpay(options);
-      rzpInstance.on("payment.failed", function (response: any) {
-        setLoading(false);
-        alert(response.error?.description || "Payment failed. Please try again.");
-      });
-      rzpInstance.open();
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err: any) {
       alert(err.message || "An error occurred during order generation.");
     } finally {
