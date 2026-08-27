@@ -24,4 +24,11 @@ export const sponsors: Sponsor[] = [
     role: "Technology Partner",
     logo: "/images/sponsors/man2web.png",
   },
+  {
+    id: 4,
+    name: "ARANI CMR",
+    role: "Gold Sponsor",
+    logo: "/images/sponsors/cmr-logo.png",
+  },
 ];
+

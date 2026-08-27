@@ -36,7 +36,7 @@ export default function EventHighlights() {
             </h2>
           </div>
           <p className="max-w-md font-mono text-xs leading-relaxed text-muted-default">
-            Engineered telemetry profiles for each category. Standard routes mapping the heart of Vellore's historic loop.
+            Engineered telemetry profiles for each category. Standard routes mapping the heart of Vellore&apos;s historic loop.
           </p>
         </div>
 

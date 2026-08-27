@@ -95,12 +95,6 @@ export default function AdminDashboard() {
   const [pagination, setPagination] = useState({ totalPages: 1, page: 1, limit: 10 });
   const [activeReg, setActiveReg] = useState<RegistrationItem | null>(null);
 
-  // Authenticated redirect checking
-  useEffect(() => {
-    fetchDashboardStats();
-    fetchRegistrations();
-  }, [category, paymentStatus, page]);
-
   const getAuthToken = () => {
     const match = document.cookie.match(/(^| )sb-access-token=([^;]+)/);
     return match ? match[2] : "";
@@ -151,14 +145,20 @@ export default function AdminDashboard() {
       }
 
       const data = await res.json();
-      setRegistrations(data.registrations || []);
-      setPagination(data.pagination);
+      setRegistrations(data.items || []);
+      setPagination(data.pagination || { totalPages: 1, page: 1, limit: 10 });
     } catch (err) {
-      console.error("Registrations query error:", err);
+      console.error("Registrations fetch error:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Authenticated redirect checking
+  useEffect(() => {
+    fetchDashboardStats();
+    fetchRegistrations();
+  }, [category, paymentStatus, page]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -383,7 +383,7 @@ export default function AdminDashboard() {
             <div className="font-display text-3xl font-black text-brand-primary">₹{stats.summary.totalRevenue}</div>
           </Card>
           <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TODAY'S REGISTRATIONS</span>
+            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TODAY&apos;S REGISTRATIONS</span>
             <div className="font-display text-3xl font-black text-default">{stats.summary.todayRegistrations}</div>
           </Card>
           <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">

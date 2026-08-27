@@ -34,7 +34,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-xs text-white/80 leading-relaxed">
-              Vellore's premier running event to promote healthy hearts and fitness. Held on World Heart Day, encouraging people of all ages to run together and support cardiovascular health.
+              Vellore&apos;s premier running event to promote healthy hearts and fitness. Held on World Heart Day, encouraging people of all ages to run together and support cardiovascular health.
             </p>
             {/* Social Icons */}
             <div className="flex items-center gap-3.5 mt-2">
