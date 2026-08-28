@@ -4,7 +4,14 @@ import { sendRegistrationSMS } from "@/lib/sms";
 
 async function authenticateAdmin(req: Request) {
   const authHeader = req.headers.get("Authorization");
-  const token = authHeader?.split(" ")[1];
+  let token = authHeader?.split(" ")[1];
+
+  if (!token || token === "undefined" || token === "null" || token === "") {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/(^| )sb-access-token=([^;]+)/);
+    token = match ? match[2] : undefined;
+  }
+
   if (!token) return null;
 
   try {

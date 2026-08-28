@@ -28,7 +28,9 @@ export default function AdminLoginPage() {
         setError(authError.message || "Invalid credentials.");
       } else {
         if (data?.session) {
-          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax; Secure`;
+          const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+          const secureFlag = isHttps ? "; Secure" : "";
+          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${data.session.expires_in}; SameSite=Lax${secureFlag}`;
         }
         router.push("/admin/dashboard");
       }

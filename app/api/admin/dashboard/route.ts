@@ -3,7 +3,14 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 async function authenticateAdmin(req: Request) {
   const authHeader = req.headers.get("Authorization");
-  const token = authHeader?.split(" ")[1];
+  let token = authHeader?.split(" ")[1];
+
+  if (!token || token === "undefined" || token === "null" || token === "") {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/(^| )sb-access-token=([^;]+)/);
+    token = match ? match[2] : undefined;
+  }
+
   if (!token) return null;
 
   try {
@@ -32,8 +39,8 @@ export async function GET(req: Request) {
       .select("amount, status");
 
     const totalRevenue = paymentsList
-      ?.filter((p) => p.status === "SUCCESSFUL")
-      .reduce((sum, p) => sum + p.amount, 0) || 0;
+      ?.filter((p) => (p.status || "").toLowerCase().includes("success") || (p.status || "").toLowerCase().includes("paid"))
+      .reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -43,8 +50,8 @@ export async function GET(req: Request) {
       .select("id", { count: "exact", head: true })
       .gte("created_at", startOfToday.toISOString());
 
-    const pendingPayments = paymentsList?.filter((p) => p.status === "PENDING").length || 0;
-    const successfulPayments = paymentsList?.filter((p) => p.status === "SUCCESSFUL").length || 0;
+    const pendingPayments = paymentsList?.filter((p) => (p.status || "").toLowerCase().includes("pending")).length || 0;
+    const successfulPayments = paymentsList?.filter((p) => (p.status || "").toLowerCase().includes("success") || (p.status || "").toLowerCase().includes("paid")).length || 0;
 
     // 2. Query categories distribution
     const { data: regsCategories } = await supabaseAdmin
@@ -62,14 +69,11 @@ export async function GET(req: Request) {
     }));
 
     // 3. Gender distribution
-    const genderMap: Record<string, number> = {};
-    regsCategories?.forEach((r: any) => {
-      // Fetching all fields to compute genders
-    });
     const { data: regsGenders } = await supabaseAdmin
       .from("registrations")
       .select("gender");
     
+    const genderMap: Record<string, number> = {};
     regsGenders?.forEach((r) => {
       const g = r.gender || "Unknown";
       genderMap[g] = (genderMap[g] || 0) + 1;
@@ -135,6 +139,7 @@ export async function GET(req: Request) {
     }));
 
     return NextResponse.json({
+      success: true,
       summary: {
         totalRegistrations: totalRegistrations || 0,
         totalRevenue,

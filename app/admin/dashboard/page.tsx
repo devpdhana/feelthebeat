@@ -88,6 +88,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
@@ -95,14 +96,22 @@ export default function AdminDashboard() {
   const [pagination, setPagination] = useState({ totalPages: 1, page: 1, limit: 10 });
   const [activeReg, setActiveReg] = useState<RegistrationItem | null>(null);
 
-  const getAuthToken = () => {
+  const getAuthToken = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.access_token) {
+        return data.session.access_token;
+      }
+    } catch (e) {
+      // fallback
+    }
     const match = document.cookie.match(/(^| )sb-access-token=([^;]+)/);
     return match ? match[2] : "";
   };
 
   const fetchDashboardStats = async () => {
     try {
-      const token = getAuthToken();
+      const token = await getAuthToken();
       const res = await fetch("/api/admin/dashboard", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,6 +120,11 @@ export default function AdminDashboard() {
 
       if (res.status === 401) {
         router.push("/admin/login");
+        return;
+      }
+
+      if (!res.ok) {
+        console.error("Dashboard stats query error:", res.statusText);
         return;
       }
 
@@ -123,8 +137,9 @@ export default function AdminDashboard() {
 
   const fetchRegistrations = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const token = getAuthToken();
+      const token = await getAuthToken();
       const queryParams = new URLSearchParams({
         page: String(page),
         limit: "10",
@@ -144,11 +159,21 @@ export default function AdminDashboard() {
         return;
       }
 
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.message || "Failed to load registrations. Please try again.");
+        setRegistrations([]);
+        return;
+      }
+
       const data = await res.json();
-      setRegistrations(data.items || []);
+      const items = data.registrations || data.items || data.data || [];
+      setRegistrations(items);
       setPagination(data.pagination || { totalPages: 1, page: 1, limit: 10 });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Registrations fetch error:", err);
+      setError(err?.message || "Unable to load registrations. Please try again.");
+      setRegistrations([]);
     } finally {
       setLoading(false);
     }
@@ -168,7 +193,7 @@ export default function AdminDashboard() {
 
   const fetchIndividual = async (id: string) => {
     try {
-      const token = getAuthToken();
+      const token = await getAuthToken();
       const res = await fetch(`/api/admin/registration/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -184,7 +209,7 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this registration entry?")) return;
     try {
-      const token = getAuthToken();
+      const token = await getAuthToken();
       const res = await fetch(`/api/admin/registration/${id}`, {
         method: "DELETE",
         headers: {
@@ -250,6 +275,7 @@ export default function AdminDashboard() {
       setResendingSms(false);
     }
   };
+
 
   const handleResendWhatsApp = async (id: string) => {
     try {
@@ -520,9 +546,13 @@ export default function AdminDashboard() {
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-muted-default/40 uppercase"> RUNNING QUERY FOR TELEMETRY...</td>
                   </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-red-500 font-semibold uppercase"> ERROR: {error}</td>
+                  </tr>
                 ) : registrations.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-muted-default/40 uppercase"> NO MATCHING ENTRIES FOUND</td>
+                    <td colSpan={8} className="py-8 text-center text-muted-default/40 uppercase"> NO REGISTRATIONS FOUND</td>
                   </tr>
                 ) : (
                   registrations.map((reg) => (
