@@ -82,7 +82,7 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
           className="mt-1"
         >
-          <CountdownTimer targetDate="2026-09-27T06:30:00" light={false} />
+          <CountdownTimer targetDate="2026-09-27T05:00:00" light={false} />
         </motion.div>
 
         {/* Subtitle */}

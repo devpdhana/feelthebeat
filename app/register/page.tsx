@@ -112,10 +112,29 @@ function RegisterForm() {
   const validateForm = () => {
     const errs: { [key: string]: string } = {};
 
-    if (!formData.fullName.trim()) errs.fullName = "Full Name is required";
-    if (!/^\d{10}$/.test(formData.mobile)) errs.mobile = "Mobile Number must be 10 digits";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = "Invalid Email Address";
-    if (!formData.dob) errs.dob = "Date of Birth is required";
+    if (!formData.dob) {
+      errs.dob = "Date of Birth is required";
+    } else {
+      const birthDate = new Date(formData.dob);
+      const eventDate = new Date("2026-09-27");
+      let age = eventDate.getFullYear() - birthDate.getFullYear();
+      const monthDiff = eventDate.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && eventDate.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (formData.raceCategory === "2km-kids" && (age < 8 || age > 16)) {
+        errs.dob = "Participants must be between 8 and 16 years for the 2 KM Kids Fun Run.";
+      } else if (formData.raceCategory === "2km" && age < 18) {
+        errs.dob = "Participants must be 18 years or above for the 2 KM Adults Fun Run.";
+      } else if (formData.raceCategory === "5km" && age < 12) {
+        errs.dob = "Participants must be 12 years or above for the 5 KM.";
+      } else if (formData.raceCategory === "10km" && age < 14) {
+        errs.dob = "Participants must be 14 years or above for the 10 KM.";
+      }
+    }
+
+
     if (!formData.gender) errs.gender = "Gender selection is required";
     if (!formData.tshirtSize) errs.tshirtSize = "T-Shirt Size is required";
 
@@ -146,6 +165,7 @@ function RegisterForm() {
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
+
 
   // Payment Handler
   const handlePayment = async (e: React.FormEvent) => {
@@ -301,7 +321,7 @@ function RegisterForm() {
                     <div
                       key={priceObj.id}
                       onClick={() => setFormData({ ...formData, raceCategory: priceObj.id })}
-                      className={`border p-4 cursor-pointer flex flex-col gap-2 transition-all duration-300 relative rounded-lg ${isSelected
+                      className={`border p-4 cursor-pointer flex flex-col justify-between gap-3 transition-all duration-300 relative rounded-lg ${isSelected
                         ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm"
                         : "bg-white border-brand-primary/12 text-muted-default hover:border-brand-primary/30 hover:text-default shadow-sm"
                         }`}
@@ -309,14 +329,31 @@ function RegisterForm() {
                       {isSelected && (
                         <div className="absolute top-0 right-0 w-2 h-2 bg-brand-primary" />
                       )}
-                      <span className="font-mono text-[9px] uppercase tracking-wider"> TIMED RUN</span>
-                      <span className="font-display text-base font-black text-default">{priceObj.name}</span>
-                      <span className="font-mono text-lg font-extrabold text-brand-primary">₹{priceObj.fee}</span>
+                      <div>
+                        <span className="font-mono text-[9px] uppercase tracking-wider block">TIMED RUN</span>
+                        <span className="font-display text-base font-black text-default block mt-1">{priceObj.name}</span>
+                        <span className="font-mono text-lg font-extrabold text-brand-primary block mt-0.5">₹{priceObj.fee}</span>
+                      </div>
+                      <div className="border-t border-brand-primary/8 pt-2 font-mono text-[9px] text-muted-default flex flex-col gap-0.5">
+                        <div className="flex justify-between">
+                          <span>START:</span>
+                          <span className="text-default font-semibold">{priceObj.startTime}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>CUT-OFF:</span>
+                          <span className="text-brand-primary font-semibold">{priceObj.cutoffTime}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>AGE:</span>
+                          <span className="text-default font-semibold">{priceObj.ageEligibility}</span>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </Card>
+
 
             {/* Personal Information */}
             <Card className="flex flex-col gap-6 p-6 md:p-8">
@@ -858,11 +895,28 @@ function RegisterForm() {
                 </h3>
               </div>
 
-              <div className="flex flex-col gap-3 font-mono text-xs">
+              <div className="flex flex-col gap-2.5 font-mono text-xs">
                 <div className="flex justify-between">
                   <span className="text-muted-default/55">CATEGORY:</span>
                   <span className="text-default font-bold">{selectedCategory.name.toUpperCase()}</span>
                 </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-muted-default/55">REPORTING TIME:</span>
+                  <span className="text-default font-semibold">{selectedCategory.reportingTime || "5:00 AM"}</span>
+                </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-muted-default/55">START TIME:</span>
+                  <span className="text-default font-semibold">{selectedCategory.startTime}</span>
+                </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-muted-default/55">CUT-OFF TIME:</span>
+                  <span className="text-brand-primary font-semibold">{selectedCategory.cutoffTime}</span>
+                </div>
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-muted-default/55">AGE ELIGIBILITY:</span>
+                  <span className="text-default font-semibold">{selectedCategory.ageEligibility}</span>
+                </div>
+                <div className="h-[1px] bg-brand-primary/8 my-1" />
                 <div className="flex justify-between">
                   <span className="text-muted-default/55">TICKET FEE:</span>
                   <span className="text-default font-bold">₹{selectedCategory.fee}</span>
@@ -871,7 +925,7 @@ function RegisterForm() {
                   <span className="text-muted-default/55">PLATFORM CHARGE:</span>
                   <span className="text-brand-primary font-bold">₹0 (FREE)</span>
                 </div>
-                <div className="h-[1px] bg-brand-primary/8 my-2" />
+                <div className="h-[1px] bg-brand-primary/8 my-1" />
                 <div className="flex justify-between text-base">
                   <span className="text-default font-bold">TOTAL AMOUNT:</span>
                   <span className="text-brand-primary font-black">₹{selectedCategory.fee}</span>

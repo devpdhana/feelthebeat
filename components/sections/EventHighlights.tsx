@@ -80,23 +80,19 @@ export default function EventHighlights() {
               {/* HUD Footer & Registration Trigger Button (mt-auto pushes this block to the very bottom) */}
               <div className="border-t border-brand-primary/8 pt-4 mt-auto flex flex-col gap-2 font-mono text-[10px] text-muted-default">
                 <div className="flex justify-between">
+                  <span>REPORTING:</span>
+                  <span className="text-default font-bold">{category.reportingTime}</span>
+                </div>
+                <div className="flex justify-between">
                   <span>START TIME:</span>
                   <span className="text-default font-bold">{category.startTime}</span>
                 </div>
-                {category.eligibility && (
-                  <div className="flex justify-between">
-                    <span>ELIGIBILITY:</span>
-                    <span className="text-default font-bold">{category.eligibility}</span>
-                  </div>
-                )}
-                {category.ageLimit && (
-                  <div className="flex justify-between">
-                    <span>AGE GROUP:</span>
-                    <span className="text-default font-bold">{category.ageLimit}</span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span>AGE ELIGIBILITY:</span>
+                  <span className="text-default font-bold">{category.ageLimit}</span>
+                </div>
                 <div className="flex justify-between mb-2">
-                  <span>CUTOFF:</span>
+                  <span>CUT-OFF:</span>
                   <span className="text-brand-primary font-black">{category.cutoffTime}</span>
                 </div>
 

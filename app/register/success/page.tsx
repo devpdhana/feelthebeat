@@ -73,29 +73,37 @@ function SuccessContent() {
     doc.text("27 SEPTEMBER 2026", 75, 121);
 
     doc.setTextColor(95, 99, 104);
-    doc.text("START TIME:", 20, 134);
+    doc.text("REPORTING TIME:", 20, 134);
     doc.setTextColor(9, 14, 19);
-    doc.text(formattedStartTime, 75, 134);
+    doc.text("05:00 AM", 75, 134);
 
     doc.setTextColor(95, 99, 104);
-    doc.text("VENUE LOCATION:", 20, 147);
+    doc.text("START TIME:", 20, 147);
     doc.setTextColor(9, 14, 19);
-    doc.text("DEBOER GROUND VELLORE, TAMIL NADU", 75, 147);
+    doc.text(formattedStartTime, 75, 147);
 
     doc.setTextColor(95, 99, 104);
-    doc.text("PAYMENT STATUS:", 20, 160);
+    doc.text("CUT-OFF TIME:", 20, 160);
+    doc.setTextColor(9, 14, 19);
+    doc.text("07:00 AM", 75, 160);
+
+    doc.setTextColor(95, 99, 104);
+    doc.text("VENUE LOCATION:", 20, 173);
+    doc.setTextColor(9, 14, 19);
+    doc.text("DEBOER GROUND VELLORE, TAMIL NADU", 75, 173);
+
+    doc.setTextColor(95, 99, 104);
+    doc.text("PAYMENT STATUS:", 20, 186);
     doc.setTextColor(0, 180, 100); // Darker Green for white contrast
-    doc.text("PAID", 75, 160);
+    doc.text("PAID", 75, 186);
 
-
-
-    doc.line(20, 185, 190, 185);
+    doc.line(20, 195, 190, 195);
 
     // Disclaimer footer
     doc.setTextColor(139, 139, 139);
     doc.setFontSize(8);
-    doc.text("Please bring a printed copy or digital copy of this PDF to the Expo for BIB collection.", 20, 195);
-    doc.text("Proof of identity matches birth certificates/IDs is required during distribution.", 20, 202);
+    doc.text("Please bring a printed copy or digital copy of this PDF to the Expo for BIB collection.", 20, 203);
+    doc.text("Proof of identity matches birth certificates/IDs is required during distribution.", 20, 210);
 
     doc.save(`FTB2026-Voucher-${regNo}.pdf`);
   };
@@ -144,18 +152,27 @@ function SuccessContent() {
             <span className="text-default font-semibold">27 SEPTEMBER 2026</span>
           </div>
           <div className="flex justify-between">
-            <span>VENUE:</span>
-            <span className="text-default font-semibold">VELLORE, TN</span>
+            <span>REPORTING TIME:</span>
+            <span className="text-default font-semibold">5:00 AM</span>
           </div>
           <div className="flex justify-between">
             <span>START TIME:</span>
             <span className="text-default font-semibold">{startTime}</span>
           </div>
           <div className="flex justify-between">
+            <span>CUT-OFF TIME:</span>
+            <span className="text-brand-primary font-semibold">7:00 AM</span>
+          </div>
+          <div className="flex justify-between">
+            <span>VENUE:</span>
+            <span className="text-default font-semibold">VELLORE, TN</span>
+          </div>
+          <div className="flex justify-between">
             <span>PAYMENT STATUS:</span>
             <span className="text-green-600 font-bold">PAID</span>
           </div>
         </div>
+
 
         {/* Action Triggers */}
         <div className="flex flex-col sm:flex-row gap-3 w-full mt-4">

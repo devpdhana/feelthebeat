@@ -66,19 +66,33 @@ export default function RaceCategories() {
                 </p>
 
                 {/* Key specs */}
-                <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-5 mt-6 font-mono text-[11px] text-muted-white">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/10 pt-5 mt-6 font-mono text-[11px] text-muted-white">
                   <div className="flex items-center gap-2">
                     <HiOutlineClock className="text-brand-primary text-sm shrink-0" />
                     <div>
-                      <div className="text-[9px] text-muted-white">START TIMING</div>
+                      <div className="text-[9px] text-muted-white">REPORTING</div>
+                      <div className="font-bold text-white-default">{category.reportingTime}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <HiOutlineClock className="text-brand-primary text-sm shrink-0" />
+                    <div>
+                      <div className="text-[9px] text-muted-white">START TIME</div>
                       <div className="font-bold text-white-default">{category.startTime}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <HiOutlineMap className="text-brand-primary text-sm shrink-0" />
                     <div>
-                      <div className="text-[9px] text-muted-white">CUT-OFF TIME</div>
+                      <div className="text-[9px] text-muted-white">CUT-OFF</div>
                       <div className="text-brand-primary font-bold">{category.cutoffTime}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <HiOutlineClock className="text-brand-primary text-sm shrink-0" />
+                    <div>
+                      <div className="text-[9px] text-muted-white">ELIGIBILITY</div>
+                      <div className="font-bold text-white-default">{category.ageLimit}</div>
                     </div>
                   </div>
                 </div>

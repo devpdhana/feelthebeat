@@ -87,22 +87,23 @@ export default function Gallery() {
         <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="flex flex-col gap-2">
             <span className="font-mono text-xs tracking-[0.35em] text-brand-primary font-semibold">
-              PHOTO TELEMETRY
+              FEEL THE BEAT RUN 2025
             </span>
             <h2 className="font-display text-3xl font-black uppercase tracking-tight text-default md:text-5xl">
-              MEDIA RECON EXPO
+              MEMORIES FROM 2025
             </h2>
           </div>
           <p className="max-w-md font-mono text-xs leading-relaxed text-muted-default">
-            Highlights from the previous Ageas Federal Life Insurance Mumbai Half Marathon editions. Hover to expand metadata logs.
+            Relive the memorable moments from Feel The Beat Run 2025, organized by Sree Jayam School. From the excitement at the starting line to the energy of the runners and the celebrations along the route, these photographs capture the spirit and enthusiasm of our previous edition.
           </p>
         </div>
 
         {/* Masonry Column Grid */}
         {loading ? (
           <div className="text-center py-12 font-mono text-xs text-muted-default">
-            LOADING MEDIA LOGS...
+            LOADING GALLERY...
           </div>
+
         ) : images.length === 0 ? (
           <div className="text-center py-12 font-mono text-sm text-muted-default border border-dashed border-brand-primary/12 rounded-2xl bg-white">
             No gallery images available.
@@ -110,24 +111,18 @@ export default function Gallery() {
         ) : (
           <div className="columns-1 md:columns-2 lg:columns-4 gap-6 [column-fill:_balance] box-border w-full">
             {images.map((img) => (
-              <div
+              <button
+                type="button"
                 key={img.id}
                 onClick={() => setActiveImage(img)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setActiveImage(img);
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label="View larger version"
-                className="relative group mb-6 overflow-hidden border border-brand-primary/12 bg-white rounded-2xl shadow-sm cursor-pointer break-inside-avoid hover:shadow-[0_10px_25px_rgba(81,132,238,0.25)] hover:border-brand-primary transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                aria-label={`View larger version of ${img.title || "gallery image"}`}
+                suppressHydrationWarning
+                className="relative group mb-6 overflow-hidden border border-brand-primary/12 bg-white rounded-2xl shadow-sm cursor-pointer break-inside-avoid hover:shadow-[0_10px_25px_rgba(81,132,238,0.25)] hover:border-brand-primary transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-primary w-full p-0 block text-left"
               >
                 <div className="relative w-full overflow-hidden rounded-2xl">
                   <Image
                     src={img.url}
-                    alt="Gallery image"
+                    alt={img.title || "Gallery image"}
                     width={800}
                     height={600}
                     loading="lazy"
@@ -135,9 +130,10 @@ export default function Gallery() {
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
+
         )}
       </div>
 

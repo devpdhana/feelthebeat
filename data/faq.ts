@@ -22,12 +22,18 @@ export const faqData: FAQItem[] = [
   },
   {
     id: "faq-cutoff",
-    question: "What are the cut-off times for each race category?",
-    answer: "To ensure runner safety and road re-opening protocols, cut-off times are: 10K Run has a 2-hour cut-off; 5K Run has a 1-hour 15-minute cut-off; and 2K Run has a 45-minute cut-off.",
+    question: "What are the reporting time, start times, and cut-off times?",
+    answer: "Reporting time is 5:00 AM for all participants. Race start times are: 10 KM at 5:30 AM, 5 KM at 6:00 AM, and 2 KM at 6:30 AM. The cut-off time for all race categories is strictly 7:00 AM.",
+  },
+  {
+    id: "faq-age-eligibility",
+    question: "What is the age eligibility for each race category?",
+    answer: "Age eligibility requirements are: 2 KM Kids Fun Run requires participants to be between 8 and 16 years, 2 KM Adults Fun Run requires 18+ years, 5 KM category requires 12+ years, and 10 KM category requires 14+ years.",
   },
   {
     id: "faq-support",
     question: "Who can I contact for registration and technical timing issues?",
-    answer: "For any registration errors or timings assistance, you can contact the support desk at contact@feelthebeatrun2026.com or support@nebsports.in.",
+    answer: "For any registration queries or timing assistance, you can contact the support desk at contact@feelthebeatrun2026.com.",
   },
 ];
+

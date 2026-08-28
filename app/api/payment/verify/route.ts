@@ -53,12 +53,20 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">SUNDAY, SEPTEMBER 27, 2026</td>
             </tr>
             <tr>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">REPORTING TIME:</td>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">5:00 AM</td>
+            </tr>
+            <tr>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">START TIME:</td>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">${startTime}</td>
             </tr>
             <tr>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">CUT-OFF TIME:</td>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #5184EE; font-weight: bold;">7:00 AM</td>
+            </tr>
+            <tr>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">VENUE:</td>
-              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">VELLORE FORT GATE, TAMIL NADU</td>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">DEBOER GROUND, VELLORE, TAMIL NADU</td>
             </tr>
             <tr>
               <td style="padding: 10px; color: #555555;">PAYMENT STATUS:</td>
@@ -163,6 +171,44 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Backend Age eligibility validation
+    if (dob) {
+      const birthDate = new Date(dob);
+      const eventDate = new Date("2026-09-27");
+      let age = eventDate.getFullYear() - birthDate.getFullYear();
+      const monthDiff = eventDate.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && eventDate.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (raceCategory === "2km-kids" && (age < 8 || age > 16)) {
+        return NextResponse.json(
+          { message: "Participants must be between 8 and 16 years for the 2 KM Kids Fun Run." },
+          { status: 400 }
+        );
+      }
+      if (raceCategory === "2km" && age < 18) {
+        return NextResponse.json(
+          { message: "Participants must be 18 years or above for the 2 KM Adults Fun Run." },
+          { status: 400 }
+        );
+      }
+      if (raceCategory === "5km" && age < 12) {
+        return NextResponse.json(
+          { message: "Participants must be 12 years or above for the 5 KM." },
+          { status: 400 }
+        );
+      }
+      if (raceCategory === "10km" && age < 14) {
+        return NextResponse.json(
+          { message: "Participants must be 14 years or above for the 10 KM." },
+          { status: 400 }
+        );
+      }
+    }
+
+
 
     // Backend Validation for new fields
     if (!tshirt_bib_venue || !ALLOWED_VENUES.includes(tshirt_bib_venue)) {
