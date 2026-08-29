@@ -6,7 +6,7 @@ import { routesData, RouteData, RouteCheckpointDisplay } from "@/data/routes";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RouteInformation() {
-  const [selectedRoute, setSelectedRoute] = useState<RouteData>(routesData[3]); // Default 10K
+  const [selectedRoute, setSelectedRoute] = useState<RouteData>(routesData[2]); // Default 10K
 
   const handleRouteSelect = (route: RouteData) => {
     setSelectedRoute(route);
@@ -41,8 +41,8 @@ export default function RouteInformation() {
           {/* Controls & Stepper Column (Left Side) */}
           <div className="lg:col-span-5 flex flex-col">
 
-            {/* Route Tab Selectors */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-2 border-b border-white/10 pb-6 mb-8 w-full">
+            {/* Route Tab Selectors: Exactly 3 tabs: 2 KM, 5 KM, 10 KM */}
+            <div className="grid grid-cols-3 gap-2 border-b border-white/10 pb-6 mb-8 w-full">
               {routesData.map((route: RouteData) => {
                 const isActive = selectedRoute.id === route.id;
                 return (
@@ -50,7 +50,7 @@ export default function RouteInformation() {
                     suppressHydrationWarning
                     key={route.id}
                     onClick={() => handleRouteSelect(route)}
-                    className={`py-3 px-3 text-center font-display text-[11px] font-black uppercase tracking-wider border transition-all duration-300 active:scale-95 cursor-pointer relative rounded-lg ${
+                    className={`py-3 px-3 text-center font-display text-xs font-black uppercase tracking-wider border transition-all duration-300 active:scale-95 cursor-pointer relative rounded-lg ${
                       isActive
                         ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm"
                         : "bg-[#111111] border-white/12 text-muted-white hover:text-brand-primary hover:border-brand-primary/30 shadow-sm"

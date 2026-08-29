@@ -60,10 +60,12 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">START TIME:</td>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">${startTime}</td>
             </tr>
+            ${matchedCategory?.isTimed && matchedCategory?.cutoffTime ? `
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">CUT-OFF TIME:</td>
-              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #5184EE; font-weight: bold;">7:00 AM</td>
+              <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #5184EE; font-weight: bold;">${matchedCategory.cutoffTime}</td>
             </tr>
+            ` : ""}
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #555555;">VENUE:</td>
               <td style="padding: 10px; border-bottom: 1px solid #1c1c1c; color: #ffffff;">DEBOER GROUND, VELLORE, TAMIL NADU</td>

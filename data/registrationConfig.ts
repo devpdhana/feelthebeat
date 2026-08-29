@@ -5,7 +5,9 @@ export interface RaceFee {
   fee: number;
   reportingTime: string;
   startTime: string;
-  cutoffTime: string;
+  cutoffTime?: string;
+  isTimed: boolean;
+  timingType: "TIMED" | "NON-TIMED";
   ageEligibility: string;
   minAge: number;
   maxAge?: number;
@@ -19,7 +21,8 @@ export const racePrices: Record<string, RaceFee> = {
     fee: 199,
     reportingTime: "5:00 AM",
     startTime: "6:30 AM",
-    cutoffTime: "7:00 AM",
+    isTimed: false,
+    timingType: "NON-TIMED",
     ageEligibility: "8–16 Years",
     minAge: 8,
     maxAge: 16,
@@ -31,7 +34,8 @@ export const racePrices: Record<string, RaceFee> = {
     fee: 199,
     reportingTime: "5:00 AM",
     startTime: "6:30 AM",
-    cutoffTime: "7:00 AM",
+    isTimed: false,
+    timingType: "NON-TIMED",
     ageEligibility: "18+ Years",
     minAge: 18,
   },
@@ -43,6 +47,8 @@ export const racePrices: Record<string, RaceFee> = {
     reportingTime: "5:00 AM",
     startTime: "6:00 AM",
     cutoffTime: "7:00 AM",
+    isTimed: true,
+    timingType: "TIMED",
     ageEligibility: "12+ Years",
     minAge: 12,
   },
@@ -54,8 +60,9 @@ export const racePrices: Record<string, RaceFee> = {
     reportingTime: "5:00 AM",
     startTime: "5:30 AM",
     cutoffTime: "7:00 AM",
+    isTimed: true,
+    timingType: "TIMED",
     ageEligibility: "14+ Years",
     minAge: 14,
   },
 };
-

@@ -23,7 +23,7 @@ export const faqData: FAQItem[] = [
   {
     id: "faq-cutoff",
     question: "What are the reporting time, start times, and cut-off times?",
-    answer: "Reporting time is 5:00 AM for all participants. Race start times are: 10 KM at 5:30 AM, 5 KM at 6:00 AM, and 2 KM at 6:30 AM. The cut-off time for all race categories is strictly 7:00 AM.",
+    answer: "Reporting time is 5:00 AM for all participants. Race start times are: 10 KM at 5:30 AM, 5 KM at 6:00 AM, and 2 KM (both Kids & Adults) at 6:30 AM. Timed races (5 KM & 10 KM) have a cut-off time of 7:00 AM. 2 KM Kids Fun Run and 2 KM Adults Fun Run are non-timed fun runs.",
   },
   {
     id: "faq-age-eligibility",

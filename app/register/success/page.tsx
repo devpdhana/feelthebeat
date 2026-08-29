@@ -22,6 +22,8 @@ function SuccessContent() {
   );
   const startTime = matchedCategory?.startTime || "6:30 AM";
   const formattedStartTime = startTime.length === 7 ? `0${startTime}` : startTime;
+  const isTimed = matchedCategory ? matchedCategory.isTimed : (category.toLowerCase().includes("5") || category.toLowerCase().includes("10"));
+  const cutoffTime = matchedCategory?.cutoffTime || "7:00 AM";
 
   const downloadPDF = () => {
     const doc = new jsPDF();
@@ -77,33 +79,40 @@ function SuccessContent() {
     doc.setTextColor(9, 14, 19);
     doc.text("05:00 AM", 75, 134);
 
+    let yPos = 147;
     doc.setTextColor(95, 99, 104);
-    doc.text("START TIME:", 20, 147);
+    doc.text("START TIME:", 20, yPos);
     doc.setTextColor(9, 14, 19);
-    doc.text(formattedStartTime, 75, 147);
+    doc.text(formattedStartTime, 75, yPos);
 
+    if (isTimed) {
+      yPos += 13;
+      doc.setTextColor(95, 99, 104);
+      doc.text("CUT-OFF TIME:", 20, yPos);
+      doc.setTextColor(9, 14, 19);
+      doc.text(cutoffTime, 75, yPos);
+    }
+
+    yPos += 13;
     doc.setTextColor(95, 99, 104);
-    doc.text("CUT-OFF TIME:", 20, 160);
+    doc.text("VENUE LOCATION:", 20, yPos);
     doc.setTextColor(9, 14, 19);
-    doc.text("07:00 AM", 75, 160);
+    doc.text("DEBOER GROUND VELLORE, TAMIL NADU", 75, yPos);
 
+    yPos += 13;
     doc.setTextColor(95, 99, 104);
-    doc.text("VENUE LOCATION:", 20, 173);
-    doc.setTextColor(9, 14, 19);
-    doc.text("DEBOER GROUND VELLORE, TAMIL NADU", 75, 173);
-
-    doc.setTextColor(95, 99, 104);
-    doc.text("PAYMENT STATUS:", 20, 186);
+    doc.text("PAYMENT STATUS:", 20, yPos);
     doc.setTextColor(0, 180, 100); // Darker Green for white contrast
-    doc.text("PAID", 75, 186);
+    doc.text("PAID", 75, yPos);
 
-    doc.line(20, 195, 190, 195);
+    yPos += 9;
+    doc.line(20, yPos, 190, yPos);
 
     // Disclaimer footer
     doc.setTextColor(139, 139, 139);
     doc.setFontSize(8);
-    doc.text("Please bring a printed copy or digital copy of this PDF to the Expo for BIB collection.", 20, 203);
-    doc.text("Proof of identity matches birth certificates/IDs is required during distribution.", 20, 210);
+    doc.text("Please bring a printed copy or digital copy of this PDF to the Expo for BIB collection.", 20, yPos + 8);
+    doc.text("Proof of identity matches birth certificates/IDs is required during distribution.", 20, yPos + 15);
 
     doc.save(`FTB2026-Voucher-${regNo}.pdf`);
   };
@@ -159,10 +168,12 @@ function SuccessContent() {
             <span>START TIME:</span>
             <span className="text-default font-semibold">{startTime}</span>
           </div>
-          <div className="flex justify-between">
-            <span>CUT-OFF TIME:</span>
-            <span className="text-brand-primary font-semibold">7:00 AM</span>
-          </div>
+          {isTimed && (
+            <div className="flex justify-between">
+              <span>CUT-OFF TIME:</span>
+              <span className="text-brand-primary font-semibold">{cutoffTime}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>VENUE:</span>
             <span className="text-default font-semibold">VELLORE, TN</span>

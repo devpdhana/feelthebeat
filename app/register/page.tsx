@@ -330,7 +330,9 @@ function RegisterForm() {
                         <div className="absolute top-0 right-0 w-2 h-2 bg-brand-primary" />
                       )}
                       <div>
-                        <span className="font-mono text-[9px] uppercase tracking-wider block">TIMED RUN</span>
+                        <span className={`font-mono text-[9px] uppercase tracking-wider block font-semibold ${priceObj.isTimed ? "text-muted-default" : "text-brand-primary"}`}>
+                          {priceObj.timingType || (priceObj.isTimed ? "TIMED" : "NON-TIMED")}
+                        </span>
                         <span className="font-display text-base font-black text-default block mt-1">{priceObj.name}</span>
                         <span className="font-mono text-lg font-extrabold text-brand-primary block mt-0.5">₹{priceObj.fee}</span>
                       </div>
@@ -339,10 +341,12 @@ function RegisterForm() {
                           <span>START:</span>
                           <span className="text-default font-semibold">{priceObj.startTime}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>CUT-OFF:</span>
-                          <span className="text-brand-primary font-semibold">{priceObj.cutoffTime}</span>
-                        </div>
+                        {priceObj.isTimed && priceObj.cutoffTime && (
+                          <div className="flex justify-between">
+                            <span>CUT-OFF:</span>
+                            <span className="text-brand-primary font-semibold">{priceObj.cutoffTime}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span>AGE:</span>
                           <span className="text-default font-semibold">{priceObj.ageEligibility}</span>
@@ -810,17 +814,19 @@ function RegisterForm() {
                   </select>
                 </div>
 
-                <div className="flex flex-col gap-1 font-mono">
-                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">OFFICIAL TIMING CERTIFICATE REQUIRED *</label>
-                  <select
-                    value={formData.timingCertificate}
-                    onChange={(e) => setFormData({ ...formData, timingCertificate: e.target.value })}
-                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
-                  >
-                    <option value="No">NO</option>
-                    <option value="Yes">YES</option>
-                  </select>
-                </div>
+                {selectedCategory.isTimed && (
+                  <div className="flex flex-col gap-1 font-mono">
+                    <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">OFFICIAL TIMING CERTIFICATE REQUIRED *</label>
+                    <select
+                      value={formData.timingCertificate}
+                      onChange={(e) => setFormData({ ...formData, timingCertificate: e.target.value })}
+                      className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
+                    >
+                      <option value="No">NO</option>
+                      <option value="Yes">YES</option>
+                    </select>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -908,10 +914,12 @@ function RegisterForm() {
                   <span className="text-muted-default/55">START TIME:</span>
                   <span className="text-default font-semibold">{selectedCategory.startTime}</span>
                 </div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-muted-default/55">CUT-OFF TIME:</span>
-                  <span className="text-brand-primary font-semibold">{selectedCategory.cutoffTime}</span>
-                </div>
+                {selectedCategory.isTimed && selectedCategory.cutoffTime && (
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-muted-default/55">CUT-OFF TIME:</span>
+                    <span className="text-brand-primary font-semibold">{selectedCategory.cutoffTime}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-[11px]">
                   <span className="text-muted-default/55">AGE ELIGIBILITY:</span>
                   <span className="text-default font-semibold">{selectedCategory.ageEligibility}</span>

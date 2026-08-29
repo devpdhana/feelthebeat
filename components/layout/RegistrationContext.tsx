@@ -252,11 +252,10 @@ function RegistrationFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full bg-[#101010] border border-white/8 px-4 py-2.5 text-xs text-white focus:border-brand-primary focus:outline-none transition-colors uppercase appearance-none cursor-pointer"
                 >
-                  <option value="2km-kids">2 KM KIDS FUN RUN — ₹199 (START: 6:30 AM | 8–16 YRS)</option>
-                  <option value="2km">2 KM ADULTS FUN RUN — ₹199 (START: 6:30 AM | 18+ YRS)</option>
-                  <option value="5km">5 KM RUN — ₹299 (START: 6:00 AM | 12+ YRS)</option>
-                  <option value="10km">10 KM RUN — ₹399 (START: 5:30 AM | 14+ YRS)</option>
-
+                  <option value="2km-kids">2 KM KIDS FUN RUN — ₹199 (NON-TIMED | START: 6:30 AM | 8–16 YRS)</option>
+                  <option value="2km">2 KM ADULTS FUN RUN — ₹199 (NON-TIMED | START: 6:30 AM | 18+ YRS)</option>
+                  <option value="5km">5 KM RUN — ₹299 (TIMED | START: 6:00 AM | CUT-OFF: 7:00 AM | 12+ YRS)</option>
+                  <option value="10km">10 KM RUN — ₹399 (TIMED | START: 5:30 AM | CUT-OFF: 7:00 AM | 14+ YRS)</option>
                 </select>
               </div>
 

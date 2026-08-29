@@ -20,36 +20,13 @@ export interface RouteData {
 
 export const routesData: RouteData[] = [
   {
-    id: "2km-kids",
-    distance: "2 KM KIDS",
-    title: "2 KM Kids Fun Run Route",
-    categoryName: "2 KM Kids Fun Run",
-    startPoint: "Deboer Ground",
-    finishPoint: "Deboer Ground",
-    description: "The 2 KM kids fun run route begins at Deboer Ground, reaches Sree Jayam School, makes a U-turn, and finishes back at Deboer Ground.",
-    estimatedDuration: "10-15 MINS",
-    elevationGain: "+2m",
-    image: "/images/maps/2KM Kids.png",
-    waypointsSequence: [
-      "Deboer Ground",
-      "Sree Jayam School",
-      "U-turn",
-      "Finish – Deboer Ground"
-    ],
-    checkpointsList: [
-      { label: "🏁 START", location: "Deboer Ground" },
-      { label: "📍 CHECKPOINT 1", location: "Sree Jayam School" },
-      { label: "🏁 FINISH", location: "Deboer Ground" }
-    ]
-  },
-  {
     id: "2km",
-    distance: "2 KM ADULTS",
-    title: "2 KM Adults Fun Run Route",
-    categoryName: "2 KM Adults Fun Run",
+    distance: "2 KM",
+    title: "2 KM Fun Run Route",
+    categoryName: "2 KM Fun Run",
     startPoint: "Deboer Ground",
     finishPoint: "Deboer Ground",
-    description: "The 2 KM adults fun run route begins at Deboer Ground, reaches Sree Jayam School, makes a U-turn, and finishes back at Deboer Ground.",
+    description: "The 2 KM fun run route begins at Deboer Ground, reaches Sree Jayam School, makes a U-turn, and finishes back at Deboer Ground. This route applies to both the 2 KM Kids Fun Run and 2 KM Adults Fun Run.",
     estimatedDuration: "10-15 MINS",
     elevationGain: "+2m",
     image: "/images/maps/2KM Adults.png",

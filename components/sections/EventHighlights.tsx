@@ -53,8 +53,8 @@ export default function EventHighlights() {
                   <span className="font-mono text-xs text-brand-primary font-bold">
                     REF_0{idx + 1}
                   </span>
-                  <span className="font-mono text-[9px] text-brand-muted/50 font-semibold">
-                    STATUS: TIMED
+                  <span className={`font-mono text-[9px] font-semibold ${category.isTimed ? "text-brand-muted/50" : "text-brand-primary"}`}>
+                    STATUS: {category.timingType || (category.isTimed ? "TIMED" : "NON-TIMED")}
                   </span>
                 </div>
 
@@ -91,10 +91,12 @@ export default function EventHighlights() {
                   <span>AGE ELIGIBILITY:</span>
                   <span className="text-default font-bold">{category.ageLimit}</span>
                 </div>
-                <div className="flex justify-between mb-2">
-                  <span>CUT-OFF:</span>
-                  <span className="text-brand-primary font-black">{category.cutoffTime}</span>
-                </div>
+                {category.isTimed && category.cutoffTime && (
+                  <div className="flex justify-between mb-2">
+                    <span>CUT-OFF:</span>
+                    <span className="text-brand-primary font-black">{category.cutoffTime}</span>
+                  </div>
+                )}
 
                 {/* Form trigger action */}
                 <Link

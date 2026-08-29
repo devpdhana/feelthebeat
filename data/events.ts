@@ -4,7 +4,9 @@ export interface RaceCategory {
   distance: string;
   reportingTime: string;
   startTime: string;
-  cutoffTime: string;
+  cutoffTime?: string;
+  isTimed: boolean;
+  timingType: "TIMED" | "NON-TIMED";
   ageLimit: string;
   eligibility: string;
   minAge: number;
@@ -27,7 +29,8 @@ export const raceCategories: RaceCategory[] = [
       "Designed exclusively for children aged 8 to 16 to encourage healthy habits, active lifestyles, and participation in World Heart Day.",
     reportingTime: "5:00 AM",
     startTime: "6:30 AM",
-    cutoffTime: "7:00 AM",
+    isTimed: false,
+    timingType: "NON-TIMED",
     ageLimit: "8–16 Years",
     eligibility: "8–16 Years",
     minAge: 8,
@@ -49,7 +52,8 @@ export const raceCategories: RaceCategory[] = [
       "Perfect for beginners, fitness enthusiasts, and families participating in Feel The Beat Run 2026.",
     reportingTime: "5:00 AM",
     startTime: "6:30 AM",
-    cutoffTime: "7:00 AM",
+    isTimed: false,
+    timingType: "NON-TIMED",
     ageLimit: "18+ Years",
     eligibility: "18+ Years",
     minAge: 18,
@@ -71,6 +75,8 @@ export const raceCategories: RaceCategory[] = [
     reportingTime: "5:00 AM",
     startTime: "6:00 AM",
     cutoffTime: "7:00 AM",
+    isTimed: true,
+    timingType: "TIMED",
     ageLimit: "12+ Years",
     eligibility: "12+ Years",
     minAge: 12,
@@ -93,6 +99,8 @@ export const raceCategories: RaceCategory[] = [
     reportingTime: "5:00 AM",
     startTime: "5:30 AM",
     cutoffTime: "7:00 AM",
+    isTimed: true,
+    timingType: "TIMED",
     ageLimit: "14+ Years",
     eligibility: "14+ Years",
     minAge: 14,
@@ -113,8 +121,7 @@ export const raceCategories: RaceCategory[] = [
 
 export const statistics = [
   { label: "PARTICIPANTS", value: 5000, suffix: "+" },
-  { label: "RACE CATEGORIES", value: 4, suffix: "" },
+  { label: "RACE CATEGORIES", value: 3, suffix: "" },
   { label: "EVENT DATE", value: 27, suffix: " SEP" },
   { label: "REPORTING TIME", value: 5, suffix: ":00 AM" },
 ];
-
