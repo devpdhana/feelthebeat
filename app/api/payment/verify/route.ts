@@ -212,14 +212,7 @@ export async function POST(req: Request) {
 
 
 
-    // Backend Validation for new fields
-    if (!tshirt_bib_venue || !ALLOWED_VENUES.includes(tshirt_bib_venue)) {
-      return NextResponse.json(
-        { message: "Invalid or missing T-Shirt & Bib distribution venue selection." },
-        { status: 400 }
-      );
-    }
-
+    // Backend Validation for Community fields
     if (!dav_family_member || !ALLOWED_DAV_MEMBER.includes(dav_family_member)) {
       return NextResponse.json(
         { message: "Invalid or missing D.A.V Family selection." },
@@ -250,7 +243,7 @@ export async function POST(req: Request) {
       finalDavHearAbout = dav_hear_about;
     }
 
-    const finalTshirtVenueAddress = VENUE_ADDRESSES[tshirt_bib_venue] || "";
+    const finalTshirtVenueAddress = tshirt_bib_venue ? (VENUE_ADDRESSES[tshirt_bib_venue] || "") : null;
 
     // 2. Fetch payment record
     const { data: paymentLog, error: payGetError } = await supabaseAdmin
@@ -304,8 +297,8 @@ export async function POST(req: Request) {
         race_category: priceObj.name,
         school_name: raceCategory === "2km-kids" && schoolName && schoolName.trim() ? schoolName.trim() : null,
         tshirt_size: tshirtSize,
-        tshirt_bib_venue: tshirt_bib_venue,
-        tshirt_bib_venue_address: finalTshirtVenueAddress,
+        tshirt_bib_venue: tshirt_bib_venue || null,
+        tshirt_bib_venue_address: finalTshirtVenueAddress || null,
         dav_family_member: dav_family_member,
         dav_family_type: finalDavFamilyType,
         dav_hear_about: finalDavHearAbout,

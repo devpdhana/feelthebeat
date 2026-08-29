@@ -14,24 +14,6 @@ declare global {
   }
 }
 
-export const VENUE_DETAILS: Record<
-  string,
-  { label: string; address: string; mapLink?: string }
-> = {
-  School: {
-    label: "Sree Jayam School, Vellore, Tamil Nadu",
-    address: "Ezhil Nagar Main Rd, Ezhil Nagar, Krishna Nagar, RV Nagar, Vellore, Tamil Nadu 632002.",
-    mapLink: "https://share.google/7S3CijcYuC9YXqWSY",
-  },
-  marathonlocation: {
-    label: "Deboer ground, Vellore, Tamil Nadu",
-    address: "Deboer ground,Vellore, Tamil Nadu 632001.",
-    mapLink: "https://maps.app.goo.gl/AE9NEwWmErWwgUfBA",
-
-  },
-
-};
-
 export const DAV_FAMILY_TYPES = [
   "Student",
   "Parent",
@@ -65,7 +47,6 @@ function RegisterForm() {
     dob: "",
     gender: "",
     tshirtSize: "",
-    tshirtBibVenue: "",
     davFamilyMember: "",
     davFamilyType: "",
     davHearAbout: "",
@@ -137,11 +118,6 @@ function RegisterForm() {
 
     if (!formData.gender) errs.gender = "Gender selection is required";
     if (!formData.tshirtSize) errs.tshirtSize = "T-Shirt Size is required";
-
-    // T-Shirt & Bib venue validation
-    if (!formData.tshirtBibVenue) {
-      errs.tshirtBibVenue = "Please select a venue to collect your T-Shirt & Bib";
-    }
 
     // D.A.V Family & Referral conditional validation
     if (!formData.davFamilyMember) {
@@ -217,8 +193,6 @@ function RegisterForm() {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 ...formData,
-                tshirt_bib_venue: formData.tshirtBibVenue,
-                tshirt_bib_venue_address: VENUE_DETAILS[formData.tshirtBibVenue]?.address || "",
                 dav_family_member: formData.davFamilyMember,
                 dav_family_type: formData.davFamilyMember === "Yes" ? formData.davFamilyType : null,
                 dav_hear_about: formData.davFamilyMember === "No" ? formData.davHearAbout : null,
@@ -468,88 +442,11 @@ function RegisterForm() {
               </div>
             </Card>
 
-            {/* T-Shirt & Bib Distribution Details */}
-            <Card className="flex flex-col gap-6 p-6 md:p-8">
-              <div className="border-b border-brand-primary/12 pb-4">
-                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
-                  [03] DISTRIBUTION LOGISTICS
-                </span>
-                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
-                  T-SHIRT & BIB DISTRIBUTION DETAILS
-                </h3>
-              </div>
-
-              <div className="flex flex-col gap-4 font-mono">
-                <label className="text-xs font-bold text-default">
-                  Please select any one of the below venues to collect your T shirt &amp; Bibs *
-                </label>
-
-                <div className="grid grid-cols-1 gap-3">
-                  {Object.entries(VENUE_DETAILS).map(([key, venue]) => {
-                    const isSelected = formData.tshirtBibVenue === key;
-                    return (
-                      <label
-                        key={key}
-                        className={`flex items-start gap-3 p-3.5 border rounded-lg cursor-pointer transition-all ${isSelected
-                          ? "bg-brand-primary/5 border-brand-primary text-brand-primary font-bold shadow-sm"
-                          : "bg-white border-[#DCE8F8] text-default hover:border-brand-primary/40"
-                          }`}
-                      >
-                        <input
-                          type="radio"
-                          name="tshirtBibVenue"
-                          value={key}
-                          checked={isSelected}
-                          onChange={() =>
-                            setFormData({ ...formData, tshirtBibVenue: key })
-                          }
-                          className="mt-0.5 accent-brand-primary cursor-pointer"
-                          required
-                        />
-                        <span className="text-xs">{venue.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-
-                {/* Dynamically displayed address box */}
-                {formData.tshirtBibVenue && VENUE_DETAILS[formData.tshirtBibVenue] && (
-                  <div className="mt-2 p-4 bg-[#F8FAFD] border border-brand-primary/20 rounded-lg flex flex-col gap-2 animate-fadeIn">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-brand-primary uppercase font-bold tracking-wider">
-                        COLLECTION VENUE ADDRESS:
-                      </span>
-                      <span className="text-[10px] text-muted-default/60 italic">(Display only)</span>
-                    </div>
-                    <p className="text-xs text-default whitespace-pre-line leading-relaxed font-sans font-medium">
-                      {VENUE_DETAILS[formData.tshirtBibVenue].address}
-                    </p>
-                    {VENUE_DETAILS[formData.tshirtBibVenue].mapLink && (
-                      <div className="mt-1 pt-2 border-t border-brand-primary/10">
-                        <a
-                          href={VENUE_DETAILS[formData.tshirtBibVenue].mapLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs text-brand-primary font-bold hover:underline"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          View Location on Google Maps
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </Card>
-
             {/* D.A.V. Family & Referral */}
             <Card className="flex flex-col gap-6 p-6 md:p-8">
               <div className="border-b border-brand-primary/12 pb-4">
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
-                  [04] COMMUNITY AFFILIATION
+                  [03] COMMUNITY AFFILIATION
                 </span>
                 <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   Sree Jayam COMMUNITY &amp; REFERRAL
@@ -681,7 +578,7 @@ function RegisterForm() {
             <Card className="flex flex-col gap-6 p-6 md:p-8">
               <div className="border-b border-brand-primary/12 pb-4">
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
-                  [05] SUPPORT &amp; HEALTH PROFILE
+                  [04] SUPPORT &amp; HEALTH PROFILE
                 </span>
                 <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   EMERGENCY &amp; MEDICAL LOGS
@@ -759,7 +656,7 @@ function RegisterForm() {
             <Card className="flex flex-col gap-6 p-6 md:p-8">
               <div className="border-b border-brand-primary/12 pb-4">
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
-                  [04] ATHLETIC SPECIFICATIONS
+                  [05] ATHLETIC SPECIFICATIONS
                 </span>
                 <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   RUNNER SPECIFICATIONS
@@ -834,7 +731,7 @@ function RegisterForm() {
             <Card className="flex flex-col gap-6 p-6 md:p-8">
               <div className="border-b border-brand-primary/12 pb-4">
                 <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
-                  [05] VERIFICATION STATEMENTS
+                  [06] VERIFICATION STATEMENTS
                 </span>
                 <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
                   DECLARATION & CONSENT
