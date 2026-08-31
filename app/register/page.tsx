@@ -58,7 +58,7 @@ function RegisterForm() {
     firstTimeRunner: "No",
     runningClub: "",
     disabilityStatus: "No",
-    timingCertificate: "No",
+    bibName: "",
     fitConfirm: false,
     termsConfirm: false,
     privacyConfirm: false,
@@ -137,6 +137,7 @@ function RegisterForm() {
     if (formData.mobile === formData.emergencyContactNumber) errs.emergencyContactNumber = "Emergency contact cannot be same as main mobile";
     if (!formData.bloodGroup) errs.bloodGroup = "Blood Group is required";
     if (!formData.nationality.trim()) errs.nationality = "Nationality is required";
+    if (!formData.bibName.trim()) errs.bibName = "Bib Name is required";
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -193,6 +194,7 @@ function RegisterForm() {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 ...formData,
+                bib_name: formData.bibName.trim(),
                 dav_family_member: formData.davFamilyMember,
                 dav_family_type: formData.davFamilyMember === "Yes" ? formData.davFamilyType : null,
                 dav_hear_about: formData.davFamilyMember === "No" ? formData.davHearAbout : null,
@@ -204,7 +206,7 @@ function RegisterForm() {
             if (verifyRes.ok) {
               // Redirect to success route
               router.push(
-                `/register/success?regNo=${verifyData.registrationNumber}&name=${encodeURIComponent(
+                `/register/success?orderId=${encodeURIComponent(verifyData.orderId || "")}&bibNumber=${encodeURIComponent(verifyData.bibNumber || "")}&bibName=${encodeURIComponent(verifyData.bibName || formData.bibName || "")}&regNo=${encodeURIComponent(verifyData.registrationNumber || "")}&name=${encodeURIComponent(
                   formData.fullName
                 )}&category=${formData.raceCategory}${formData.raceCategory === "2km-kids" && formData.schoolName
                   ? `&schoolName=${encodeURIComponent(formData.schoolName)}`
@@ -212,10 +214,17 @@ function RegisterForm() {
                 }`
               );
             } else {
-              alert(verifyData.message || "Payment verification failed.");
+              if (verifyData.paymentCaptured) {
+                alert(
+                  verifyData.message ||
+                    "Your payment was captured successfully! We are completing your registration. Please do not make another payment."
+                );
+              } else {
+                alert(verifyData.message || "Payment verification failed.");
+              }
             }
           } catch (err: any) {
-            alert(err.message || "An error occurred during verification.");
+            alert(err.message || "An error occurred during payment verification.");
           } finally {
             setLoading(false);
           }
@@ -711,19 +720,20 @@ function RegisterForm() {
                   </select>
                 </div>
 
-                {selectedCategory.isTimed && (
-                  <div className="flex flex-col gap-1 font-mono">
-                    <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">OFFICIAL TIMING CERTIFICATE REQUIRED *</label>
-                    <select
-                      value={formData.timingCertificate}
-                      onChange={(e) => setFormData({ ...formData, timingCertificate: e.target.value })}
-                      className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default focus:border-brand-primary focus:outline-none transition-colors rounded appearance-none cursor-pointer"
-                    >
-                      <option value="No">NO</option>
-                      <option value="Yes">YES</option>
-                    </select>
-                  </div>
-                )}
+                <div className="flex flex-col gap-1 font-mono">
+                  <label className="text-[9px] text-muted-default uppercase tracking-wider font-semibold">BIB NAME *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.bibName}
+                    onChange={(e) => setFormData({ ...formData, bibName: e.target.value })}
+                    placeholder="ENTER BIB NAME"
+                    className="w-full bg-white border border-[#DCE8F8] px-4 py-2.5 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase"
+                  />
+                  {errors.bibName && (
+                    <span className="text-[10px] text-red-500 font-semibold">{errors.bibName}</span>
+                  )}
+                </div>
               </div>
             </Card>
 

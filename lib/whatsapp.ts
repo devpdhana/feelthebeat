@@ -1,7 +1,8 @@
 /**
- * WhatsApp Notification Service for Feel The Beat Marathon
- * Supports Unified v2 WhatsApp Gateway, Meta WhatsApp Cloud API (Graph API),
- * Twilio WhatsApp, Gupshup, Generic REST, and automatic mock mode for development/testing.
+ * WhatsApp Notification Service for Feel The Beat Marathon 2026 / SJS Marathon
+ * Provides server-side template message dispatch for:
+ * 1. Post-Registration Confirmation Template ({{1}} = full_name, {{2}} = race_category, {{3}} = order_id)
+ * 2. Pre-Event Broadcast Template ({{1}} = full_name, {{2}} = bib_number, {{3}} = race_category)
  */
 
 import { normalizeMobileNumber, maskPhoneNumber, getEnvVar, RunnerRegistrationDetails } from "@/lib/sms";
@@ -17,33 +18,67 @@ export interface WhatsAppResponse {
 }
 
 /**
- * Builds standard plain-text WhatsApp message for runners.
+ * Builds the exact text for Registration Confirmation WhatsApp Template
+ * Matching Approved Template 1792728
  */
 export function buildRegistrationWhatsAppMessage(registration: RunnerRegistrationDetails): string {
   const runnerName = (registration.full_name || "Runner").trim();
-  const regNo = registration.registration_number || "FTB2026";
-  const category = registration.race_category || "Run";
-  const amount = registration.payment_amount !== undefined ? registration.payment_amount : 0;
-  const venue = registration.tshirt_bib_venue || "Selected Venue";
+  const category = (registration.race_category || "Race").trim();
+  const orderId = (registration.order_id || registration.registration_number || "FTB26-000000").trim();
 
-  return `Hello *${runnerName}*,
+  return `🏃‍♂️ Feel The Beat 10K Marathon 2026 🏃‍♀️
 
-Your *Feel The Beat Marathon 2026* registration has been successfully confirmed.
+Dear ${runnerName},
 
-*Registration ID:* ${regNo}
-*Race Category:* ${category}
-*Amount Paid:* ₹${amount}
-*T-Shirt & Bib Collection:* ${venue}
-*Payment Status:* Successful
+🎉 Your registration is confirmed!
 
-Thank you for registering for the Feel The Beat Marathon.
-We look forward to seeing you at the starting line!
+You have successfully registered for the ${category} category.
 
-_Team Feel The Beat_`;
+Order ID: ${orderId}
+
+Thank you for registering with SJS Marathon. Get ready to Feel The Beat! 🏅🔥`;
 }
 
 /**
- * Helper to make HTTP/HTTPS request with support for self-signed IP certs.
+ * Builds the exact text for Bib & T-Shirt Collection Broadcast WhatsApp Template
+ * Matching Approved Template 1792730
+ */
+export function buildBroadcastWhatsAppMessage(registration: {
+  full_name: string;
+  bib_number?: number | string | null;
+  race_category: string;
+}): string {
+  const runnerName = (registration.full_name || "Runner").trim();
+  const bibNo = registration.bib_number !== undefined && registration.bib_number !== null
+    ? String(registration.bib_number)
+    : "To be assigned";
+  const category = (registration.race_category || "Race").trim();
+
+  return `Dear ${runnerName},
+
+Greetings from Feel The Beat 10K Marathon 2026! 🎉
+
+🎽 Your Bib Number: ${bibNo}
+🏃 Category: ${category}
+
+📍 Bib & T-Shirt Collection Venue:
+Sree Jayam School
+Ezhil Nagar Main Road, Allapuram, Vellore - 632002
+📌 Landmark: Near Mangalaraman Kalyana Mandapam
+
+🗺️ Location:
+https://maps.app.goo.gl/6p1x9f4yeCrU26saA
+
+📅 Date: Saturday, 26th September 2026
+⏰ Time: 10:00 AM - 08:00 PM
+
+⚠️ Important:
+Please collect your Bib & T-Shirt on 26th September 2026.
+Bib & T-Shirt collection will NOT be available on the event day.`;
+}
+
+/**
+ * Helper to make secure HTTP/HTTPS POST request with agent options.
  */
 async function postJsonWithAgent(
   url: string,
@@ -70,8 +105,8 @@ async function postJsonWithAgent(
             "Content-Length": Buffer.byteLength(bodyStr),
             ...headers,
           },
-          rejectUnauthorized: false, // Allows self-signed IP certificates on dedicated gateway
-          timeout: 10000,
+          rejectUnauthorized: false, // Supports self-signed certificates on dedicated gateway IPs
+          timeout: 12000,
         },
         (res: any) => {
           let chunks = "";
@@ -97,7 +132,7 @@ async function postJsonWithAgent(
       req.on("error", (err: any) => reject(err));
       req.on("timeout", () => {
         req.destroy();
-        reject(new Error("Request timed out"));
+        reject(new Error("WhatsApp API request timed out"));
       });
 
       req.write(bodyStr);
@@ -109,7 +144,11 @@ async function postJsonWithAgent(
 }
 
 /**
- * Sends a WhatsApp confirmation message to the runner.
+ * Sends a Registration Confirmation WhatsApp message.
+ * Template Variables:
+ * {{1}} = full_name
+ * {{2}} = race_category
+ * {{3}} = order_id
  */
 export async function sendRegistrationWhatsApp(
   registration: RunnerRegistrationDetails
@@ -117,8 +156,12 @@ export async function sendRegistrationWhatsApp(
   const normalized = normalizeMobileNumber(registration.mobile);
   const maskedPhone = maskPhoneNumber(registration.mobile);
 
+  console.log(`[WHATSAPP] Registration confirmation started`);
+  console.log(`[WHATSAPP] Registration ID: ${registration.id || "NEW"}`);
+  console.log(`[WHATSAPP] Recipient: ${maskedPhone}`);
+
   if (!normalized.isValid) {
-    console.error(`[WhatsApp] Invalid mobile number: ${maskedPhone}`);
+    console.error(`[WHATSAPP] Invalid mobile number: ${maskedPhone}`);
     return {
       success: false,
       status: "FAILED",
@@ -126,25 +169,97 @@ export async function sendRegistrationWhatsApp(
     };
   }
 
+  const runnerName = (registration.full_name || "Runner").trim();
+  const category = (registration.race_category || "Race").trim();
+  const orderId = (registration.order_id || registration.registration_number || "FTB26-000000").trim();
   const messageText = buildRegistrationWhatsAppMessage(registration);
 
-  const runnerName = (registration.full_name || "Runner").trim();
-  const regNo = registration.registration_number || "FTB2026";
-  const category = registration.race_category || "Run";
-  const amount = `${registration.payment_amount !== undefined ? registration.payment_amount : 0}`;
-  const venue = registration.tshirt_bib_venue || "Selected Venue";
+  const templateId =
+    getEnvVar("WHATSAPP_REGISTRATION_TEMPLATE_ID") ||
+    getEnvVar("REGISTRATION_WHATSAPP_TEMPLATE_ID") ||
+    "1792728";
 
-  // 1. Check Unified v2 WhatsApp Gateway
+  const variables = [runnerName, category, orderId];
+  console.log(`[WHATSAPP] Template ID: ${templateId}`);
+  console.log(`[WHATSAPP] Sending template with parameters: [${variables.join(", ")}]`);
+
+  return dispatchWhatsAppMessage({
+    recipientPhone: normalized.withCountryCode,
+    maskedPhone,
+    templateId,
+    variables,
+    messageText,
+    type: "REGISTRATION",
+  });
+}
+
+/**
+ * Sends a Bib & T-Shirt Collection Broadcast WhatsApp message.
+ * Template Variables:
+ * {{1}} = full_name
+ * {{2}} = bib_number
+ * {{3}} = race_category
+ */
+export async function sendBroadcastWhatsApp(registration: {
+  mobile: string;
+  full_name: string;
+  bib_number?: number | string | null;
+  race_category: string;
+}): Promise<WhatsAppResponse> {
+  const normalized = normalizeMobileNumber(registration.mobile);
+  const maskedPhone = maskPhoneNumber(registration.mobile);
+
+  if (!normalized.isValid) {
+    return {
+      success: false,
+      status: "FAILED",
+      error: `Invalid mobile number: ${registration.mobile}`,
+    };
+  }
+
+  const runnerName = (registration.full_name || "Runner").trim();
+  const bibNo = registration.bib_number !== undefined && registration.bib_number !== null
+    ? String(registration.bib_number)
+    : "To be assigned";
+  const category = (registration.race_category || "Race").trim();
+  const messageText = buildBroadcastWhatsAppMessage(registration);
+
+  const templateId =
+    getEnvVar("WHATSAPP_BROADCAST_TEMPLATE_ID") ||
+    getEnvVar("BROADCAST_WHATSAPP_TEMPLATE_ID") ||
+    "1792730";
+
+  const variables = [runnerName, bibNo, category];
+
+  return dispatchWhatsAppMessage({
+    recipientPhone: normalized.withCountryCode,
+    maskedPhone,
+    templateId,
+    variables,
+    messageText,
+    type: "BROADCAST",
+  });
+}
+
+/**
+ * Unified dispatch engine supporting Unified v2, Meta Cloud API, and Mock Fallback
+ */
+async function dispatchWhatsAppMessage(params: {
+  recipientPhone: string;
+  maskedPhone: string;
+  templateId: string;
+  variables: string[];
+  messageText: string;
+  type: "REGISTRATION" | "BROADCAST";
+}): Promise<WhatsAppResponse> {
+  const { recipientPhone, maskedPhone, templateId, variables, messageText, type } = params;
+
+  // 1. Unified v2 WhatsApp Gateway (Configured in .env)
   const unifiedUrl = getEnvVar("WHATSAPP_API_URL");
   const unifiedClientId = getEnvVar("WHATSAPP_CLIENT_ID");
   const unifiedClientPassword = getEnvVar("WHATSAPP_CLIENT_PASSWORD");
   const unifiedSender = getEnvVar("WHATSAPP_SENDER");
-  const unifiedTag = getEnvVar("WHATSAPP_TAG");
-  const unifiedTemplateId =
-    getEnvVar("WHATSAPP_TEMPLATE_ID_PAYMENT") ||
-    getEnvVar("WHATSAPP_TEMPLATE_ID_SUBMISSION") ||
-    getEnvVar("WHATSAPP_TEMPLATE_ID") ||
-    "1735301";
+  const unifiedTag = getEnvVar("WHATSAPP_TAG") || "user_id:3";
 
   if (unifiedUrl && unifiedClientId && unifiedClientPassword) {
     try {
@@ -154,12 +269,13 @@ export async function sendRegistrationWhatsApp(
         client_id: unifiedClientId,
         client_password: unifiedClientPassword,
         sender: unifiedSender,
-        to: normalized.withCountryCode,
-        number: normalized.withCountryCode,
-        mobile: normalized.withCountryCode,
-        template_id: unifiedTemplateId,
+        to: recipientPhone,
+        number: recipientPhone,
+        mobile: recipientPhone,
+        template_id: templateId,
         tag: unifiedTag,
-        variables: [runnerName, regNo, category, amount, "Successful", venue],
+        variables: variables,
+        params: variables,
         message: messageText,
       };
 
@@ -173,10 +289,12 @@ export async function sendRegistrationWhatsApp(
         }
       );
 
+      console.log(`[WHATSAPP] Provider response status: ${res.status}`);
+
       const isExplicitError =
         res.status >= 400 ||
-        (res.data && (res.data.status === "error" || res.data.status === false || res.data.error)) ||
-        res.text.toLowerCase().includes("error");
+        (res.data && (res.data.status === "Error" || res.data.status === "error" || res.data.status === false)) ||
+        res.text.toLowerCase().includes("invalid payload");
 
       const isSuccess =
         res.status >= 200 &&
@@ -186,7 +304,7 @@ export async function sendRegistrationWhatsApp(
 
       if (isSuccess) {
         const messageId = res.data?.message_id || res.data?.id || res.data?.msgId || `UNIFIED_WA_${Date.now()}`;
-        console.log(`[WhatsApp SUCCESS] Unified v2 | Recipient: ${maskedPhone} | MessageId: ${messageId}`);
+        console.log(`[WHATSAPP] Provider message ID: ${messageId}`);
         return {
           success: true,
           status: "SENT",
@@ -194,8 +312,14 @@ export async function sendRegistrationWhatsApp(
         };
       }
 
-      const sanitizedError = res.data?.message || res.data?.statustext || res.data?.error || res.text.slice(0, 200) || `HTTP ${res.status}`;
-      console.error(`[WhatsApp FAILED] Unified v2 | HTTP: ${res.status} | Recipient: ${maskedPhone} | Error: ${sanitizedError}`);
+      const sanitizedError =
+        res.data?.statustext ||
+        res.data?.message ||
+        res.data?.error ||
+        res.text.slice(0, 150) ||
+        `HTTP ${res.status}`;
+
+      console.error(`[WHATSAPP] Provider response/error: ${sanitizedError}`);
 
       return {
         success: false,
@@ -203,7 +327,7 @@ export async function sendRegistrationWhatsApp(
         error: sanitizedError,
       };
     } catch (err: any) {
-      console.error(`[WhatsApp Exception] Unified v2 | Recipient: ${maskedPhone} | Error: ${err.message || err}`);
+      console.error(`[WHATSAPP Exception] To: ${maskedPhone} | Error: ${err.message || err}`);
       return {
         success: false,
         status: "FAILED",
@@ -212,7 +336,7 @@ export async function sendRegistrationWhatsApp(
     }
   }
 
-  // 2. Check Meta WhatsApp Cloud API (Graph API)
+  // 2. Meta WhatsApp Cloud API (Graph API) fallback if configured
   const metaToken =
     getEnvVar("WHATSAPP_ACCESS_TOKEN") ||
     getEnvVar("WHATSAPP_TOKEN") ||
@@ -220,56 +344,30 @@ export async function sendRegistrationWhatsApp(
   const metaPhoneId =
     getEnvVar("WHATSAPP_PHONE_NUMBER_ID") ||
     getEnvVar("META_PHONE_NUMBER_ID");
-  const templateName =
-    getEnvVar("WHATSAPP_TEMPLATE_NAME") ||
-    getEnvVar("META_WHATSAPP_TEMPLATE");
-  const languageCode =
-    getEnvVar("WHATSAPP_LANGUAGE_CODE") || "en";
+  const languageCode = getEnvVar("WHATSAPP_TEMPLATE_LANGUAGE") || getEnvVar("WHATSAPP_LANGUAGE_CODE") || "en";
 
   if (metaToken && metaPhoneId) {
     try {
       const url = `https://graph.facebook.com/v20.0/${metaPhoneId}/messages`;
 
-      let payload: any;
-
-      if (templateName) {
-        payload = {
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: normalized.withCountryCode,
-          type: "template",
-          template: {
-            name: templateName,
-            language: {
-              code: languageCode,
+      const payload = {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: recipientPhone,
+        type: "template",
+        template: {
+          name: templateId,
+          language: {
+            code: languageCode,
+          },
+          components: [
+            {
+              type: "body",
+              parameters: variables.map((val) => ({ type: "text", text: val })),
             },
-            components: [
-              {
-                type: "body",
-                parameters: [
-                  { type: "text", text: runnerName },
-                  { type: "text", text: regNo },
-                  { type: "text", text: category },
-                  { type: "text", text: amount },
-                  { type: "text", text: "Successful" },
-                  { type: "text", text: venue },
-                ],
-              },
-            ],
-          },
-        };
-      } else {
-        payload = {
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: normalized.withCountryCode,
-          type: "text",
-          text: {
-            preview_url: false,
-            body: messageText,
-          },
-        };
-      }
+          ],
+        },
+      };
 
       const response = await fetch(url, {
         method: "POST",
@@ -284,7 +382,7 @@ export async function sendRegistrationWhatsApp(
 
       if (response.ok && resData.messages?.[0]?.id) {
         const messageId = resData.messages[0].id;
-        console.log(`[WhatsApp SUCCESS] Meta Cloud API | Recipient: ${maskedPhone} | MessageId: ${messageId}`);
+        console.log(`[WHATSAPP] Provider message ID: ${messageId}`);
         return {
           success: true,
           status: "SENT",
@@ -293,6 +391,7 @@ export async function sendRegistrationWhatsApp(
       }
 
       const errDetail = resData?.error?.message || `HTTP ${response.status}`;
+      console.error(`[WHATSAPP] Provider response/error: ${errDetail}`);
       return {
         success: false,
         status: "FAILED",
@@ -307,8 +406,8 @@ export async function sendRegistrationWhatsApp(
     }
   }
 
-  // 3. Fallback Mock Mode
-  console.log(`[WhatsApp MOCK] To: ${maskedPhone} | Text: ${messageText.slice(0, 80)}...`);
+  // 3. Fallback Mock Mode (For Local Dev / Test Environments)
+  console.log(`[WHATSAPP MOCK (${type})] To: ${maskedPhone} | Template: ${templateId} | Vars: ${JSON.stringify(variables)}`);
 
   return {
     success: true,

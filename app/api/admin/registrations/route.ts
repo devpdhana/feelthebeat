@@ -78,7 +78,7 @@ export async function GET(req: Request) {
     if (search) {
       const sanitized = search.replace(/[,%]/g, "");
       query = query.or(
-        `full_name.ilike.%${sanitized}%,email.ilike.%${sanitized}%,mobile.ilike.%${sanitized}%,registration_number.ilike.%${sanitized}%`
+        `full_name.ilike.%${sanitized}%,email.ilike.%${sanitized}%,mobile.ilike.%${sanitized}%,registration_number.ilike.%${sanitized}%,order_id.ilike.%${sanitized}%,bib_name.ilike.%${sanitized}%`
       );
     }
 
@@ -98,6 +98,8 @@ export async function GET(req: Request) {
       const isPaid = (reg.payment_status || "").toLowerCase().includes("success") || (reg.payment_status || "").toLowerCase().includes("paid");
       return {
         id: reg.id,
+        orderId: reg.order_id || "N/A",
+        bibNumber: reg.bib_number || null,
         registrationNumber: reg.registration_number,
         fullName: reg.full_name || "N/A",
         raceCategory: reg.race_category || "N/A",
@@ -121,7 +123,7 @@ export async function GET(req: Request) {
         firstTimeRunner: reg.first_time_runner || "N/A",
         runningClub: reg.running_club || "N/A",
         disabilityStatus: reg.disability_status || "No",
-        timingCertificate: reg.official_timing_certificate || "No",
+        bibName: reg.bib_name || "N/A",
         paymentStatus: isPaid ? "SUCCESSFUL" : (reg.payment_status || "PENDING").toUpperCase(),
         paymentAmount: reg.payment_amount || 0,
         smsSent: Boolean(reg.sms_sent),

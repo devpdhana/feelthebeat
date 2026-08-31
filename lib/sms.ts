@@ -20,6 +20,9 @@ export interface RunnerRegistrationDetails {
   full_name: string;
   mobile: string;
   registration_number: string;
+  order_id?: string;
+  bib_number?: number | string;
+  bib_name?: string;
   race_category: string;
   payment_amount?: number | string;
   tshirt_bib_venue?: string;

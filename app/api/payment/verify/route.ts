@@ -146,13 +146,20 @@ export async function POST(req: Request) {
       firstTimeRunner,
       runningClub,
       disabilityStatus,
-      timingCertificate,
     } = body;
 
+    const bib_name = (body.bib_name || body.bibName || "").trim();
     const tshirt_bib_venue = (body.tshirt_bib_venue || body.tshirtBibVenue || "").trim();
     const dav_family_member = (body.dav_family_member || body.davFamilyMember || "").trim();
     const dav_family_type = (body.dav_family_type || body.davFamilyType || "").trim();
     const dav_hear_about = (body.dav_hear_about || body.davHearAbout || "").trim();
+
+    if (!bib_name) {
+      return NextResponse.json(
+        { message: "Bib Name is required." },
+        { status: 400 }
+      );
+    }
 
     // 1. Verify payment signature
     const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "mocksecret");
@@ -259,17 +266,33 @@ export async function POST(req: Request) {
       );
     }
 
-    if (paymentLog.status === "SUCCESSFUL") {
-      // Already verified, fetch existing registration
-      const { data: existingReg } = await supabaseAdmin
-        .from("registrations")
-        .select("registration_number")
-        .eq("payment_id", paymentLog.id)
-        .maybeSingle();
+    // 2b. Idempotency Check: Look for existing registration for this razorpay_order_id or payment
+    const { data: existingByOrder } = await supabaseAdmin
+      .from("registrations")
+      .select("id, registration_number, order_id, bib_number, bib_name")
+      .or(`razorpay_order_id.eq.${razorpay_order_id},id.eq.${paymentLog.registration_id || "00000000-0000-0000-0000-000000000000"}`)
+      .maybeSingle();
+
+    if (existingByOrder) {
+      // Payment already linked to registration
+      if (paymentLog.status !== "SUCCESSFUL") {
+        await supabaseAdmin
+          .from("payments")
+          .update({
+            registration_id: existingByOrder.id,
+            razorpay_payment_id,
+            razorpay_signature,
+            status: "SUCCESSFUL",
+          })
+          .eq("id", paymentLog.id);
+      }
 
       return NextResponse.json({
         success: true,
-        registrationNumber: existingReg?.registration_number,
+        registrationNumber: existingByOrder.registration_number,
+        orderId: existingByOrder.order_id,
+        bibNumber: existingByOrder.bib_number,
+        bibName: existingByOrder.bib_name,
       });
     }
 
@@ -297,29 +320,55 @@ export async function POST(req: Request) {
         race_category: priceObj.name,
         school_name: raceCategory === "2km-kids" && schoolName && schoolName.trim() ? schoolName.trim() : null,
         tshirt_size: tshirtSize,
-        tshirt_bib_venue: tshirt_bib_venue || null,
-        tshirt_bib_venue_address: finalTshirtVenueAddress || null,
         dav_family_member: dav_family_member,
         dav_family_type: finalDavFamilyType,
         dav_hear_about: finalDavHearAbout,
         emergency_name: emergencyContactName.trim(),
         emergency_mobile: emergencyContactNumber.trim(),
         blood_group: bloodGroup,
-        medical_conditions: medicalCondition,
-        nationality: nationality.trim(),
-        first_time_runner: firstTimeRunner,
+        medical_conditions: medicalCondition || "None",
+        nationality: (nationality || "Indian").trim(),
+        first_time_runner: firstTimeRunner || "No",
         running_club: runningClub ? runningClub.trim() : null,
-        disability_status: disabilityStatus,
-        official_timing_certificate: timingCertificate,
+        disability_status: disabilityStatus || "No",
+        bib_name: (bib_name || fullName).trim(),
         payment_status: "Successful",
         payment_amount: Number(priceObj.fee),
+        razorpay_order_id: razorpay_order_id,
       })
       .select()
       .single();
 
     if (regInsertError) {
-      console.error("Registration insert error:", regInsertError);
-      throw new Error("Failed to insert registration record.");
+      console.error("Registration insert error details:", {
+        code: regInsertError.code,
+        message: regInsertError.message,
+        details: regInsertError.details,
+        hint: regInsertError.hint,
+      });
+
+      // Mark payment log as captured/pending registration so the transaction is never lost
+      await supabaseAdmin
+        .from("payments")
+        .update({
+          razorpay_payment_id,
+          razorpay_signature,
+          status: "PAID_PENDING_REGISTRATION",
+        })
+        .eq("id", paymentLog.id);
+
+      return NextResponse.json(
+        {
+          success: false,
+          paymentCaptured: true,
+          orderId: razorpay_order_id,
+          paymentId: razorpay_payment_id,
+          message:
+            "Your payment was successful, but we are completing your registration. Please do not make another payment. Reference ID: " +
+            razorpay_order_id,
+        },
+        { status: 500 }
+      );
     }
 
     // 5. Update payment details
@@ -335,7 +384,6 @@ export async function POST(req: Request) {
 
     if (payUpdateError) {
       console.error("Payment update error:", payUpdateError);
-      // Fail-safe audit logging could go here
     }
 
     const runnerDetails = {
@@ -343,6 +391,9 @@ export async function POST(req: Request) {
       full_name: registration.full_name,
       mobile: registration.mobile,
       registration_number: registration.registration_number,
+      order_id: registration.order_id,
+      bib_number: registration.bib_number,
+      bib_name: registration.bib_name,
       race_category: priceObj.name,
       payment_amount: registration.payment_amount,
       tshirt_bib_venue: registration.tshirt_bib_venue,
@@ -421,6 +472,10 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       registrationNumber: registration.registration_number,
+      orderId: registration.order_id,
+      bibNumber: registration.bib_number,
+      bibName: registration.bib_name,
+      id: registration.id,
     });
   } catch (err: any) {
     console.error("Payment verification failure:", err);

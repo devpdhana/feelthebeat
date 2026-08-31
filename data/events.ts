@@ -42,7 +42,7 @@ export const raceCategories: RaceCategory[] = [
       "Sree Jayam School",
       "Deboer Ground",
     ],
-    fee: 199,
+    fee: 1,
   },
   {
     id: "2km",

@@ -49,6 +49,8 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 
     const details = {
       id: reg.id,
+      orderId: reg.order_id || "N/A",
+      bibNumber: reg.bib_number || null,
       registrationNumber: reg.registration_number,
       raceCategory: reg.race_category,
       schoolName: reg.school_name || null,
@@ -72,7 +74,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       firstTimeRunner: reg.first_time_runner,
       runningClub: reg.running_club || "N/A",
       disabilityStatus: reg.disability_status,
-      timingCertificate: reg.official_timing_certificate,
+      bibName: reg.bib_name || "N/A",
       paymentStatus: reg.payment_status === "Successful" ? "SUCCESSFUL" : reg.payment_status,
       paymentAmount: reg.payment_amount || 0,
       smsSent: Boolean(reg.sms_sent),
@@ -86,7 +88,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       whatsappMessageId: reg.whatsapp_message_id || null,
       whatsappError: reg.whatsapp_error || null,
       razorpayPaymentId: payment?.razorpay_payment_id || "N/A",
-      orderId: payment?.razorpay_order_id || "N/A",
+      razorpayOrderId: payment?.razorpay_order_id || "N/A",
       signature: payment?.razorpay_signature || "N/A",
       createdAt: reg.created_at ? new Date(reg.created_at).toLocaleString() : "",
       updatedAt: reg.created_at ? new Date(reg.created_at).toLocaleString() : "", // fallback

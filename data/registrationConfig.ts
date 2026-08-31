@@ -18,7 +18,7 @@ export const racePrices: Record<string, RaceFee> = {
     id: "2km-kids",
     name: "2 KM Kids Fun Run",
     distance: "2 KM",
-    fee: 199,
+    fee: 1,
     reportingTime: "5:00 AM",
     startTime: "6:30 AM",
     isTimed: false,
