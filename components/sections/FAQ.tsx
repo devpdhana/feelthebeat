@@ -6,6 +6,7 @@ import Accordion from "@/components/ui/Accordion";
 export default function FAQ() {
   return (
     <section id="faq" className="relative py-[90px] bg-[#F5FAFF] overflow-hidden border-b border-brand-primary/12">
+      <span id="faqs" className="absolute -top-24 block invisible pointer-events-none" />
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
 
         {/* Title */}

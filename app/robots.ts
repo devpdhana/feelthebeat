@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://feelthebeatrun2026.com";
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://marathon.sreejayamschool.edu.in").replace(/\/$/, "");
   return {
     rules: {
       userAgent: "*",

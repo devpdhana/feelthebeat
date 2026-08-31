@@ -17,6 +17,7 @@ export default function RouteInformation() {
       id="route"
       className="relative py-[90px] bg-black overflow-hidden border-b border-white/10"
     >
+      <span id="route-map" className="absolute -top-24 block invisible pointer-events-none" />
       <div className="absolute inset-0 telemetry-grid opacity-[0.03] pointer-events-none z-0" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">

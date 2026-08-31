@@ -419,13 +419,13 @@ export default function AdminDashboard() {
         },
       });
       const data = await res.json();
-      if (res.ok) {
-        setResendWaMessage("WhatsApp message dispatched successfully!");
+      if (res.ok && data.success) {
+        setResendWaMessage(data.message || `WhatsApp message accepted by provider (GUID: ${data.messageId}). Delivery pending.`);
         if (activeReg) {
           setActiveReg({
             ...activeReg,
             whatsappSent: true,
-            whatsappStatus: "SENT",
+            whatsappStatus: data.whatsappStatus || "ACCEPTED",
             whatsappSentAt: data.whatsappSentAt || new Date().toISOString(),
             whatsappMessageId: data.messageId || activeReg.whatsappMessageId,
             whatsappError: null,
@@ -433,7 +433,17 @@ export default function AdminDashboard() {
         }
         fetchRegistrations();
       } else {
-        setResendWaMessage(`Failed: ${data.message || "Could not send WhatsApp"}`);
+        const errorReason = data.providerErrorMessage || data.message || "WhatsApp could not be sent.";
+        setResendWaMessage(`WhatsApp failed: ${errorReason}`);
+        if (activeReg) {
+          setActiveReg({
+            ...activeReg,
+            whatsappSent: false,
+            whatsappStatus: "FAILED",
+            whatsappError: errorReason,
+          });
+        }
+        fetchRegistrations();
       }
     } catch (err: any) {
       setResendWaMessage(`Error: ${err.message || "Failed to resend WhatsApp"}`);
@@ -1099,17 +1109,19 @@ export default function AdminDashboard() {
                   </div>
                   <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
                     <span className="text-muted-default/60">WHATSAPP NOTIFICATION:</span>
-                    <span className={`font-bold ${activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
+                    <span className={`font-bold ${activeReg.whatsappStatus === "ACCEPTED" || activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
                       ? "text-green-600"
                       : activeReg.whatsappStatus === "FAILED"
                         ? "text-red-600"
                         : "text-gray-500"
                       }`}>
-                      {activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
-                        ? `SENT ${activeReg.whatsappSentAt ? `(${new Date(activeReg.whatsappSentAt).toLocaleString()})` : ""}`
-                        : activeReg.whatsappStatus === "FAILED"
-                          ? `FAILED ${activeReg.whatsappError ? `(${activeReg.whatsappError})` : ""}`
-                          : "NOT SENT"}
+                      {activeReg.whatsappStatus === "ACCEPTED"
+                        ? `ACCEPTED (Delivery Pending) ${activeReg.whatsappMessageId ? `[GUID: ${activeReg.whatsappMessageId.slice(0, 16)}...]` : ""}`
+                        : activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
+                          ? `SENT ${activeReg.whatsappSentAt ? `(${new Date(activeReg.whatsappSentAt).toLocaleString()})` : ""}`
+                          : activeReg.whatsappStatus === "FAILED"
+                            ? `FAILED ${activeReg.whatsappError ? `(${activeReg.whatsappError})` : ""}`
+                            : "NOT SENT"}
                     </span>
                   </div>
 

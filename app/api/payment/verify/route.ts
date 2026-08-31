@@ -4,6 +4,8 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { racePrices } from "@/data/registrationConfig";
 import { raceCategories } from "@/data/events";
+import { sendRegistrationSMS } from "@/lib/sms";
+import { sendRegistrationWhatsApp } from "@/lib/whatsapp";
 
 async function sendConfirmationEmail(registration: any, categoryName: string) {
   try {
@@ -22,7 +24,7 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
     });
 
     const mailOptions = {
-      from: `"Team Feel The Beat" <noreply@feelthebeatrun2026.com>`,
+      from: process.env.SMTP_FROM || `"Feel The Beat Run 2026" <marathon@sreejayamschool.edu.in>`,
       to: registration.email,
       subject: `Feel The Beat Run 2026 Registration Confirmation`,
       html: `
@@ -95,9 +97,6 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
   }
 }
 
-import { sendRegistrationSMS } from "@/lib/sms";
-import { sendRegistrationWhatsApp } from "@/lib/whatsapp";
-
 const VENUE_ADDRESSES: Record<string, string> = {
   School: "Ezhil Nagar Main Rd, Ezhil Nagar, Krishna Nagar, RV Nagar, Vellore, Tamil Nadu 632002.",
   marathonlocation: "Deboer ground,Vellore, Tamil Nadu 632001.",
@@ -106,7 +105,6 @@ const VENUE_ADDRESSES: Record<string, string> = {
   Pallikaranai: "D.A.V. School, Pallikaranai,\nMaxworth Nagar,\nKovilambakkam,\nChennai-600100.",
 };
 
-const ALLOWED_VENUES = ["School", "marathonlocation", "Gopalapuram", "Mogappair", "Pallikaranai"];
 const ALLOWED_DAV_MEMBER = ["Yes", "No"];
 const ALLOWED_DAV_FAMILY_TYPES = [
   "Student",
@@ -217,8 +215,6 @@ export async function POST(req: Request) {
       }
     }
 
-
-
     // Backend Validation for Community fields
     if (!dav_family_member || !ALLOWED_DAV_MEMBER.includes(dav_family_member)) {
       return NextResponse.json(
@@ -249,8 +245,6 @@ export async function POST(req: Request) {
       finalDavFamilyType = null;
       finalDavHearAbout = dav_hear_about;
     }
-
-    const finalTshirtVenueAddress = tshirt_bib_venue ? (VENUE_ADDRESSES[tshirt_bib_venue] || "") : null;
 
     // 2. Fetch payment record
     const { data: paymentLog, error: payGetError } = await supabaseAdmin
@@ -397,14 +391,46 @@ export async function POST(req: Request) {
       race_category: priceObj.name,
       payment_amount: registration.payment_amount,
       tshirt_bib_venue: registration.tshirt_bib_venue,
-      tshirt_bib_venue_address: registration.tshirt_bib_venue_address,
     };
+    console.log(`[PAYMENT VERIFY SUCCESS] Registration created: ${registration.registration_number} | Order: ${registration.order_id} | Bib: ${registration.bib_number}`);
 
-    // 6. Trigger SMS notification (Independent execution)
-    try {
-      const smsResult = await sendRegistrationSMS(runnerDetails);
-
+    // 6. Asynchronous Background Notifications (Non-blocking so user is redirected immediately)
+    (async () => {
+      // Fetch fresh database record to ensure post-insert trigger fields (order_id, bib_number, etc.) are 100% accurate
+      let freshRegistration = registration;
       try {
+        const { data: freshRecord } = await supabaseAdmin
+          .from("registrations")
+          .select("*")
+          .eq("id", registration.id)
+          .single();
+
+        if (freshRecord) {
+          freshRegistration = freshRecord;
+        }
+      } catch (fetchErr) {
+        console.warn("[PAYMENT NOTIFICATION] Fresh record fetch fallback:", fetchErr);
+      }
+
+      const runnerDetails = {
+        id: freshRegistration.id,
+        full_name: freshRegistration.full_name,
+        mobile: freshRegistration.mobile,
+        registration_number: freshRegistration.registration_number,
+        order_id: freshRegistration.order_id,
+        bib_number: freshRegistration.bib_number,
+        bib_name: freshRegistration.bib_name,
+        race_category: freshRegistration.race_category,
+        payment_amount: freshRegistration.payment_amount,
+        tshirt_size: freshRegistration.tshirt_size,
+        dav_family_member: freshRegistration.dav_family_member,
+        dav_family_type: freshRegistration.dav_family_type,
+        dav_hear_about: freshRegistration.dav_hear_about,
+      };
+
+      // SMS Notification
+      try {
+        const smsResult = await sendRegistrationSMS(runnerDetails);
         if (smsResult.success) {
           await supabaseAdmin
             .from("registrations")
@@ -415,7 +441,7 @@ export async function POST(req: Request) {
               sms_status: "SENT",
               sms_error: null,
             })
-            .eq("id", registration.id);
+            .eq("id", freshRegistration.id);
         } else {
           await supabaseAdmin
             .from("registrations")
@@ -424,20 +450,15 @@ export async function POST(req: Request) {
               sms_status: "FAILED",
               sms_error: smsResult.error || "SMS provider failed to deliver",
             })
-            .eq("id", registration.id);
+            .eq("id", freshRegistration.id);
         }
-      } catch (dbErr) {
-        console.warn("Could not save SMS tracking columns to database:", dbErr);
+      } catch (smsErr) {
+        console.error("[PAYMENT NOTIFICATION] SMS error:", smsErr);
       }
-    } catch (smsErr: any) {
-      console.error("SMS notification processing exception:", smsErr);
-    }
 
-    // 7. Trigger WhatsApp notification (Independent execution)
-    try {
-      const waResult = await sendRegistrationWhatsApp(runnerDetails);
-
+      // WhatsApp Notification
       try {
+        const waResult = await sendRegistrationWhatsApp(runnerDetails);
         if (waResult.success) {
           await supabaseAdmin
             .from("registrations")
@@ -448,7 +469,7 @@ export async function POST(req: Request) {
               whatsapp_status: "SENT",
               whatsapp_error: null,
             })
-            .eq("id", registration.id);
+            .eq("id", freshRegistration.id);
         } else {
           await supabaseAdmin
             .from("registrations")
@@ -457,30 +478,32 @@ export async function POST(req: Request) {
               whatsapp_status: "FAILED",
               whatsapp_error: waResult.error || "WhatsApp provider failed to deliver",
             })
-            .eq("id", registration.id);
+            .eq("id", freshRegistration.id);
         }
-      } catch (dbErr) {
-        console.warn("Could not save WhatsApp tracking columns to database:", dbErr);
+      } catch (waErr) {
+        console.error("[PAYMENT NOTIFICATION] WhatsApp error:", waErr);
       }
-    } catch (waErr: any) {
-      console.error("WhatsApp notification processing exception:", waErr);
-    }
 
-    // 8. Trigger Email notification asynchronously
-    await sendConfirmationEmail(registration, priceObj.name);
+      // Email Notification
+      try {
+        await sendConfirmationEmail(freshRegistration, freshRegistration.race_category || priceObj.name);
+      } catch (emailErr) {
+        console.error("[PAYMENT NOTIFICATION] Email error:", emailErr);
+      }
+    })();
 
+    // 7. Return verified response immediately
     return NextResponse.json({
       success: true,
       registrationNumber: registration.registration_number,
       orderId: registration.order_id,
       bibNumber: registration.bib_number,
       bibName: registration.bib_name,
-      id: registration.id,
     });
   } catch (err: any) {
-    console.error("Payment verification failure:", err);
+    console.error("[PAYMENT VERIFY] Processing error:", err);
     return NextResponse.json(
-      { message: err.message || "Failed to verify transaction." },
+      { message: err.message || "Failed to process payment verification." },
       { status: 500 }
     );
   }

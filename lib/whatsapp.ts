@@ -8,18 +8,23 @@
 import { normalizeMobileNumber, maskPhoneNumber, getEnvVar, RunnerRegistrationDetails } from "@/lib/sms";
 import https from "https";
 import http from "http";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export interface WhatsAppResponse {
   success: boolean;
   messageId?: string;
-  status: "SENT" | "FAILED" | "NOT_SENT";
+  status: "ACCEPTED" | "SENT" | "FAILED" | "NOT_SENT";
+  providerStatusCode?: number | string;
+  providerStatusText?: string;
   error?: string;
   isMock?: boolean;
+  recipient?: string;
+  templateId?: string;
 }
 
 /**
  * Builds the exact text for Registration Confirmation WhatsApp Template
- * Matching Approved Template 1792728
+ * Matching Approved Template 1792971
  */
 export function buildRegistrationWhatsAppMessage(registration: RunnerRegistrationDetails): string {
   const runnerName = (registration.full_name || "Runner").trim();
@@ -78,12 +83,13 @@ Bib & T-Shirt collection will NOT be available on the event day.`;
 }
 
 /**
- * Helper to make secure HTTP/HTTPS POST request with agent options.
+ * Helper to make secure HTTP/HTTPS request with agent options.
  */
 async function postJsonWithAgent(
   url: string,
   body: any,
-  headers: Record<string, string>
+  headers: Record<string, string>,
+  method: string = "POST"
 ): Promise<{ status: number; text: string; data: any }> {
   return new Promise((resolve, reject) => {
     try {
@@ -99,7 +105,7 @@ async function postJsonWithAgent(
           hostname: urlObj.hostname,
           port: urlObj.port || (isHttps ? 443 : 80),
           path: urlObj.pathname + urlObj.search,
-          method: "POST",
+          method: method,
           headers: {
             "Content-Type": "application/json",
             "Content-Length": Buffer.byteLength(bodyStr),
@@ -146,42 +152,72 @@ async function postJsonWithAgent(
 /**
  * Sends a Registration Confirmation WhatsApp message.
  * Template Variables:
- * {{1}} = full_name
- * {{2}} = race_category
- * {{3}} = order_id
+ * {{1}} = full_name (Exact column: registrations.full_name)
+ * {{2}} = race_category (Exact column: registrations.race_category)
+ * {{3}} = order_id (Exact column: registrations.order_id)
  */
 export async function sendRegistrationWhatsApp(
   registration: RunnerRegistrationDetails
 ): Promise<WhatsAppResponse> {
-  const normalized = normalizeMobileNumber(registration.mobile);
-  const maskedPhone = maskPhoneNumber(registration.mobile);
+  // 1. Fetch FRESH database record if ID is provided to guarantee 100% database accuracy
+  let recordToUse: any = registration;
 
-  console.log(`[WHATSAPP] Registration confirmation started`);
-  console.log(`[WHATSAPP] Registration ID: ${registration.id || "NEW"}`);
-  console.log(`[WHATSAPP] Recipient: ${maskedPhone}`);
+  if (registration.id) {
+    try {
+      const { data: freshRecord, error } = await supabaseAdmin
+        .from("registrations")
+        .select("*")
+        .eq("id", registration.id)
+        .maybeSingle();
+
+      if (freshRecord && !error) {
+        recordToUse = freshRecord;
+      }
+    } catch (dbErr) {
+      console.warn("[WHATSAPP] Failed to fetch fresh DB record, using provided payload:", dbErr);
+    }
+  }
+
+  const runnerName = (recordToUse.full_name || "Runner").trim();
+  const category = (recordToUse.race_category || "Race").trim();
+  const orderId = (recordToUse.order_id || recordToUse.registration_number || "FTB26-000000").trim();
+  const mobile = recordToUse.mobile || registration.mobile;
+
+  const normalized = normalizeMobileNumber(mobile);
+  const maskedPhone = maskPhoneNumber(mobile);
+
+  // Safe Audit Debug Log
+  console.log("[WHATSAPP DATA AUDIT - REGISTRATION CONFIRMATION]", {
+    registrationId: recordToUse.id || registration.id,
+    runnerName: runnerName,
+    mobile: maskedPhone,
+    raceCategory: category,
+    orderId: orderId,
+    bibNumber: recordToUse.bib_number,
+    tshirtSize: recordToUse.tshirt_size,
+    paymentAmount: recordToUse.payment_amount,
+    paymentStatus: recordToUse.payment_status,
+  });
 
   if (!normalized.isValid) {
     console.error(`[WHATSAPP] Invalid mobile number: ${maskedPhone}`);
     return {
       success: false,
       status: "FAILED",
-      error: `Invalid mobile number format: ${registration.mobile}`,
+      error: `Invalid mobile number format: ${mobile}`,
     };
   }
 
-  const runnerName = (registration.full_name || "Runner").trim();
-  const category = (registration.race_category || "Race").trim();
-  const orderId = (registration.order_id || registration.registration_number || "FTB26-000000").trim();
-  const messageText = buildRegistrationWhatsAppMessage(registration);
+  const messageText = buildRegistrationWhatsAppMessage(recordToUse);
 
   const templateId =
     getEnvVar("WHATSAPP_REGISTRATION_TEMPLATE_ID") ||
     getEnvVar("REGISTRATION_WHATSAPP_TEMPLATE_ID") ||
-    "1792728";
+    "1792971";
 
+  // Explicit template variable mapping: {{1}} = Name, {{2}} = Category, {{3}} = Order ID
   const variables = [runnerName, category, orderId];
-  console.log(`[WHATSAPP] Template ID: ${templateId}`);
-  console.log(`[WHATSAPP] Sending template with parameters: [${variables.join(", ")}]`);
+  console.log(`[WHATSAPP] Sending Template: ${templateId} | Variables: [{{1}}=${runnerName}, {{2}}=${category}, {{3}}=${orderId}]`);
 
   return dispatchWhatsAppMessage({
     recipientPhone: normalized.withCountryCode,
@@ -196,40 +232,73 @@ export async function sendRegistrationWhatsApp(
 /**
  * Sends a Bib & T-Shirt Collection Broadcast WhatsApp message.
  * Template Variables:
- * {{1}} = full_name
- * {{2}} = bib_number
- * {{3}} = race_category
+ * {{1}} = full_name (Exact column: registrations.full_name)
+ * {{2}} = bib_number (Exact column: registrations.bib_number)
+ * {{3}} = race_category (Exact column: registrations.race_category)
  */
 export async function sendBroadcastWhatsApp(registration: {
+  id?: string;
   mobile: string;
   full_name: string;
   bib_number?: number | string | null;
   race_category: string;
 }): Promise<WhatsAppResponse> {
-  const normalized = normalizeMobileNumber(registration.mobile);
-  const maskedPhone = maskPhoneNumber(registration.mobile);
+  // 1. Fetch FRESH database record if ID is provided
+  let recordToUse: any = registration;
+
+  if (registration.id) {
+    try {
+      const { data: freshRecord, error } = await supabaseAdmin
+        .from("registrations")
+        .select("*")
+        .eq("id", registration.id)
+        .maybeSingle();
+
+      if (freshRecord && !error) {
+        recordToUse = freshRecord;
+      }
+    } catch (dbErr) {
+      console.warn("[WHATSAPP] Failed to fetch fresh DB record for broadcast:", dbErr);
+    }
+  }
+
+  const runnerName = (recordToUse.full_name || "Runner").trim();
+  const bibNo = recordToUse.bib_number !== undefined && recordToUse.bib_number !== null
+    ? String(recordToUse.bib_number)
+    : "To be assigned";
+  const category = (recordToUse.race_category || "Race").trim();
+  const mobile = recordToUse.mobile || registration.mobile;
+
+  const normalized = normalizeMobileNumber(mobile);
+  const maskedPhone = maskPhoneNumber(mobile);
+
+  // Safe Audit Debug Log
+  console.log("[WHATSAPP DATA AUDIT - BROADCAST]", {
+    registrationId: recordToUse.id || registration.id,
+    runnerName: runnerName,
+    mobile: maskedPhone,
+    bibNumber: bibNo,
+    raceCategory: category,
+  });
 
   if (!normalized.isValid) {
     return {
       success: false,
       status: "FAILED",
-      error: `Invalid mobile number: ${registration.mobile}`,
+      error: `Invalid mobile number: ${mobile}`,
     };
   }
 
-  const runnerName = (registration.full_name || "Runner").trim();
-  const bibNo = registration.bib_number !== undefined && registration.bib_number !== null
-    ? String(registration.bib_number)
-    : "To be assigned";
-  const category = (registration.race_category || "Race").trim();
-  const messageText = buildBroadcastWhatsAppMessage(registration);
+  const messageText = buildBroadcastWhatsAppMessage(recordToUse);
 
   const templateId =
     getEnvVar("WHATSAPP_BROADCAST_TEMPLATE_ID") ||
     getEnvVar("BROADCAST_WHATSAPP_TEMPLATE_ID") ||
     "1792730";
 
+  // Explicit template variable mapping: {{1}} = Name, {{2}} = Bib No, {{3}} = Category
   const variables = [runnerName, bibNo, category];
+  console.log(`[WHATSAPP] Sending Broadcast Template: ${templateId} | Variables: [{{1}}=${runnerName}, {{2}}=${bibNo}, {{3}}=${category}]`);
 
   return dispatchWhatsAppMessage({
     recipientPhone: normalized.withCountryCode,
@@ -242,7 +311,7 @@ export async function sendBroadcastWhatsApp(registration: {
 }
 
 /**
- * Unified dispatch engine supporting Unified v2, Meta Cloud API, and Mock Fallback
+ * Unified dispatch engine supporting ValueFirst Unified v2, Meta Cloud API, and Mock Fallback
  */
 async function dispatchWhatsAppMessage(params: {
   recipientPhone: string;
@@ -254,61 +323,72 @@ async function dispatchWhatsAppMessage(params: {
 }): Promise<WhatsAppResponse> {
   const { recipientPhone, maskedPhone, templateId, variables, messageText, type } = params;
 
-  // 1. Unified v2 WhatsApp Gateway (Configured in .env)
-  const unifiedUrl = getEnvVar("WHATSAPP_API_URL");
+  // 1. Unified v2 WhatsApp Gateway (ValueFirst / Infinito)
+  const unifiedUrl = getEnvVar("WHATSAPP_API_URL") || "https://103.229.250.150/unified/v2/send";
   const unifiedClientId = getEnvVar("WHATSAPP_CLIENT_ID");
   const unifiedClientPassword = getEnvVar("WHATSAPP_CLIENT_PASSWORD");
-  const unifiedSender = getEnvVar("WHATSAPP_SENDER");
-  const unifiedTag = getEnvVar("WHATSAPP_TAG") || "user_id:3";
+  const unifiedSender = getEnvVar("WHATSAPP_SENDER") || "916369099925";
+  const unifiedTag = getEnvVar("WHATSAPP_TAG") || "";
 
   if (unifiedUrl && unifiedClientId && unifiedClientPassword) {
     try {
-      const basicAuth = Buffer.from(`${unifiedClientId}:${unifiedClientPassword}`).toString("base64");
+      const cleanTo = recipientPhone.replace(/^\+/, "");
+      const templateInfoStr = `${templateId}~${variables.join("~")}`;
+      const messageIdParam = type === "BROADCAST" ? (getEnvVar("WHATSAPP_BROADCAST_MESSAGE_ID") || "1431909") : "";
 
       const payload = {
-        client_id: unifiedClientId,
-        client_password: unifiedClientPassword,
-        sender: unifiedSender,
-        to: recipientPhone,
-        number: recipientPhone,
-        mobile: recipientPhone,
-        template_id: templateId,
-        tag: unifiedTag,
-        variables: variables,
-        params: variables,
-        message: messageText,
+        apiver: "1.0",
+        whatsapp: {
+          ver: "2.0",
+          dlr: {
+            url: "",
+          },
+          messages: [
+            {
+              id: messageIdParam,
+              templateinfo: templateInfoStr,
+              text: "",
+              addresses: [
+                {
+                  from: unifiedSender,
+                  to: cleanTo,
+                  seq: "01",
+                  tag: "",
+                },
+              ],
+            },
+          ],
+        },
       };
 
       const res = await postJsonWithAgent(
         unifiedUrl,
         payload,
         {
-          "Authorization": `Basic ${basicAuth}`,
-          "client_id": unifiedClientId,
-          "client_password": unifiedClientPassword,
-        }
+          "x-client-id": unifiedClientId,
+          "x-client-password": unifiedClientPassword,
+        },
+        "GET"
       );
 
-      console.log(`[WHATSAPP] Provider response status: ${res.status}`);
-
-      const isExplicitError =
-        res.status >= 400 ||
-        (res.data && (res.data.status === "Error" || res.data.status === "error" || res.data.status === false)) ||
-        res.text.toLowerCase().includes("invalid payload");
+      console.log(`[WHATSAPP] Gateway HTTP Status: ${res.status} | Response: ${res.text}`);
 
       const isSuccess =
-        res.status >= 200 &&
-        res.status < 300 &&
-        !isExplicitError &&
-        (res.data?.status === "success" || res.data?.status === true || res.data?.status === 200 || res.data?.message_id || res.data?.id);
+        res.status === 200 &&
+        res.data &&
+        (res.data.status === "Success" || res.data.statuscode === 200 || res.data.status === "success");
 
       if (isSuccess) {
-        const messageId = res.data?.message_id || res.data?.id || res.data?.msgId || `UNIFIED_WA_${Date.now()}`;
-        console.log(`[WHATSAPP] Provider message ID: ${messageId}`);
+        const guid = res.data?.messageack?.guids?.[0]?.guid || res.data?.message_id || `VF_${Date.now()}`;
+        console.log(`[WHATSAPP ACCEPTED BY GATEWAY] Recipient: ${maskedPhone} | GUID: ${guid}`);
         return {
           success: true,
-          status: "SENT",
-          messageId,
+          status: "ACCEPTED",
+          messageId: guid,
+          providerStatusCode: res.data?.statuscode || 200,
+          providerStatusText: res.data?.statustext || "OK",
+          recipient: cleanTo,
+          templateId: templateId,
         };
       }
 
@@ -316,15 +396,19 @@ async function dispatchWhatsAppMessage(params: {
         res.data?.statustext ||
         res.data?.message ||
         res.data?.error ||
-        res.text.slice(0, 150) ||
+        res.text.slice(0, 200) ||
         `HTTP ${res.status}`;
 
-      console.error(`[WHATSAPP] Provider response/error: ${sanitizedError}`);
+      console.error(`[WHATSAPP REJECTED BY GATEWAY] Recipient: ${maskedPhone} | Error: ${sanitizedError}`);
 
       return {
         success: false,
         status: "FAILED",
+        providerStatusCode: res.data?.statuscode || res.status,
+        providerStatusText: res.data?.statustext || "Error",
         error: sanitizedError,
+        recipient: cleanTo,
+        templateId: templateId,
       };
     } catch (err: any) {
       console.error(`[WHATSAPP Exception] To: ${maskedPhone} | Error: ${err.message || err}`);
@@ -332,6 +416,8 @@ async function dispatchWhatsAppMessage(params: {
         success: false,
         status: "FAILED",
         error: err.message || "Failed to communicate with WhatsApp gateway",
+        recipient: recipientPhone,
+        templateId: templateId,
       };
     }
   }

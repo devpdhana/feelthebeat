@@ -33,14 +33,14 @@ export const metadata: Metadata = {
     template: "%s | Feel The Beat Run",
   },
   description: "Official site for the Feel The Beat Run 2026 on Sunday, September 27, 2026, in Vellore, Tamil Nadu. Register now to celebrate World Heart Day and run for your heart (10K, 5K, 2K categories).",
-  metadataBase: new URL("https://feelthebeatrun2026.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://marathon.sreejayamschool.edu.in"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "Feel The Beat Run 2026",
     description: "Join the World Heart Day community run on Sunday, September 27, 2026, in Vellore, Tamil Nadu. Register today!",
-    url: "https://feelthebeatrun2026.com",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://marathon.sreejayamschool.edu.in",
     siteName: "Feel The Beat Run",
     images: [
       {
@@ -60,8 +60,19 @@ export const metadata: Metadata = {
     images: ["/images/og-image.jpg"],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-icon.png",
+    icon: [
+      {
+        url: "/images/favicon/Frame 1000004377.png",
+        type: "image/png",
+      },
+    ],
+    shortcut: "/images/favicon/Frame 1000004377.png",
+    apple: [
+      {
+        url: "/images/favicon/Frame 1000004377.png",
+        type: "image/png",
+      },
+    ],
   },
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { racePrices } from "@/data/registrationConfig";
 import Card from "@/components/ui/Card";
@@ -66,6 +66,10 @@ function RegisterForm() {
   });
 
   const [loading, setLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Sync category from URL queries
@@ -89,6 +93,57 @@ function RegisterForm() {
 
   const selectedCategory = racePrices[formData.raceCategory] || racePrices["10km"];
 
+  // Check payment status directly from server (safe recovery if money deducted)
+  const handleCheckPaymentStatus = async (orderIdToCheck?: string) => {
+    const targetOrderId = orderIdToCheck || lastOrderId;
+    if (!targetOrderId) {
+      alert("No pending order reference found. Please proceed to payment.");
+      return;
+    }
+
+    setCheckingStatus(true);
+    setPaymentNotice("Verifying transaction with bank gateway...");
+
+    try {
+      const res = await fetch("/api/payment/check-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          razorpay_order_id: targetOrderId,
+          ...formData,
+          bib_name: formData.bibName.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success && data.status === "PAID") {
+        router.push(
+          `/register/success?orderId=${encodeURIComponent(data.orderId || targetOrderId)}&bibNumber=${encodeURIComponent(data.bibNumber || "")}&bibName=${encodeURIComponent(data.bibName || formData.bibName || "")}&regNo=${encodeURIComponent(data.registrationNumber || "")}&name=${encodeURIComponent(
+            formData.fullName
+          )}&category=${formData.raceCategory}${formData.raceCategory === "2km-kids" && formData.schoolName
+            ? `&schoolName=${encodeURIComponent(formData.schoolName)}`
+            : ""
+          }`
+        );
+        return;
+      }
+
+      if (data.status === "PENDING") {
+        alert("Payment is currently being processed by the bank. Please wait a moment and click 'Check Status' again.");
+        setPaymentNotice("Payment is pending bank confirmation.");
+      } else {
+        setPaymentNotice(null);
+        alert(data.message || "No successful payment detected. You may retry payment safely.");
+      }
+    } catch (err: any) {
+      setPaymentNotice(null);
+      alert(err.message || "Failed to verify payment status. Please check your connection and retry.");
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
+
   // Client side validation
   const validateForm = () => {
     const errs: { [key: string]: string } = {};
@@ -109,44 +164,56 @@ function RegisterForm() {
       } else if (formData.raceCategory === "2km" && age < 18) {
         errs.dob = "Participants must be 18 years or above for the 2 KM Adults Fun Run.";
       } else if (formData.raceCategory === "5km" && age < 12) {
-        errs.dob = "Participants must be 12 years or above for the 5 KM.";
+        errs.dob = "Participants must be 12 years or above for the 5 KM Run.";
       } else if (formData.raceCategory === "10km" && age < 14) {
-        errs.dob = "Participants must be 14 years or above for the 10 KM.";
+        errs.dob = "Participants must be 14 years or above for the 10 KM Run.";
       }
     }
 
-
-    if (!formData.gender) errs.gender = "Gender selection is required";
+    if (!formData.fullName.trim()) errs.fullName = "Full Name is required";
+    if (!/^\d{10}$/.test(formData.mobile)) errs.mobile = "Mobile Number must be 10 digits";
+    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) errs.email = "Valid Email is required";
+    if (!formData.gender) errs.gender = "Gender is required";
     if (!formData.tshirtSize) errs.tshirtSize = "T-Shirt Size is required";
 
-    // D.A.V Family & Referral conditional validation
+    if (formData.raceCategory === "2km-kids" && !formData.schoolName.trim()) {
+      errs.schoolName = "School Name is mandatory for 2 KM Kids Fun Run";
+    }
+
+    // Community Validation
     if (!formData.davFamilyMember) {
-      errs.davFamilyMember = "Please select whether you are part of the D.A.V Family";
+      errs.davFamilyMember = "Selection is required";
     } else if (formData.davFamilyMember === "Yes") {
-      if (!formData.davFamilyType) {
-        errs.davFamilyType = "Please select your D.A.V Family role";
-      }
+      if (!formData.davFamilyType) errs.davFamilyType = "Please select D.A.V Family type";
     } else if (formData.davFamilyMember === "No") {
-      if (!formData.davHearAbout) {
-        errs.davHearAbout = "Please select how you heard about the D.A.V. Marathon";
-      }
+      if (!formData.davHearAbout) errs.davHearAbout = "Please select how you heard about us";
     }
 
     if (!formData.emergencyContactName.trim()) errs.emergencyContactName = "Emergency Contact Name is required";
     if (!/^\d{10}$/.test(formData.emergencyContactNumber)) errs.emergencyContactNumber = "Emergency Mobile must be 10 digits";
-    if (formData.mobile === formData.emergencyContactNumber) errs.emergencyContactNumber = "Emergency contact cannot be same as main mobile";
+    if (formData.mobile === formData.emergencyContactNumber) errs.emergencyContactNumber = "Emergency mobile cannot match personal mobile";
+
     if (!formData.bloodGroup) errs.bloodGroup = "Blood Group is required";
     if (!formData.nationality.trim()) errs.nationality = "Nationality is required";
+
+    if (!formData.fitConfirm) errs.fitConfirm = "Required";
+    if (!formData.termsConfirm) errs.termsConfirm = "Required";
+    if (!formData.privacyConfirm) errs.privacyConfirm = "Required";
+    if (!formData.correctConfirm) errs.correctConfirm = "Required";
+
     if (!formData.bibName.trim()) errs.bibName = "Bib Name is required";
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-
-  // Payment Handler
+  // Payment Handler with Double-Click & Rate-Limit Protection
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmittingRef.current || loading) {
+      return;
+    }
 
     if (!validateForm()) {
       const banner = document.getElementById("error-banner");
@@ -154,7 +221,9 @@ function RegisterForm() {
       return;
     }
 
+    isSubmittingRef.current = true;
     setLoading(true);
+    setPaymentNotice(null);
 
     try {
       // 1. Create order at backend
@@ -171,7 +240,17 @@ function RegisterForm() {
       const orderData = await res.json();
 
       if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error("Payment service is temporarily busy. Please wait a moment and try again.");
+        }
         throw new Error(orderData.message || "Failed to create payment order.");
+      }
+
+      setLastOrderId(orderData.id);
+
+      // Check if Razorpay SDK loaded
+      if (typeof window === "undefined" || !window.Razorpay) {
+        throw new Error("Payment gateway SDK is initializing. Please try again in a few seconds.");
       }
 
       // 2. Open Razorpay checkout options
@@ -204,7 +283,7 @@ function RegisterForm() {
             const verifyData = await verifyRes.json();
 
             if (verifyRes.ok) {
-              // Redirect to success route
+              // Redirect to success route immediately
               router.push(
                 `/register/success?orderId=${encodeURIComponent(verifyData.orderId || "")}&bibNumber=${encodeURIComponent(verifyData.bibNumber || "")}&bibName=${encodeURIComponent(verifyData.bibName || formData.bibName || "")}&regNo=${encodeURIComponent(verifyData.registrationNumber || "")}&name=${encodeURIComponent(
                   formData.fullName
@@ -217,16 +296,19 @@ function RegisterForm() {
               if (verifyData.paymentCaptured) {
                 alert(
                   verifyData.message ||
-                    "Your payment was captured successfully! We are completing your registration. Please do not make another payment."
+                    "Your payment was captured successfully! We are finishing your registration. Please do not make another payment."
                 );
+                // Attempt automatic recovery check
+                handleCheckPaymentStatus(response.razorpay_order_id);
               } else {
                 alert(verifyData.message || "Payment verification failed.");
               }
             }
           } catch (err: any) {
-            alert(err.message || "An error occurred during payment verification.");
+            alert(err.message || "An error occurred during payment verification. If money was deducted, click 'Check Payment Status'.");
           } finally {
             setLoading(false);
+            isSubmittingRef.current = false;
           }
         },
         prefill: {
@@ -240,16 +322,26 @@ function RegisterForm() {
         modal: {
           ondismiss: function () {
             setLoading(false);
+            isSubmittingRef.current = false;
           },
         },
       };
 
       const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        setLoading(false);
+        isSubmittingRef.current = false;
+        console.error("Razorpay payment failed:", response.error);
+        if (response.error?.code === "BAD_REQUEST_ERROR" && response.error?.description?.includes("Too many requests")) {
+          alert("Payment service is temporarily busy. Please wait a moment and try again.");
+        }
+      });
+
       rzp.open();
     } catch (err: any) {
       alert(err.message || "An error occurred during order generation.");
-    } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -850,14 +942,31 @@ function RegisterForm() {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full py-4 text-xs font-black tracking-widest shadow-md"
-                disabled={loading}
+                className="w-full py-4 text-xs font-black tracking-widest shadow-md disabled:opacity-50"
+                disabled={loading || checkingStatus}
               >
                 {loading ? "PROCESSING PAYMENT..." : "PROCEED TO PAYMENT"}
               </Button>
 
+              {paymentNotice && (
+                <div className="p-3 bg-brand-primary/10 border border-brand-primary/20 rounded text-[11px] font-mono text-brand-primary text-center">
+                  {paymentNotice}
+                </div>
+              )}
+
+              {lastOrderId && (
+                <button
+                  type="button"
+                  onClick={() => handleCheckPaymentStatus()}
+                  disabled={checkingStatus || loading}
+                  className="w-full py-2.5 px-3 bg-amber-500/10 border border-amber-500/30 text-amber-700 text-[10px] font-mono font-bold uppercase rounded hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                >
+                  {checkingStatus ? "VERIFYING PAYMENT WITH BANK..." : "MONEY DEDUCTED? CLICK TO CHECK STATUS"}
+                </button>
+              )}
+
               <div className="text-center font-mono text-[9px] text-muted-default/30">
-                SECURE SECURE TRANSACTION PROTOCOL  POWERED BY RAZORPAY
+                SECURE TRANSACTION PROTOCOL • POWERED BY RAZORPAY
               </div>
             </Card>
           </div>

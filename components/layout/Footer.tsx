@@ -2,19 +2,70 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navLinks, registrationConfig } from "@/data/navigation";
+import { navLinks } from "@/data/navigation";
+import { useLenis } from "lenis/react";
 import { FaInstagram, FaTwitter, FaFacebookF, FaYoutube } from "react-icons/fa";
 
 export default function Footer() {
   const pathname = usePathname();
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert("Subscribed to timing updates!");
-  };
+  const lenis = useLenis();
 
   if (pathname?.startsWith("/admin")) {
     return null;
   }
+
+  const handleFooterNavClick = (e: React.MouseEvent, href: string) => {
+    if (!href.startsWith("/") && !href.startsWith("#")) return;
+
+    const hashIndex = href.indexOf("#");
+    const hash = hashIndex !== -1 ? href.substring(hashIndex) : "";
+
+    if (pathname === "/") {
+      e.preventDefault();
+
+      if (hash) {
+        window.history.pushState(null, "", href);
+
+        const hashToIdMap: Record<string, string> = {
+          "#hero": "hero",
+          "#highlights": "event-highlights",
+          "#about": "about",
+          "#categories": "categories",
+          "#route-map": "route",
+          "#route": "route",
+          "#sponsors": "sponsors",
+          "#gallery": "gallery",
+          "#faqs": "faq",
+          "#faq": "faq",
+        };
+
+        const targetId = hashToIdMap[hash] || hash.replace("#", "");
+        const target = document.getElementById(targetId);
+        if (target) {
+          if (lenis) {
+            lenis.scrollTo(target, {
+              offset: -95,
+              duration: 1.2,
+              easing: (t) => (t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2)),
+            });
+          } else {
+            const targetTop = target.getBoundingClientRect().top + window.scrollY - 95;
+            window.scrollTo({
+              top: targetTop,
+              behavior: "smooth",
+            });
+          }
+        }
+      } else {
+        window.history.pushState(null, "", "/");
+        if (lenis) {
+          lenis.scrollTo(0, { duration: 1.2 });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+    }
+  };
 
   return (
     <footer className="relative bg-[#181818] border-t border-white/10 pt-16 pb-8 overflow-hidden">
@@ -22,10 +73,10 @@ export default function Footer() {
       <div className="absolute inset-0 telemetry-grid opacity-[0.02] pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4 lg:gap-12">
-          {/* Company branding & tagline */}
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-3 lg:gap-12">
+          {/* Column 1: Company branding & tagline */}
           <div className="flex flex-col gap-4">
-            <Link href="/" className="flex flex-col tracking-tighter">
+            <Link href="/" onClick={(e) => handleFooterNavClick(e, "/")} className="flex flex-col tracking-tighter">
               <span className="font-display text-xl font-black tracking-widest text-white">
                 FEEL THE <span className="text-brand-primary">BEAT</span>
               </span>
@@ -33,7 +84,7 @@ export default function Footer() {
                 27 SEPTEMBER 2026 • VELLORE
               </span>
             </Link>
-            <p className="text-xs text-white/80 leading-relaxed">
+            <p className="text-xs text-white/80 leading-relaxed max-w-sm">
               Vellore&apos;s premier running event to promote healthy hearts and fitness. Held on World Heart Day, encouraging people of all ages to run together and support cardiovascular health.
             </p>
             {/* Social Icons */}
@@ -57,7 +108,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick links */}
+          {/* Column 2: Quick links */}
           <div>
             <h4 className="font-display text-xs font-bold uppercase tracking-widest text-white border-l-2 border-brand-primary pl-2.5 mb-5 font-semibold">
               QUICK SECTIONS
@@ -67,7 +118,8 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="font-mono text-[11px] text-white/85 hover:text-[#1E90FF] hover:pl-1 transition-all"
+                    onClick={(e) => handleFooterNavClick(e, link.href)}
+                    className="font-mono text-[11px] text-white/85 hover:text-[#1E90FF] hover:pl-1 transition-all inline-block"
                   >
                     {link.label.toUpperCase()}
                   </Link>
@@ -76,7 +128,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Race information */}
+          {/* Column 3: Race information */}
           <div>
             <h4 className="font-display text-xs font-bold uppercase tracking-widest text-white border-l-2 border-brand-primary pl-2.5 mb-5 font-semibold">
               RACE DIRECTIVE
@@ -96,38 +148,16 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-
-          {/* Newsletter signup */}
-          <div className="flex flex-col gap-4">
-            <h4 className="font-display text-xs font-bold uppercase tracking-widest text-white border-l-2 border-brand-primary pl-2.5 mb-1 font-semibold">
-              TELEMETRY UPDATES
-            </h4>
-            <p className="text-xs text-white/80 leading-relaxed">
-              Subscribe to receive timing notifications, BIB distribution details and announcements.
-            </p>
-            <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
-              <input
-                suppressHydrationWarning
-                type="email"
-                placeholder="ENTER EMAIL ADDRESS"
-                required
-                className="w-full bg-[#222] border border-white/10 px-4 py-2.5 font-mono text-[10px] uppercase text-white placeholder-white/30 focus:border-[#1E90FF] focus:outline-none transition-colors rounded"
-              />
-              <button
-                suppressHydrationWarning
-                type="submit"
-                className="w-full bg-brand-primary py-2.5 font-display text-[10px] font-black uppercase tracking-widest text-white hover:bg-brand-primary-hover transition-colors rounded shadow"
-              >
-                SUBSCRIBE TO FEED
-              </button>
-            </form>
-          </div>
         </div>
 
         {/* Dynamic footer HUD metrics */}
         <div className="mt-16 pt-8 border-t border-white/12 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[9px] text-white/55">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-
+            <span>SREE JAYAM SCHOOL</span>
+            <span>•</span>
+            <span>VRG CEMENT MARKETING</span>
+            <span>•</span>
+            <span>WORLD HEART DAY 2026</span>
           </div>
           <div className="text-center sm:text-right">
             © Design and Developed by Man2web.

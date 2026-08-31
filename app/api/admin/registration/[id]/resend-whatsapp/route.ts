@@ -74,17 +74,20 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           whatsapp_sent: true,
           whatsapp_sent_at: new Date().toISOString(),
           whatsapp_message_id: waResult.messageId || null,
-          whatsapp_status: "SENT",
+          whatsapp_status: "ACCEPTED",
           whatsapp_error: null,
         })
         .eq("id", reg.id);
 
       return NextResponse.json({
         success: true,
-        message: `WhatsApp message successfully dispatched to ${reg.mobile}.`,
-        whatsappStatus: "SENT",
+        status: "ACCEPTED",
+        message: `WhatsApp message accepted by provider (GUID: ${waResult.messageId}). Delivery pending.`,
+        whatsappStatus: "ACCEPTED",
         whatsappSentAt: new Date().toISOString(),
         messageId: waResult.messageId,
+        recipient: reg.mobile,
+        templateId: waResult.templateId,
       });
     } else {
       await supabaseAdmin
@@ -92,23 +95,26 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         .update({
           whatsapp_sent: false,
           whatsapp_status: "FAILED",
-          whatsapp_error: waResult.error || "WhatsApp failed during resend",
+          whatsapp_error: waResult.error || "WhatsApp rejected by provider",
         })
         .eq("id", reg.id);
 
       return NextResponse.json(
         {
           success: false,
-          message: waResult.error || "Failed to deliver WhatsApp message.",
+          status: "FAILED",
+          message: waResult.error || "WhatsApp message could not be sent.",
           whatsappStatus: "FAILED",
+          providerErrorCode: waResult.providerStatusCode,
+          providerErrorMessage: waResult.error,
         },
-        { status: 502 }
+        { status: 400 }
       );
     }
   } catch (err: any) {
     console.error("Admin resend WhatsApp error:", err);
     return NextResponse.json(
-      { message: err?.message || "Failed to process WhatsApp resend." },
+      { success: false, status: "FAILED", message: err?.message || "Failed to process WhatsApp resend." },
       { status: 500 }
     );
   }
