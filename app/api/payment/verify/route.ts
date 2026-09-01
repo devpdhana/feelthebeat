@@ -4,7 +4,6 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { racePrices } from "@/data/registrationConfig";
 import { raceCategories } from "@/data/events";
-import { sendRegistrationSMS } from "@/lib/sms";
 import { sendRegistrationWhatsApp } from "@/lib/whatsapp";
 
 async function sendConfirmationEmail(registration: any, categoryName: string) {
@@ -89,8 +88,6 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
 
     if (process.env.SMTP_USER) {
       await transporter.sendMail(mailOptions);
-    } else {
-      console.log("Mock Email Sent to:", registration.email);
     }
   } catch (err) {
     console.error("Nodemailer error:", err);
@@ -392,7 +389,8 @@ export async function POST(req: Request) {
       payment_amount: registration.payment_amount,
       tshirt_bib_venue: registration.tshirt_bib_venue,
     };
-    console.log(`[PAYMENT VERIFY SUCCESS] Registration created: ${registration.registration_number} | Order: ${registration.order_id} | Bib: ${registration.bib_number}`);
+    console.log("[PAYMENT] Payment verified");
+    console.log("[REGISTRATION] Registration created successfully");
 
     // 6. Asynchronous Background Notifications (Non-blocking so user is redirected immediately)
     (async () => {
@@ -427,34 +425,6 @@ export async function POST(req: Request) {
         dav_family_type: freshRegistration.dav_family_type,
         dav_hear_about: freshRegistration.dav_hear_about,
       };
-
-      // SMS Notification
-      try {
-        const smsResult = await sendRegistrationSMS(runnerDetails);
-        if (smsResult.success) {
-          await supabaseAdmin
-            .from("registrations")
-            .update({
-              sms_sent: true,
-              sms_sent_at: new Date().toISOString(),
-              sms_message_id: smsResult.messageId || null,
-              sms_status: "SENT",
-              sms_error: null,
-            })
-            .eq("id", freshRegistration.id);
-        } else {
-          await supabaseAdmin
-            .from("registrations")
-            .update({
-              sms_sent: false,
-              sms_status: "FAILED",
-              sms_error: smsResult.error || "SMS provider failed to deliver",
-            })
-            .eq("id", freshRegistration.id);
-        }
-      } catch (smsErr) {
-        console.error("[PAYMENT NOTIFICATION] SMS error:", smsErr);
-      }
 
       // WhatsApp Notification
       try {

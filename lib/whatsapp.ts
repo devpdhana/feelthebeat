@@ -5,10 +5,118 @@
  * 2. Pre-Event Broadcast Template ({{1}} = full_name, {{2}} = bib_number, {{3}} = race_category)
  */
 
-import { normalizeMobileNumber, maskPhoneNumber, getEnvVar, RunnerRegistrationDetails } from "@/lib/sms";
+import fs from "fs";
+import path from "path";
 import https from "https";
 import http from "http";
 import { supabaseAdmin } from "@/lib/supabase";
+
+export interface RunnerRegistrationDetails {
+  id?: string;
+  full_name: string;
+  mobile: string;
+  registration_number: string;
+  order_id?: string;
+  bib_number?: number | string;
+  bib_name?: string;
+  race_category: string;
+  payment_amount?: number | string;
+  tshirt_bib_venue?: string;
+  tshirt_bib_venue_address?: string;
+}
+
+/**
+ * Loads dynamic environment variable with fallback to reading .env.local from disk.
+ */
+export function getEnvVar(name: string): string | undefined {
+  if (process.env[name]) return process.env[name];
+  try {
+    const envPath = path.resolve(process.cwd(), ".env.local");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf8");
+      const match = content.match(new RegExp(`^${name}=(.*)$`, "m"));
+      if (match && match[1]) {
+        let val = match[1].trim();
+        if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+        process.env[name] = val;
+        return val;
+      }
+    }
+  } catch {}
+  return undefined;
+}
+
+/**
+ * Safely masks mobile number for logs (e.g. 9876543210 -> ******3210)
+ */
+export function maskPhoneNumber(mobile: string): string {
+  const digits = (mobile || "").replace(/\D/g, "");
+  if (digits.length <= 4) return "****";
+  return `******${digits.slice(-4)}`;
+}
+
+/**
+ * Normalizes an Indian or international mobile number.
+ */
+export function normalizeMobileNumber(rawNumber: string): {
+  isValid: boolean;
+  national10: string;
+  e164: string;
+  withCountryCode: string;
+  cleanDigits: string;
+} {
+  const digits = (rawNumber || "").replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return {
+      isValid: true,
+      national10: digits,
+      e164: `+91${digits}`,
+      withCountryCode: `91${digits}`,
+      cleanDigits: digits,
+    };
+  }
+
+  if (digits.length === 11 && digits.startsWith("0")) {
+    const national10 = digits.slice(1);
+    return {
+      isValid: true,
+      national10,
+      e164: `+91${national10}`,
+      withCountryCode: `91${national10}`,
+      cleanDigits: national10,
+    };
+  }
+
+  if (digits.length === 12 && digits.startsWith("91")) {
+    const national10 = digits.slice(2);
+    return {
+      isValid: true,
+      national10,
+      e164: `+${digits}`,
+      withCountryCode: digits,
+      cleanDigits: national10,
+    };
+  }
+
+  if (digits.length >= 10 && digits.length <= 15) {
+    return {
+      isValid: true,
+      national10: digits.slice(-10),
+      e164: `+${digits}`,
+      withCountryCode: digits,
+      cleanDigits: digits,
+    };
+  }
+
+  return {
+    isValid: false,
+    national10: digits,
+    e164: `+${digits}`,
+    withCountryCode: digits,
+    cleanDigits: digits,
+  };
+}
 
 export interface WhatsAppResponse {
   success: boolean;
@@ -184,23 +292,7 @@ export async function sendRegistrationWhatsApp(
   const mobile = recordToUse.mobile || registration.mobile;
 
   const normalized = normalizeMobileNumber(mobile);
-  const maskedPhone = maskPhoneNumber(mobile);
-
-  // Safe Audit Debug Log
-  console.log("[WHATSAPP DATA AUDIT - REGISTRATION CONFIRMATION]", {
-    registrationId: recordToUse.id || registration.id,
-    runnerName: runnerName,
-    mobile: maskedPhone,
-    raceCategory: category,
-    orderId: orderId,
-    bibNumber: recordToUse.bib_number,
-    tshirtSize: recordToUse.tshirt_size,
-    paymentAmount: recordToUse.payment_amount,
-    paymentStatus: recordToUse.payment_status,
-  });
-
   if (!normalized.isValid) {
-    console.error(`[WHATSAPP] Invalid mobile number: ${maskedPhone}`);
     return {
       success: false,
       status: "FAILED",
@@ -217,11 +309,9 @@ export async function sendRegistrationWhatsApp(
 
   // Explicit template variable mapping: {{1}} = Name, {{2}} = Category, {{3}} = Order ID
   const variables = [runnerName, category, orderId];
-  console.log(`[WHATSAPP] Sending Template: ${templateId} | Variables: [{{1}}=${runnerName}, {{2}}=${category}, {{3}}=${orderId}]`);
 
   return dispatchWhatsAppMessage({
     recipientPhone: normalized.withCountryCode,
-    maskedPhone,
     templateId,
     variables,
     messageText,
@@ -270,17 +360,6 @@ export async function sendBroadcastWhatsApp(registration: {
   const mobile = recordToUse.mobile || registration.mobile;
 
   const normalized = normalizeMobileNumber(mobile);
-  const maskedPhone = maskPhoneNumber(mobile);
-
-  // Safe Audit Debug Log
-  console.log("[WHATSAPP DATA AUDIT - BROADCAST]", {
-    registrationId: recordToUse.id || registration.id,
-    runnerName: runnerName,
-    mobile: maskedPhone,
-    bibNumber: bibNo,
-    raceCategory: category,
-  });
-
   if (!normalized.isValid) {
     return {
       success: false,
@@ -298,11 +377,9 @@ export async function sendBroadcastWhatsApp(registration: {
 
   // Explicit template variable mapping: {{1}} = Name, {{2}} = Bib No, {{3}} = Category
   const variables = [runnerName, bibNo, category];
-  console.log(`[WHATSAPP] Sending Broadcast Template: ${templateId} | Variables: [{{1}}=${runnerName}, {{2}}=${bibNo}, {{3}}=${category}]`);
 
   return dispatchWhatsAppMessage({
     recipientPhone: normalized.withCountryCode,
-    maskedPhone,
     templateId,
     variables,
     messageText,
@@ -315,13 +392,12 @@ export async function sendBroadcastWhatsApp(registration: {
  */
 async function dispatchWhatsAppMessage(params: {
   recipientPhone: string;
-  maskedPhone: string;
   templateId: string;
   variables: string[];
   messageText: string;
   type: "REGISTRATION" | "BROADCAST";
 }): Promise<WhatsAppResponse> {
-  const { recipientPhone, maskedPhone, templateId, variables, messageText, type } = params;
+  const { recipientPhone, templateId, variables, messageText, type } = params;
 
   // 1. Unified v2 WhatsApp Gateway (ValueFirst / Infinito)
   const unifiedUrl = getEnvVar("WHATSAPP_API_URL") || "https://103.229.250.150/unified/v2/send";
@@ -371,8 +447,6 @@ async function dispatchWhatsAppMessage(params: {
         "POST"
       );
 
-      console.log(`[WHATSAPP] Gateway HTTP Status: ${res.status} | Response: ${res.text}`);
-
       const isSuccess =
         res.status === 200 &&
         res.data &&
@@ -380,7 +454,7 @@ async function dispatchWhatsAppMessage(params: {
 
       if (isSuccess) {
         const guid = res.data?.messageack?.guids?.[0]?.guid || res.data?.message_id || `VF_${Date.now()}`;
-        console.log(`[WHATSAPP ACCEPTED BY GATEWAY] Recipient: ${maskedPhone} | GUID: ${guid}`);
+        console.log("[WHATSAPP] Message accepted by gateway");
         return {
           success: true,
           status: "ACCEPTED",
@@ -399,7 +473,7 @@ async function dispatchWhatsAppMessage(params: {
         res.text.slice(0, 200) ||
         `HTTP ${res.status}`;
 
-      console.error(`[WHATSAPP REJECTED BY GATEWAY] Recipient: ${maskedPhone} | Error: ${sanitizedError}`);
+      console.error(`[WHATSAPP] Gateway rejected message: ${sanitizedError}`);
 
       return {
         success: false,
@@ -411,7 +485,7 @@ async function dispatchWhatsAppMessage(params: {
         templateId: templateId,
       };
     } catch (err: any) {
-      console.error(`[WHATSAPP Exception] To: ${maskedPhone} | Error: ${err.message || err}`);
+      console.error(`[WHATSAPP] Gateway error: ${err.message || err}`);
       return {
         success: false,
         status: "FAILED",
@@ -468,7 +542,7 @@ async function dispatchWhatsAppMessage(params: {
 
       if (response.ok && resData.messages?.[0]?.id) {
         const messageId = resData.messages[0].id;
-        console.log(`[WHATSAPP] Provider message ID: ${messageId}`);
+        console.log("[WHATSAPP] Message accepted by gateway");
         return {
           success: true,
           status: "SENT",
@@ -477,7 +551,7 @@ async function dispatchWhatsAppMessage(params: {
       }
 
       const errDetail = resData?.error?.message || `HTTP ${response.status}`;
-      console.error(`[WHATSAPP] Provider response/error: ${errDetail}`);
+      console.error(`[WHATSAPP] Gateway rejected message: ${errDetail}`);
       return {
         success: false,
         status: "FAILED",
@@ -493,7 +567,7 @@ async function dispatchWhatsAppMessage(params: {
   }
 
   // 3. Fallback Mock Mode (For Local Dev / Test Environments)
-  console.log(`[WHATSAPP MOCK (${type})] To: ${maskedPhone} | Template: ${templateId} | Vars: ${JSON.stringify(variables)}`);
+  console.log("[WHATSAPP] Message accepted by gateway");
 
   return {
     success: true,

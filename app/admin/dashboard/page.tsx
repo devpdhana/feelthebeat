@@ -53,11 +53,6 @@ interface RegistrationItem {
   bibNumber?: number | string;
   paymentStatus: string;
   paymentAmount?: number;
-  smsSent?: boolean;
-  smsSentAt?: string | null;
-  smsStatus?: string;
-  smsMessageId?: string | null;
-  smsError?: string | null;
   whatsappSent?: boolean;
   whatsappSentAt?: string | null;
   whatsappStatus?: string;
@@ -360,8 +355,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const [resendingSms, setResendingSms] = useState(false);
-  const [resendSmsMessage, setResendSmsMessage] = useState<string | null>(null);
   const [resendingWa, setResendingWa] = useState(false);
   const [resendWaMessage, setResendWaMessage] = useState<string | null>(null);
 
@@ -370,42 +363,6 @@ export default function AdminDashboard() {
     document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     router.push("/admin/login");
   };
-
-  const handleResendSMS = async (id: string) => {
-    try {
-      setResendingSms(true);
-      setResendSmsMessage(null);
-      const token = await getAuthToken();
-      const res = await fetch(`/api/admin/registration/${id}/resend-sms`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setResendSmsMessage("SMS dispatched successfully!");
-        if (activeReg) {
-          setActiveReg({
-            ...activeReg,
-            smsSent: true,
-            smsStatus: "SENT",
-            smsSentAt: data.smsSentAt || new Date().toISOString(),
-            smsMessageId: data.messageId || activeReg.smsMessageId,
-            smsError: null,
-          });
-        }
-        fetchRegistrations();
-      } else {
-        setResendSmsMessage(`Failed: ${data.message || "Could not send SMS"}`);
-      }
-    } catch (err: any) {
-      setResendSmsMessage(`Error: ${err.message || "Failed to resend SMS"}`);
-    } finally {
-      setResendingSms(false);
-    }
-  };
-
 
   const handleResendWhatsApp = async (id: string) => {
     try {
@@ -454,10 +411,10 @@ export default function AdminDashboard() {
 
   const exportToExcel = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Order ID,Bib Number,Registration Number,Full Name,Bib Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,SMS Status,WhatsApp Status,Blood Group\n";
+    csvContent += "Order ID,Bib Number,Registration Number,Full Name,Bib Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,WhatsApp Status,Blood Group\n";
 
     registrations.forEach((reg) => {
-      csvContent += `"${reg.orderId || ""}","${reg.bibNumber || ""}","${reg.registrationNumber}","${reg.fullName}","${reg.bibName || ""}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.smsStatus || (reg.smsSent ? "SENT" : "NOT_SENT")}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
+      csvContent += `"${reg.orderId || ""}","${reg.bibNumber || ""}","${reg.registrationNumber}","${reg.fullName}","${reg.bibName || ""}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -470,10 +427,10 @@ export default function AdminDashboard() {
   const exportToCSV = () => {
     try {
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "Order ID,Bib Number,Registration Number,Full Name,Bib Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,SMS Status,WhatsApp Status,Blood Group\n";
+      csvContent += "Order ID,Bib Number,Registration Number,Full Name,Bib Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,WhatsApp Status,Blood Group\n";
 
       registrations.forEach((reg) => {
-        csvContent += `"${reg.orderId || ""}","${reg.bibNumber || ""}","${reg.registrationNumber}","${reg.fullName}","${reg.bibName || ""}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.smsStatus || (reg.smsSent ? "SENT" : "NOT_SENT")}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
+        csvContent += `"${reg.orderId || ""}","${reg.bibNumber || ""}","${reg.registrationNumber}","${reg.fullName}","${reg.bibName || ""}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
       });
 
       const link = document.createElement("a");
@@ -874,7 +831,7 @@ export default function AdminDashboard() {
                   <th className="py-3 px-2">MOBILE</th>
                   <th className="py-3 px-2">GENDER/AGE</th>
                   <th className="py-3 px-2">PAYMENT</th>
-                  <th className="py-3 px-2">SMS STATUS</th>
+                  <th className="py-3 px-2">WHATSAPP STATUS</th>
                   <th className="py-3 px-2 text-right">ACTIONS</th>
                 </tr>
               </thead>
@@ -927,13 +884,13 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="py-3 px-2">
-                        <span className={`px-2 py-0.5 border text-[9px] rounded font-bold uppercase ${reg.smsStatus === "SENT" || reg.smsSent
+                        <span className={`px-2 py-0.5 border text-[9px] rounded font-bold uppercase ${reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent
                           ? "border-green-500/30 text-green-600 bg-green-50"
-                          : reg.smsStatus === "FAILED"
+                          : reg.whatsappStatus === "FAILED"
                             ? "border-red-500/30 text-red-600 bg-red-50"
                             : "border-gray-400/30 text-gray-600 bg-gray-50"
                           }`}>
-                          {reg.smsStatus === "SENT" || reg.smsSent ? "SENT" : reg.smsStatus === "FAILED" ? "FAILED" : "NOT SENT"}
+                          {reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent ? "SENT" : reg.whatsappStatus === "FAILED" ? "FAILED" : "NOT SENT"}
                         </span>
                       </td>
                       <td className="py-3 px-2 text-right">
@@ -999,14 +956,6 @@ export default function AdminDashboard() {
               {/* Controls bar */}
               <div className="flex justify-end gap-2 mb-6 print:hidden flex-wrap">
                 <button
-                  onClick={() => handleResendSMS(activeReg.id)}
-                  disabled={resendingSms || (activeReg.paymentStatus?.toLowerCase() !== "successful" && activeReg.paymentStatus?.toLowerCase() !== "paid")}
-                  className="flex items-center gap-1 border border-brand-primary bg-brand-primary/10 hover:bg-brand-primary hover:text-white px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-brand-primary shadow-sm rounded disabled:opacity-40"
-                  title="Resend confirmation SMS"
-                >
-                  {resendingSms ? "SENDING SMS..." : "RESEND SMS"}
-                </button>
-                <button
                   onClick={() => handleResendWhatsApp(activeReg.id)}
                   disabled={resendingWa || (activeReg.paymentStatus?.toLowerCase() !== "successful" && activeReg.paymentStatus?.toLowerCase() !== "paid")}
                   className="flex items-center gap-1 border border-green-600 bg-green-50 hover:bg-green-600 hover:text-white px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-green-700 shadow-sm rounded disabled:opacity-40"
@@ -1021,18 +970,13 @@ export default function AdminDashboard() {
                   <HiOutlinePrinter /> PRINT RECEIPT
                 </button>
                 <button
-                  onClick={() => { setActiveReg(null); setResendSmsMessage(null); setResendWaMessage(null); }}
+                  onClick={() => { setActiveReg(null); setResendWaMessage(null); }}
                   className="border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary px-3 py-1 font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors text-default bg-[#F8FAFD] shadow-sm rounded"
                 >
                   CLOSE
                 </button>
               </div>
 
-              {resendSmsMessage && (
-                <div className="mb-3 p-2.5 rounded text-xs font-mono border border-brand-primary/20 bg-brand-primary/5 text-brand-primary print:hidden">
-                  {resendSmsMessage}
-                </div>
-              )}
               {resendWaMessage && (
                 <div className="mb-3 p-2.5 rounded text-xs font-mono border border-green-600/20 bg-green-50 text-green-700 print:hidden">
                   {resendWaMessage}
@@ -1147,21 +1091,6 @@ export default function AdminDashboard() {
                   <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
                     <span className="text-muted-default/60">PAYMENT STATUS:</span>
                     <span className="text-green-600 font-bold">{activeReg.paymentStatus}</span>
-                  </div>
-                  <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
-                    <span className="text-muted-default/60">SMS NOTIFICATION:</span>
-                    <span className={`font-bold ${activeReg.smsStatus === "SENT" || activeReg.smsSent
-                      ? "text-green-600"
-                      : activeReg.smsStatus === "FAILED"
-                        ? "text-red-600"
-                        : "text-gray-500"
-                      }`}>
-                      {activeReg.smsStatus === "SENT" || activeReg.smsSent
-                        ? `SENT ${activeReg.smsSentAt ? `(${new Date(activeReg.smsSentAt).toLocaleString()})` : ""}`
-                        : activeReg.smsStatus === "FAILED"
-                          ? `FAILED ${activeReg.smsError ? `(${activeReg.smsError})` : ""}`
-                          : "NOT SENT"}
-                    </span>
                   </div>
                   <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
                     <span className="text-muted-default/60">WHATSAPP NOTIFICATION:</span>

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { racePrices } from "@/data/registrationConfig";
-import { sendRegistrationSMS } from "@/lib/sms";
 import { sendRegistrationWhatsApp } from "@/lib/whatsapp";
 
 /**
@@ -21,8 +20,6 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(`[PAYMENT CHECK-STATUS] Checking status for order: ${razorpay_order_id}`);
-
     // 1. Idempotency check: Does a registration already exist for this order?
     const { data: existingReg } = await supabaseAdmin
       .from("registrations")
@@ -31,7 +28,7 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (existingReg) {
-      console.log(`[PAYMENT CHECK-STATUS] Registration already exists: ${existingReg.registration_number}`);
+      console.log("[PAYMENT] Existing verified registration found");
       return NextResponse.json({
         success: true,
         status: "PAID",
@@ -103,7 +100,7 @@ export async function POST(req: Request) {
       });
     }
 
-    console.log(`[PAYMENT CHECK-STATUS] Confirmed captured payment: ${capturedPayment.id} for order: ${razorpay_order_id}`);
+    console.log("[PAYMENT] Payment verified and registration created");
 
     // 4. Create registration record safely
     const raceCategory = formData.raceCategory || "2km-kids";
@@ -201,10 +198,7 @@ export async function POST(req: Request) {
           race_category: freshRegistration.race_category,
           payment_amount: freshRegistration.payment_amount,
         };
-        await Promise.allSettled([
-          sendRegistrationSMS(runnerDetails),
-          sendRegistrationWhatsApp(runnerDetails),
-        ]);
+        await sendRegistrationWhatsApp(runnerDetails);
       } catch (e) {
         console.error("[PAYMENT CHECK-STATUS] Notification error:", e);
       }

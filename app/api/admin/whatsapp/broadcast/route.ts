@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { sendBroadcastWhatsApp } from "@/lib/whatsapp";
-import { normalizeMobileNumber } from "@/lib/sms";
+import { sendBroadcastWhatsApp, normalizeMobileNumber } from "@/lib/whatsapp";
 
 export interface CampaignState {
   id: string;

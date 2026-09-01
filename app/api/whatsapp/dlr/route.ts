@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log("[WHATSAPP DLR WEBHOOK RECEIVED]:", JSON.stringify(body, null, 2));
+    console.log("[WHATSAPP DLR] Webhook status update received");
 
     // ValueFirst DLR typical format:
     // { guid: "...", status: "DELIVERED" | "FAILED" | "UNDELIVERED", reason: "...", ... }

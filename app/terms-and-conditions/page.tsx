@@ -341,7 +341,7 @@ export default function TermsAndConditionsPage() {
                   The organisers may change the event date, start time, route, venue, or other arrangements if required due to weather conditions, safety concerns, government directives, or other circumstances.
                 </p>
                 <p className="text-xs text-white/70 font-mono">
-                  Any important updates will be communicated promptly through our official WhatsApp, SMS, email, and website channels.
+                  Any important updates will be communicated promptly through our official WhatsApp, email, and website channels.
                 </p>
               </Card>
             </section>
@@ -416,7 +416,7 @@ export default function TermsAndConditionsPage() {
                   </h2>
                 </div>
                 <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-mono">
-                  Registered runners may receive official event updates, bib collection details, starting time reminders, and emergency announcements via WhatsApp, SMS, email, or phone call.
+                  Registered runners may receive official event updates, bib collection details, starting time reminders, and emergency announcements via WhatsApp, email, or phone call.
                 </p>
               </Card>
             </section>

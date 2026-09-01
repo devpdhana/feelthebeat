@@ -59,8 +59,6 @@ export async function POST(req: Request) {
     const auth = Buffer.from(`${key_id}:${key_secret}`).toString("base64");
     const amountInPaise = priceObj.fee * 100;
 
-    console.log(`[PAYMENT ORDER] Creating order | Category: ${category} | Amount: ${amountInPaise} paise (₹${priceObj.fee})`);
-
     // Call Razorpay API directly with timeout & error handling
     const rzpRes = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
@@ -93,7 +91,7 @@ export async function POST(req: Request) {
     }
 
     const order = await rzpRes.json();
-    console.log(`[PAYMENT ORDER] Order created successfully: ${order.id} | Amount: ${order.amount} paise`);
+    console.log("[PAYMENT] Order created successfully");
 
     // Save pending payment record in Supabase
     const { error: payError } = await supabaseAdmin

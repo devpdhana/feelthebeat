@@ -18,7 +18,7 @@ export const faqData: FAQItem[] = [
   {
     id: "faq-bib-third-party",
     question: "Can someone else collect my BIB on my behalf?",
-    answer: "Yes, you can authorize a representative. They must present a print/digital copy of your confirmation email/SMS, an authorization letter signed by you, and a photocopy of your valid photo ID.",
+    answer: "Yes, you can authorize a representative. They must present a print/digital copy of your confirmation email/WhatsApp message, an authorization letter signed by you, and a photocopy of your valid photo ID.",
   },
   {
     id: "faq-cutoff",
