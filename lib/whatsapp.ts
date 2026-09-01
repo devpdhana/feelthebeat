@@ -368,7 +368,7 @@ async function dispatchWhatsAppMessage(params: {
           "x-client-id": unifiedClientId,
           "x-client-password": unifiedClientPassword,
         },
-        "GET"
+        "POST"
       );
 
       console.log(`[WHATSAPP] Gateway HTTP Status: ${res.status} | Response: ${res.text}`);
