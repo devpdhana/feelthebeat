@@ -125,6 +125,14 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/terms-and-conditions"
+                  className="font-mono text-[11px] text-white/85 hover:text-[#1E90FF] hover:pl-1 transition-all inline-block"
+                >
+                  TERMS &amp; CONDITIONS
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -158,6 +166,10 @@ export default function Footer() {
             <span>VRG CEMENT MARKETING</span>
             <span>•</span>
             <span>WORLD HEART DAY 2026</span>
+            <span>•</span>
+            <Link href="/terms-and-conditions" className="hover:text-white transition-colors underline">
+              TERMS &amp; CONDITIONS
+            </Link>
           </div>
           <div className="text-center sm:text-right">
             © Design and Developed by Man2web.

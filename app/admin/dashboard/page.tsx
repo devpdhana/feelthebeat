@@ -586,29 +586,87 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Category Pie chart */}
-          <Card className="lg:col-span-4 p-6 flex flex-col gap-4 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold"> CATEGORIES RATIOS</span>
-            <div className="h-64 w-full flex items-center justify-center relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Tooltip contentStyle={{ backgroundColor: "#fff", borderColor: "rgba(9, 14, 19, 0.1)", fontSize: 10, fontFamily: "monospace", color: "#090E13" }} />
-                  <Pie data={stats.charts.categories} dataKey="count" nameKey="category" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={4}>
-                    {stats.charts.categories.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              {/* Legend overlay overlay */}
-              <div className="absolute bottom-2 flex justify-center gap-4 text-[9px] font-mono">
-                {stats.charts.categories.map((c: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-1">
-                    <span className="w-2 h-2" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                    <span className="uppercase text-muted-default">{c.category.split(" ")[0]} ({c.count})</span>
-                  </div>
-                ))}
-              </div>
+          <Card className="lg:col-span-4 p-6 flex flex-col justify-between gap-4 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold">
+                CATEGORIES RATIOS
+              </span>
+              <span className="font-mono text-[10px] text-brand-primary font-bold">
+                TOTAL: {stats.charts.categories.reduce((sum: number, c: any) => sum + (c.count || 0), 0)}
+              </span>
             </div>
+
+            {stats.charts.categories.length === 0 || stats.charts.categories.reduce((sum: number, c: any) => sum + (c.count || 0), 0) === 0 ? (
+              <div className="h-64 w-full flex flex-col items-center justify-center text-muted-default/60 font-mono text-xs">
+                <span className="text-sm font-semibold">No registrations yet</span>
+                <span className="text-[10px] text-muted-default/40 mt-1">Categories will appear as runners sign up</span>
+              </div>
+            ) : (
+              <div className="w-full flex flex-col items-center">
+                <div className="h-52 w-full flex items-center justify-center relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Tooltip
+                        content={({ active, payload }: any) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0];
+                            const total = stats.charts.categories.reduce((sum: number, c: any) => sum + (c.count || 0), 0);
+                            const percent = total > 0 ? Math.round((Number(data.value) / total) * 100) : 0;
+                            return (
+                              <div className="bg-white border border-[#DCE8F8] p-3 rounded-xl shadow-lg font-mono text-xs text-default z-50">
+                                <div className="font-bold text-default text-xs">{data.name}</div>
+                                <div className="text-muted-default text-[11px] mt-1">
+                                  Registered: <span className="font-bold text-brand-primary">{data.value}</span>
+                                </div>
+                                <div className="text-muted-default text-[11px]">
+                                  Share: <span className="font-bold text-green-600">{percent}%</span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Pie
+                        data={stats.charts.categories}
+                        dataKey="count"
+                        nameKey="category"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={75}
+                        paddingAngle={4}
+                      >
+                        {stats.charts.categories.map((entry: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Clean Category Legend */}
+                <div className="w-full mt-2 flex flex-wrap justify-center gap-2 text-[10px] font-mono">
+                  {stats.charts.categories.map((c: any, idx: number) => {
+                    const total = stats.charts.categories.reduce((sum: number, item: any) => sum + (item.count || 0), 0);
+                    const percent = total > 0 ? Math.round((c.count / total) * 100) : 0;
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1.5 bg-[#F8FAFD] border border-brand-primary/10 px-2.5 py-1 rounded-lg"
+                      >
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                        />
+                        <span className="font-semibold text-default">{c.category}</span>
+                        <span className="text-muted-default font-bold">— {c.count} ({percent}%)</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </Card>
         </div>
 
@@ -699,13 +757,11 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Live Progress Bar Panel */}
-          {(isBroadcasting || (broadcastStats?.campaign && broadcastStats.campaign.total_recipients > 0)) && (
-            <div className="p-4 bg-[#F8FAFD] border border-brand-primary/15 rounded-xl flex flex-col gap-3 font-mono">
+          {/* Active Live Progress Bar Panel (Only shown while actively broadcasting) */}
+          {isBroadcasting && (
+            <div className="p-4 bg-[#F8FAFD] border border-brand-primary/15 rounded-xl flex flex-col gap-3 font-mono animate-fadeIn">
               <div className="flex flex-wrap items-center justify-between text-xs font-bold">
-                <span className="text-default uppercase">
-                  {isBroadcasting ? "SENDING WHATSAPP MESSAGES..." : "BROADCAST SUMMARY"}
-                </span>
+                <span className="text-default uppercase">SENDING WHATSAPP MESSAGES...</span>
                 <span className="text-brand-primary">
                   {(broadcastStats?.campaign?.sent_count || 0) + (broadcastStats?.campaign?.failed_count || 0)} / {broadcastStats?.campaign?.total_recipients || 0}
                 </span>
@@ -737,14 +793,14 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Notification notice */}
+          {/* Compact Notification notice */}
           {broadcastNotice && (
-            <div className="p-3 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary font-mono text-[11px] rounded-lg flex items-center justify-between">
-              <span>{broadcastNotice}</span>
+            <div className="p-3 bg-green-50 border border-green-200 text-green-800 font-mono text-[11px] rounded-lg flex items-center justify-between shadow-sm">
+              <span className="font-semibold">{broadcastNotice}</span>
               <button
                 type="button"
                 onClick={() => setBroadcastNotice(null)}
-                className="text-xs font-bold px-2 py-0.5 hover:bg-brand-primary/20 rounded cursor-pointer"
+                className="text-xs font-bold px-2 py-0.5 hover:bg-green-100 text-green-700 rounded cursor-pointer"
               >
                 ✕
               </button>

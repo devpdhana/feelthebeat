@@ -54,4 +54,10 @@ export const sponsors: Sponsor[] = [
     role: "Timing Partner",
     logo: "/images/sponsors/my Race Red Logo_1_page-0001.jpg",
   },
+  {
+    id: 9,
+    name: "Suryan FM Radio",
+    role: "Radio Partner",
+    logo: "/images/sponsors/suryan.jpg",
+  },
 ];

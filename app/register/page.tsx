@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { racePrices } from "@/data/registrationConfig";
 import Card from "@/components/ui/Card";
@@ -860,7 +861,17 @@ function RegisterForm() {
                     onChange={(e) => setFormData({ ...formData, termsConfirm: e.target.checked })}
                     className="mt-1 accent-brand-primary"
                   />
-                  <span>I agree to the Terms & Conditions.</span>
+                  <span>
+                    I agree to the{" "}
+                    <Link
+                      href="/terms-and-conditions"
+                      target="_blank"
+                      className="text-brand-primary underline hover:text-brand-primary-hover"
+                    >
+                      Terms &amp; Conditions
+                    </Link>
+                    .
+                  </span>
                 </label>
 
                 <label className="flex items-start gap-3 cursor-pointer select-none">

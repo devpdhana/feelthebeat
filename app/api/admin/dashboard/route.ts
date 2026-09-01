@@ -60,7 +60,20 @@ export async function GET(req: Request) {
 
     const categoryMap: Record<string, number> = {};
     regsCategories?.forEach((r) => {
-      const cat = r.race_category || "Unknown";
+      const raw = (r.race_category || "").trim();
+      let cat = raw;
+      if (raw === "2km-kids" || raw.toLowerCase().includes("kids")) {
+        cat = "2 KM Kids Fun Run";
+      } else if (raw === "2km" || raw.toLowerCase().includes("adult")) {
+        cat = "2 KM Adult Run";
+      } else if (raw === "5km" || raw.toLowerCase().includes("5 km") || raw.toLowerCase().includes("5km")) {
+        cat = "5 KM Run";
+      } else if (raw === "10km" || raw.toLowerCase().includes("10 km") || raw.toLowerCase().includes("10km")) {
+        cat = "10 KM Run";
+      } else if (!raw) {
+        cat = "Unassigned";
+      }
+
       categoryMap[cat] = (categoryMap[cat] || 0) + 1;
     });
     const categoriesData = Object.keys(categoryMap).map((category) => ({
