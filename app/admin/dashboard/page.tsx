@@ -76,6 +76,7 @@ interface DashboardStats {
   charts: {
     daily: { date: string; count: number }[];
     categories: { category: string; count: number }[];
+    tshirt?: { size: string; count: number }[];
   };
 }
 
@@ -89,7 +90,8 @@ export default function AdminDashboard() {
   const [category, setCategory] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({ totalPages: 1, page: 1, limit: 10 });
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState({ totalPages: 1, page: 1, limit: 10, total: 0 });
   const [activeReg, setActiveReg] = useState<RegistrationItem | null>(null);
 
   // WhatsApp Broadcast state
@@ -259,14 +261,14 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchRegistrations = async () => {
+  const fetchRegistrations = async (pageToFetch = page, limitToFetch = limit) => {
     setLoading(true);
     setError(null);
     try {
       const token = await getAuthToken();
       const queryParams = new URLSearchParams({
-        page: String(page),
-        limit: "10",
+        page: String(pageToFetch),
+        limit: String(limitToFetch),
         search,
         category,
         paymentStatus,
@@ -293,7 +295,12 @@ export default function AdminDashboard() {
       const data = await res.json();
       const items = data.registrations || data.items || data.data || [];
       setRegistrations(items);
-      setPagination(data.pagination || { totalPages: 1, page: 1, limit: 10 });
+      const pag = data.pagination || { totalPages: 1, page: pageToFetch, limit: limitToFetch, total: items.length };
+      setPagination(pag);
+
+      if (pag.totalPages > 0 && pageToFetch > pag.totalPages) {
+        setPage(pag.totalPages);
+      }
     } catch (err: any) {
       console.error("Registrations fetch error:", err);
       setError(err?.message || "Unable to load registrations. Please try again.");
@@ -306,14 +313,20 @@ export default function AdminDashboard() {
   // Authenticated redirect checking
   useEffect(() => {
     fetchDashboardStats();
-    fetchRegistrations();
     fetchBroadcastStats();
-  }, [category, paymentStatus, page]);
+  }, []);
+
+  useEffect(() => {
+    fetchRegistrations(page, limit);
+  }, [category, paymentStatus, page, limit]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setPage(1);
-    fetchRegistrations();
+    if (page === 1) {
+      fetchRegistrations(1, limit);
+    } else {
+      setPage(1);
+    }
   };
 
   const fetchIndividual = async (id: string) => {
@@ -345,7 +358,13 @@ export default function AdminDashboard() {
       if (res.ok) {
         alert("Registration node successfully purged.");
         fetchDashboardStats();
-        fetchRegistrations();
+        // If last item on page deleted, shift page back if page > 1
+        const targetPage = (registrations.length === 1 && page > 1) ? page - 1 : page;
+        if (targetPage !== page) {
+          setPage(targetPage);
+        } else {
+          fetchRegistrations(page, limit);
+        }
       } else {
         const data = await res.json();
         alert(data.message || "Failed to delete registration.");
@@ -447,6 +466,7 @@ export default function AdminDashboard() {
   };
 
   const COLORS = ["#0698F3", "#F8FC06", "#00D2FF", "#FF5A00"];
+  const TSHIRT_COLORS = ["#0698F3", "#00D2FF", "#25D366", "#FFB800", "#FF5A00", "#9B51E0", "#E02020", "#10B981"];
 
   if (!stats) {
     return (
@@ -466,7 +486,7 @@ export default function AdminDashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-brand-primary/12 pb-6 gap-4">
           <div className="flex flex-col gap-1.5">
             <span className="font-mono text-xs text-brand-primary tracking-[0.25em] uppercase font-semibold">
-              TELEMETRY_DASHBOARD_SHELL
+              SREE_JAYAM_MARATHON_TELEMETRY_DASHBOARD_SHELL
             </span>
             <h1 className="font-display text-3xl font-black uppercase tracking-tight text-default">
               ADMIN CONTROL CENTER
@@ -520,112 +540,248 @@ export default function AdminDashboard() {
         </div>
 
         {/* Charts Visualizations Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Daily Registers Area chart */}
-          <Card className="lg:col-span-8 p-6 flex flex-col gap-4 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold"> DAILY REGISTRATION TIMELINE</span>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.charts.daily} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="date" stroke="rgba(9, 14, 19, 0.2)" fontSize={9} fontFamily="monospace" />
-                  <YAxis stroke="rgba(9, 14, 19, 0.2)" fontSize={9} fontFamily="monospace" />
-                  <Tooltip contentStyle={{ backgroundColor: "#fff", borderColor: "rgba(9, 14, 19, 0.1)", fontSize: 10, fontFamily: "monospace", color: "#090E13" }} />
-                  <Area type="monotone" dataKey="count" stroke="#0698F3" fillOpacity={0.12} fill="url(#colorUv)" />
-                  <defs>
-                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0698F3" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#0698F3" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+        {(() => {
+          const tshirtChartData =
+            stats?.charts?.tshirt && stats.charts.tshirt.length > 0
+              ? stats.charts.tshirt
+              : (() => {
+                const tMap: Record<string, number> = {};
+                const stdSizes = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+                registrations.forEach((r) => {
+                  const raw = (r.tshirtSize || "").trim().toUpperCase();
+                  if (raw && raw !== "N/A" && raw !== "NULL" && raw !== "NONE") {
+                    tMap[raw] = (tMap[raw] || 0) + 1;
+                  }
+                });
+                return Object.keys(tMap)
+                  .sort((a, b) => {
+                    const indexA = stdSizes.indexOf(a);
+                    const indexB = stdSizes.indexOf(b);
+                    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                    if (indexA !== -1) return -1;
+                    if (indexB !== -1) return 1;
+                    return a.localeCompare(b);
+                  })
+                  .map((size) => ({ size, count: tMap[size] }));
+              })();
 
-          {/* Category Pie chart */}
-          <Card className="lg:col-span-4 p-6 flex flex-col justify-between gap-4 rounded-2xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold">
-                CATEGORIES RATIOS
-              </span>
-              <span className="font-mono text-[10px] text-brand-primary font-bold">
-                TOTAL: {stats.charts.categories.reduce((sum: number, c: any) => sum + (c.count || 0), 0)}
-              </span>
-            </div>
+          const categoriesChartData =
+            stats?.charts?.categories && stats.charts.categories.length > 0
+              ? stats.charts.categories
+              : (() => {
+                const cMap: Record<string, number> = {};
+                registrations.forEach((r) => {
+                  const raw = (r.raceCategory || "").trim();
+                  let cat = raw;
+                  if (raw === "2km-kids" || raw.toLowerCase().includes("kids")) cat = "2 KM Kids Fun Run";
+                  else if (raw === "2km" || raw.toLowerCase().includes("adult")) cat = "2 KM Adult Run";
+                  else if (raw === "5km" || raw.toLowerCase().includes("5 km") || raw.toLowerCase().includes("5km")) cat = "5 KM Run";
+                  else if (raw === "10km" || raw.toLowerCase().includes("10 km") || raw.toLowerCase().includes("10km")) cat = "10 KM Run";
+                  else if (raw) cat = raw;
+                  if (cat) cMap[cat] = (cMap[cat] || 0) + 1;
+                });
+                return Object.keys(cMap).map((category) => ({ category, count: cMap[category] }));
+              })();
 
-            {stats.charts.categories.length === 0 || stats.charts.categories.reduce((sum: number, c: any) => sum + (c.count || 0), 0) === 0 ? (
-              <div className="h-64 w-full flex flex-col items-center justify-center text-muted-default/60 font-mono text-xs">
-                <span className="text-sm font-semibold">No registrations yet</span>
-                <span className="text-[10px] text-muted-default/40 mt-1">Categories will appear as runners sign up</span>
-              </div>
-            ) : (
-              <div className="w-full flex flex-col items-center">
-                <div className="h-52 w-full flex items-center justify-center relative">
+          const totalTshirts = tshirtChartData.reduce((sum: number, t: any) => sum + (t.count || 0), 0);
+          const totalCategories = categoriesChartData.reduce((sum: number, c: any) => sum + (c.count || 0), 0);
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+              {/* 1. Daily Registers Area chart (Left) */}
+              <Card className="col-span-1 md:col-span-2 lg:col-span-6 p-6 flex flex-col justify-between gap-4 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold">
+                    DAILY REGISTRATION TIMELINE
+                  </span>
+                  <span className="font-mono text-[10px] text-brand-primary font-bold">
+                    LAST 7 DAYS
+                  </span>
+                </div>
+                <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Tooltip
-                        content={({ active, payload }: any) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0];
-                            const total = stats.charts.categories.reduce((sum: number, c: any) => sum + (c.count || 0), 0);
-                            const percent = total > 0 ? Math.round((Number(data.value) / total) * 100) : 0;
-                            return (
-                              <div className="bg-white border border-[#DCE8F8] p-3 rounded-xl shadow-lg font-mono text-xs text-default z-50">
-                                <div className="font-bold text-default text-xs">{data.name}</div>
-                                <div className="text-muted-default text-[11px] mt-1">
-                                  Registered: <span className="font-bold text-brand-primary">{data.value}</span>
-                                </div>
-                                <div className="text-muted-default text-[11px]">
-                                  Share: <span className="font-bold text-green-600">{percent}%</span>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Pie
-                        data={stats.charts.categories}
-                        dataKey="count"
-                        nameKey="category"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={75}
-                        paddingAngle={4}
-                      >
-                        {stats.charts.categories.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
+                    <AreaChart data={stats?.charts?.daily || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <XAxis dataKey="date" stroke="rgba(9, 14, 19, 0.2)" fontSize={9} fontFamily="monospace" />
+                      <YAxis stroke="rgba(9, 14, 19, 0.2)" fontSize={9} fontFamily="monospace" />
+                      <Tooltip contentStyle={{ backgroundColor: "#fff", borderColor: "rgba(9, 14, 19, 0.1)", fontSize: 10, fontFamily: "monospace", color: "#090E13" }} />
+                      <Area type="monotone" dataKey="count" stroke="#0698F3" fillOpacity={0.12} fill="url(#colorUv)" />
+                      <defs>
+                        <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0698F3" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#0698F3" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
+              </Card>
 
-                {/* Clean Category Legend */}
-                <div className="w-full mt-2 flex flex-wrap justify-center gap-2 text-[10px] font-mono">
-                  {stats.charts.categories.map((c: any, idx: number) => {
-                    const total = stats.charts.categories.reduce((sum: number, item: any) => sum + (item.count || 0), 0);
-                    const percent = total > 0 ? Math.round((c.count / total) * 100) : 0;
-                    return (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-1.5 bg-[#F8FAFD] border border-brand-primary/10 px-2.5 py-1 rounded-lg"
-                      >
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: COLORS[idx % COLORS.length] }}
-                        />
-                        <span className="font-semibold text-default">{c.category}</span>
-                        <span className="text-muted-default font-bold">— {c.count} ({percent}%)</span>
-                      </div>
-                    );
-                  })}
+              {/* 2. T-Shirt Size Donut chart (Center) */}
+              <Card className="col-span-1 md:col-span-1 lg:col-span-3 p-6 flex flex-col justify-between gap-4 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold">
+                    T-SHIRT SIZE COUNT
+                  </span>
+                  <span className="font-mono text-[10px] text-brand-primary font-bold">
+                    TOTAL: {totalTshirts}
+                  </span>
                 </div>
-              </div>
-            )}
-          </Card>
-        </div>
+
+                {totalTshirts === 0 ? (
+                  <div className="h-64 w-full flex flex-col items-center justify-center text-muted-default/60 font-mono text-xs">
+                    <span className="text-sm font-semibold">No T-Shirt data yet</span>
+                    <span className="text-[10px] text-muted-default/40 mt-1">Sizes will appear as runners register</span>
+                  </div>
+                ) : (
+                  <div className="w-full flex flex-col items-center justify-center">
+                    <div className="h-52 w-full flex items-center justify-center relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Tooltip
+                            content={({ active, payload }: any) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0];
+                                const percent = totalTshirts > 0 ? Math.round((Number(data.value) / totalTshirts) * 100) : 0;
+                                return (
+                                  <div className="bg-white border border-[#DCE8F8] p-3 rounded-xl shadow-lg font-mono text-xs text-default z-50">
+                                    <div className="font-bold text-default text-xs">T-Shirt Size: {data.name}</div>
+                                    <div className="text-muted-default text-[11px] mt-1">
+                                      Count: <span className="font-bold text-brand-primary">{data.value}</span>
+                                    </div>
+                                    <div className="text-muted-default text-[11px]">
+                                      Share: <span className="font-bold text-green-600">{percent}%</span>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Pie
+                            data={tshirtChartData}
+                            dataKey="count"
+                            nameKey="size"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={4}
+                          >
+                            {tshirtChartData.map((entry: any, index: number) => (
+                              <Cell key={`tshirt-cell-${index}`} fill={TSHIRT_COLORS[index % TSHIRT_COLORS.length]} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Clean T-Shirt Legend */}
+                    <div className="w-full mt-2 flex flex-wrap justify-center gap-1.5 text-[10px] font-mono">
+                      {tshirtChartData.map((t: any, idx: number) => {
+                        const percent = totalTshirts > 0 ? Math.round((t.count / totalTshirts) * 100) : 0;
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-1.5 bg-[#F8FAFD] border border-brand-primary/10 px-2 py-0.5 rounded-lg"
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: TSHIRT_COLORS[idx % TSHIRT_COLORS.length] }}
+                            />
+                            <span className="font-semibold text-default">{t.size}</span>
+                            <span className="text-muted-default font-bold">— {t.count} ({percent}%)</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              {/* 3. Category Pie chart (Right) */}
+              <Card className="col-span-1 md:col-span-1 lg:col-span-3 p-6 flex flex-col justify-between gap-4 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold">
+                    CATEGORIES RATIOS
+                  </span>
+                  <span className="font-mono text-[10px] text-brand-primary font-bold">
+                    TOTAL: {totalCategories}
+                  </span>
+                </div>
+
+                {totalCategories === 0 ? (
+                  <div className="h-64 w-full flex flex-col items-center justify-center text-muted-default/60 font-mono text-xs">
+                    <span className="text-sm font-semibold">No registrations yet</span>
+                    <span className="text-[10px] text-muted-default/40 mt-1">Categories will appear as runners sign up</span>
+                  </div>
+                ) : (
+                  <div className="w-full flex flex-col items-center justify-center">
+                    <div className="h-52 w-full flex items-center justify-center relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Tooltip
+                            content={({ active, payload }: any) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0];
+                                const percent = totalCategories > 0 ? Math.round((Number(data.value) / totalCategories) * 100) : 0;
+                                return (
+                                  <div className="bg-white border border-[#DCE8F8] p-3 rounded-xl shadow-lg font-mono text-xs text-default z-50">
+                                    <div className="font-bold text-default text-xs">{data.name}</div>
+                                    <div className="text-muted-default text-[11px] mt-1">
+                                      Registered: <span className="font-bold text-brand-primary">{data.value}</span>
+                                    </div>
+                                    <div className="text-muted-default text-[11px]">
+                                      Share: <span className="font-bold text-green-600">{percent}%</span>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Pie
+                            data={categoriesChartData}
+                            dataKey="count"
+                            nameKey="category"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={4}
+                          >
+                            {categoriesChartData.map((entry: any, index: number) => (
+                              <Cell key={`cat-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Clean Category Legend */}
+                    <div className="w-full mt-2 flex flex-wrap justify-center gap-1.5 text-[10px] font-mono">
+                      {categoriesChartData.map((c: any, idx: number) => {
+                        const percent = totalCategories > 0 ? Math.round((c.count / totalCategories) * 100) : 0;
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-1.5 bg-[#F8FAFD] border border-brand-primary/10 px-2 py-0.5 rounded-lg"
+                          >
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                            />
+                            <span className="font-semibold text-default">{c.category}</span>
+                            <span className="text-muted-default font-bold">— {c.count} ({percent}%)</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
+          );
+        })()}
 
         {/* WhatsApp Broadcast Control Engine */}
         <Card className="p-6 flex flex-col gap-5 rounded-2xl shadow-sm border border-brand-primary/15 bg-white relative overflow-hidden">
@@ -729,15 +885,14 @@ export default function AdminDashboard() {
                 <div
                   className="h-full bg-[#25D366] transition-all duration-300 rounded-full"
                   style={{
-                    width: `${
-                      broadcastStats?.campaign?.total_recipients
-                        ? Math.round(
-                            (((broadcastStats.campaign.sent_count + broadcastStats.campaign.failed_count) /
-                              broadcastStats.campaign.total_recipients) *
-                              100)
-                          )
-                        : 0
-                    }%`,
+                    width: `${broadcastStats?.campaign?.total_recipients
+                      ? Math.round(
+                        (((broadcastStats.campaign.sent_count + broadcastStats.campaign.failed_count) /
+                          broadcastStats.campaign.total_recipients) *
+                          100)
+                      )
+                      : 0
+                      }%`,
                   }}
                 />
               </div>
@@ -797,8 +952,6 @@ export default function AdminDashboard() {
                 <option value="">ALL CATEGORIES</option>
                 <option value="2 KM Kids Fun Run">2 KM Kids Fun Run</option>
                 <option value="2 KM Adults Fun Run">2 KM Adults Fun Run</option>
-                <option value="2 KM Adult Run">2 KM Adult Run (Legacy)</option>
-                <option value="2 KM Kids Run">2 KM Kids Run (Legacy)</option>
                 <option value="5 KM Run">5 KM Run</option>
                 <option value="10 KM Run">10 KM Run</option>
               </select>
@@ -919,25 +1072,93 @@ export default function AdminDashboard() {
           </div>
 
           {/* Pagination controls */}
-          {pagination.totalPages > 1 && (
-            <div className="flex justify-between items-center font-mono text-[10px] border-t border-brand-primary/12 pt-4 mt-2">
-              <span className="text-muted-default/50">PAGE {pagination.page} OF {pagination.totalPages}</span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                  className="border border-brand-primary/12 bg-white hover:border-brand-primary px-3 py-1 text-default disabled:opacity-30 cursor-pointer uppercase transition-colors rounded"
-                >
-                  PREV
-                </button>
-                <button
-                  disabled={page === pagination.totalPages}
-                  onClick={() => setPage(page + 1)}
-                  className="border border-brand-primary/12 bg-white hover:border-brand-primary px-3 py-1 text-default disabled:opacity-30 cursor-pointer uppercase transition-colors rounded"
-                >
-                  NEXT
-                </button>
+          {(pagination.total || 0) > 0 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 font-mono text-xs border-t border-brand-primary/12 pt-4 mt-2">
+              {/* Left: Summary and Rows per page selector */}
+              <div className="flex flex-wrap items-center gap-4 text-muted-default text-[11px]">
+                <span>
+                  Showing <strong className="text-default font-bold">{(page - 1) * limit + 1}–{Math.min(page * limit, pagination.total || 0)}</strong> of <strong className="text-brand-primary font-bold">{pagination.total || 0}</strong> runners
+                </span>
+
+                <div className="flex items-center gap-1.5 pl-3 border-l border-brand-primary/15">
+                  <span className="text-muted-default/60 text-[10px] uppercase">Rows per page:</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => {
+                      const newLimit = Number(e.target.value);
+                      setLimit(newLimit);
+                      setPage(1);
+                    }}
+                    className="bg-white border border-[#DCE8F8] px-2 py-1 text-[11px] text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer font-bold"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
               </div>
+
+              {/* Right: Dynamic Pagination controls */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                    className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-3 py-1 text-default text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm"
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex items-center gap-1 mx-1">
+                    {(() => {
+                      const totalPages = pagination.totalPages;
+                      let pages: (number | string)[] = [];
+
+                      if (totalPages <= 7) {
+                        pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+                      } else if (page <= 3) {
+                        pages = [1, 2, 3, 4, "...", totalPages];
+                      } else if (page >= totalPages - 2) {
+                        pages = [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                      } else {
+                        pages = [1, "...", page - 1, page, page + 1, "...", totalPages];
+                      }
+
+                      return pages.map((item, idx) => {
+                        if (item === "...") {
+                          return (
+                            <span key={`ellipsis-${idx}`} className="px-1.5 py-1 text-muted-default/40 font-bold text-xs">
+                              ...
+                            </span>
+                          );
+                        }
+                        const pageNum = Number(item);
+                        const isActive = pageNum === page;
+                        return (
+                          <button
+                            key={`page-${pageNum}`}
+                            onClick={() => setPage(pageNum)}
+                            className={`min-w-[28px] h-7 px-2 font-bold text-[11px] rounded transition-all cursor-pointer flex items-center justify-center ${isActive
+                                ? "bg-brand-primary text-white shadow-sm font-black"
+                                : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
+                              }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      });
+                    })()}
+                  </div>
+
+                  <button
+                    disabled={page === pagination.totalPages}
+                    onClick={() => setPage(page + 1)}
+                    className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-3 py-1 text-default text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </Card>

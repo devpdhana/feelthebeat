@@ -53,13 +53,20 @@ export async function GET(req: Request) {
     const pendingPayments = paymentsList?.filter((p) => (p.status || "").toLowerCase().includes("pending")).length || 0;
     const successfulPayments = paymentsList?.filter((p) => (p.status || "").toLowerCase().includes("success") || (p.status || "").toLowerCase().includes("paid")).length || 0;
 
-    // 2. Query categories distribution
-    const { data: regsCategories } = await supabaseAdmin
+    // 2. Query all registrations for aggregated metrics
+    const { data: allRegistrations, error: regError } = await supabaseAdmin
       .from("registrations")
-      .select("race_category");
+      .select("id, race_category, tshirt_size, gender, dob, created_at");
 
+    if (regError) {
+      console.error("[DASHBOARD] Registrations query error:", regError);
+    }
+
+    const regsList = allRegistrations || [];
+
+    // Categories distribution
     const categoryMap: Record<string, number> = {};
-    regsCategories?.forEach((r) => {
+    regsList.forEach((r) => {
       const raw = (r.race_category || "").trim();
       let cat = raw;
       if (raw === "2km-kids" || raw.toLowerCase().includes("kids")) {
@@ -81,13 +88,35 @@ export async function GET(req: Request) {
       count: categoryMap[category],
     }));
 
-    // 3. Gender distribution
-    const { data: regsGenders } = await supabaseAdmin
-      .from("registrations")
-      .select("gender");
-    
+    // T-Shirt Size distribution
+    const tshirtMap: Record<string, number> = {};
+    const standardSizes = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+
+    regsList.forEach((r) => {
+      const raw = (r.tshirt_size || "").trim().toUpperCase();
+      if (!raw || raw === "N/A" || raw === "NULL" || raw === "NONE") {
+        return; // Exclude empty/null values
+      }
+      tshirtMap[raw] = (tshirtMap[raw] || 0) + 1;
+    });
+
+    const tshirtData = Object.keys(tshirtMap)
+      .sort((a, b) => {
+        const indexA = standardSizes.indexOf(a);
+        const indexB = standardSizes.indexOf(b);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return a.localeCompare(b);
+      })
+      .map((size) => ({
+        size,
+        count: tshirtMap[size],
+      }));
+
+    // Gender distribution
     const genderMap: Record<string, number> = {};
-    regsGenders?.forEach((r) => {
+    regsList.forEach((r) => {
       const g = r.gender || "Unknown";
       genderMap[g] = (genderMap[g] || 0) + 1;
     });
@@ -96,12 +125,7 @@ export async function GET(req: Request) {
       count: genderMap[gender],
     }));
 
-    // 4. Daily registrations count (last 7 days)
-    const { data: regsTimeline } = await supabaseAdmin
-      .from("registrations")
-      .select("created_at")
-      .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
+    // Daily registrations count (last 7 days)
     const dailyMap: Record<string, number> = {};
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -110,13 +134,16 @@ export async function GET(req: Request) {
       dailyMap[label] = 0;
     }
 
-    regsTimeline?.forEach((reg) => {
-      const label = new Date(reg.created_at).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-      if (dailyMap[label] !== undefined) {
-        dailyMap[label]++;
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).getTime();
+    regsList.forEach((reg) => {
+      if (reg.created_at && new Date(reg.created_at).getTime() >= sevenDaysAgo) {
+        const label = new Date(reg.created_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+        if (dailyMap[label] !== undefined) {
+          dailyMap[label]++;
+        }
       }
     });
 
@@ -125,11 +152,7 @@ export async function GET(req: Request) {
       count: dailyMap[date],
     }));
 
-    // 5. Age Bracket distribution
-    const { data: dobList } = await supabaseAdmin
-      .from("registrations")
-      .select("dob");
-
+    // Age Bracket distribution
     const ageBrackets = {
       "Under 18": 0,
       "18-35": 0,
@@ -137,7 +160,7 @@ export async function GET(req: Request) {
       "50+": 0,
     };
 
-    dobList?.forEach((reg) => {
+    regsList.forEach((reg) => {
       if (!reg.dob) return;
       const age = new Date().getFullYear() - new Date(reg.dob).getFullYear();
       if (age < 18) ageBrackets["Under 18"]++;
@@ -163,6 +186,7 @@ export async function GET(req: Request) {
       charts: {
         daily: dailyData,
         categories: categoriesData,
+        tshirt: tshirtData,
         gender: genderData,
         age: ageData,
       },
