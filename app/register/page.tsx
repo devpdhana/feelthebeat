@@ -7,6 +7,7 @@ import { racePrices } from "@/data/registrationConfig";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { registrationConfig } from "@/data/navigation";
+import { event as trackPixelEvent } from "@/lib/fpixel";
 
 // Extend window interface for Razorpay
 declare global {
@@ -72,6 +73,11 @@ function RegisterForm() {
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  // Fire Meta Pixel ViewContent event once when register page mounts
+  useEffect(() => {
+    trackPixelEvent("ViewContent");
+  }, []);
 
   // Sync category from URL queries
   useEffect(() => {

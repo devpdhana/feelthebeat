@@ -1315,19 +1315,21 @@ export default function AdminDashboard() {
                   </div>
                   <div className="print-receipt-row flex justify-between border-b border-brand-primary/8 pb-2">
                     <span className="text-muted-default/60">WHATSAPP NOTIFICATION:</span>
-                    <span className={`font-bold ${activeReg.whatsappStatus === "ACCEPTED" || activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
+                    <span className={`font-bold ${activeReg.whatsappStatus === "DELIVERED" || activeReg.whatsappStatus === "READ" || activeReg.whatsappStatus === "SENT" || activeReg.whatsappStatus === "ACCEPTED" || activeReg.whatsappSent
                       ? "text-green-600"
                       : activeReg.whatsappStatus === "FAILED"
                         ? "text-red-600"
                         : "text-gray-500"
                       }`}>
-                      {activeReg.whatsappStatus === "ACCEPTED"
-                        ? `ACCEPTED (Delivery Pending) ${activeReg.whatsappMessageId ? `[GUID: ${activeReg.whatsappMessageId.slice(0, 16)}...]` : ""}`
-                        : activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
-                          ? `SENT ${activeReg.whatsappSentAt ? `(${new Date(activeReg.whatsappSentAt).toLocaleString()})` : ""}`
-                          : activeReg.whatsappStatus === "FAILED"
-                            ? `FAILED ${activeReg.whatsappError ? `(${activeReg.whatsappError})` : ""}`
-                            : "NOT SENT"}
+                      {activeReg.whatsappStatus === "DELIVERED" || activeReg.whatsappStatus === "READ"
+                        ? `DELIVERED (Confirmed) ${activeReg.whatsappMessageId ? `[GUID: ${activeReg.whatsappMessageId.slice(0, 16)}...]` : ""}`
+                        : activeReg.whatsappStatus === "ACCEPTED"
+                          ? `ACCEPTED (Gateway in Progress) ${activeReg.whatsappMessageId ? `[GUID: ${activeReg.whatsappMessageId.slice(0, 16)}...]` : ""}`
+                          : activeReg.whatsappStatus === "SENT" || activeReg.whatsappSent
+                            ? `SENT ${activeReg.whatsappSentAt ? `(${new Date(activeReg.whatsappSentAt).toLocaleString()})` : ""}`
+                            : activeReg.whatsappStatus === "FAILED"
+                              ? `FAILED ${activeReg.whatsappError ? `(${activeReg.whatsappError})` : ""}`
+                              : "NOT SENT"}
                     </span>
                   </div>
 

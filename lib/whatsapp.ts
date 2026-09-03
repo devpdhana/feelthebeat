@@ -57,6 +57,7 @@ export function maskPhoneNumber(mobile: string): string {
 
 /**
  * Normalizes an Indian or international mobile number.
+ * Ensures consistent E.164 and country-code formatted recipient digits.
  */
 export function normalizeMobileNumber(rawNumber: string): {
   isValid: boolean;
@@ -65,11 +66,14 @@ export function normalizeMobileNumber(rawNumber: string): {
   withCountryCode: string;
   cleanDigits: string;
 } {
-  const digits = (rawNumber || "").replace(/\D/g, "");
+  const raw = String(rawNumber || "").trim();
+  const digits = raw.replace(/\D/g, "");
 
+  // 10-digit standard Indian number (e.g. 9876543210)
   if (digits.length === 10) {
+    const isValidIndian = /^[6-9]\d{9}$/.test(digits);
     return {
-      isValid: true,
+      isValid: isValidIndian,
       national10: digits,
       e164: `+91${digits}`,
       withCountryCode: `91${digits}`,
@@ -77,10 +81,12 @@ export function normalizeMobileNumber(rawNumber: string): {
     };
   }
 
+  // 11-digit number with leading 0 (e.g. 09876543210)
   if (digits.length === 11 && digits.startsWith("0")) {
     const national10 = digits.slice(1);
+    const isValidIndian = /^[6-9]\d{9}$/.test(national10);
     return {
-      isValid: true,
+      isValid: isValidIndian,
       national10,
       e164: `+91${national10}`,
       withCountryCode: `91${national10}`,
@@ -88,10 +94,12 @@ export function normalizeMobileNumber(rawNumber: string): {
     };
   }
 
+  // 12-digit Indian number with 91 prefix (e.g. 919876543210 or +919876543210)
   if (digits.length === 12 && digits.startsWith("91")) {
     const national10 = digits.slice(2);
+    const isValidIndian = /^[6-9]\d{9}$/.test(national10);
     return {
-      isValid: true,
+      isValid: isValidIndian,
       national10,
       e164: `+${digits}`,
       withCountryCode: digits,
@@ -99,6 +107,20 @@ export function normalizeMobileNumber(rawNumber: string): {
     };
   }
 
+  // 13-digit Indian number with 910 prefix (e.g. +91 09876543210)
+  if (digits.length === 13 && digits.startsWith("910")) {
+    const national10 = digits.slice(3);
+    const isValidIndian = /^[6-9]\d{9}$/.test(national10);
+    return {
+      isValid: isValidIndian,
+      national10,
+      e164: `+91${national10}`,
+      withCountryCode: `91${national10}`,
+      cleanDigits: national10,
+    };
+  }
+
+  // International numbers (10-15 digits)
   if (digits.length >= 10 && digits.length <= 15) {
     return {
       isValid: true,
@@ -111,7 +133,7 @@ export function normalizeMobileNumber(rawNumber: string): {
 
   return {
     isValid: false,
-    national10: digits,
+    national10: digits.slice(-10),
     e164: `+${digits}`,
     withCountryCode: digits,
     cleanDigits: digits,
@@ -286,9 +308,9 @@ export async function sendRegistrationWhatsApp(
     }
   }
 
-  const runnerName = (recordToUse.full_name || "Runner").trim();
-  const category = (recordToUse.race_category || "Race").trim();
-  const orderId = (recordToUse.order_id || recordToUse.registration_number || "FTB26-000000").trim();
+  const runnerName = (recordToUse.full_name || "Runner").trim().replace(/~/g, "-");
+  const category = (recordToUse.race_category || "Race").trim().replace(/~/g, "-");
+  const orderId = (recordToUse.order_id || recordToUse.registration_number || "FTB26-000000").trim().replace(/~/g, "-");
   const mobile = recordToUse.mobile || registration.mobile;
 
   const normalized = normalizeMobileNumber(mobile);
@@ -316,6 +338,7 @@ export async function sendRegistrationWhatsApp(
     variables,
     messageText,
     type: "REGISTRATION",
+    customMessageId: recordToUse.registration_number || recordToUse.id,
   });
 }
 
@@ -352,11 +375,11 @@ export async function sendBroadcastWhatsApp(registration: {
     }
   }
 
-  const runnerName = (recordToUse.full_name || "Runner").trim();
+  const runnerName = (recordToUse.full_name || "Runner").trim().replace(/~/g, "-");
   const bibNo = recordToUse.bib_number !== undefined && recordToUse.bib_number !== null
-    ? String(recordToUse.bib_number)
+    ? String(recordToUse.bib_number).replace(/~/g, "-")
     : "To be assigned";
-  const category = (recordToUse.race_category || "Race").trim();
+  const category = (recordToUse.race_category || "Race").trim().replace(/~/g, "-");
   const mobile = recordToUse.mobile || registration.mobile;
 
   const normalized = normalizeMobileNumber(mobile);
@@ -384,6 +407,7 @@ export async function sendBroadcastWhatsApp(registration: {
     variables,
     messageText,
     type: "BROADCAST",
+    customMessageId: recordToUse.bib_number ? `BIB_${recordToUse.bib_number}` : undefined,
   });
 }
 
@@ -396,8 +420,9 @@ async function dispatchWhatsAppMessage(params: {
   variables: string[];
   messageText: string;
   type: "REGISTRATION" | "BROADCAST";
+  customMessageId?: string;
 }): Promise<WhatsAppResponse> {
-  const { recipientPhone, templateId, variables, messageText, type } = params;
+  const { recipientPhone, templateId, variables, messageText, type, customMessageId } = params;
 
   // 1. Unified v2 WhatsApp Gateway (ValueFirst / Infinito)
   const unifiedUrl = getEnvVar("WHATSAPP_API_URL") || "https://103.229.250.150/unified/v2/send";
@@ -405,19 +430,25 @@ async function dispatchWhatsAppMessage(params: {
   const unifiedClientPassword = getEnvVar("WHATSAPP_CLIENT_PASSWORD");
   const unifiedSender = getEnvVar("WHATSAPP_SENDER") || "916369099925";
   const unifiedTag = getEnvVar("WHATSAPP_TAG") || "";
+  const siteUrl = getEnvVar("NEXT_PUBLIC_SITE_URL") || "https://marathon.sreejayamschool.edu.in";
+  const dlrCallbackUrl = getEnvVar("WHATSAPP_DLR_URL") || `${siteUrl}/api/whatsapp/dlr`;
 
   if (unifiedUrl && unifiedClientId && unifiedClientPassword) {
     try {
       const cleanTo = recipientPhone.replace(/^\+/, "");
       const templateInfoStr = `${templateId}~${variables.join("~")}`;
-      const messageIdParam = type === "BROADCAST" ? (getEnvVar("WHATSAPP_BROADCAST_MESSAGE_ID") || "1431909") : "";
+      const messageIdParam =
+        customMessageId ||
+        (type === "BROADCAST"
+          ? (getEnvVar("WHATSAPP_BROADCAST_MESSAGE_ID") || "1431909")
+          : `FTB_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
 
       const payload = {
         apiver: "1.0",
         whatsapp: {
           ver: "2.0",
           dlr: {
-            url: "",
+            url: dlrCallbackUrl,
           },
           messages: [
             {
@@ -429,7 +460,7 @@ async function dispatchWhatsAppMessage(params: {
                   from: unifiedSender,
                   to: cleanTo,
                   seq: "01",
-                  tag: "",
+                  tag: unifiedTag || "",
                 },
               ],
             },
