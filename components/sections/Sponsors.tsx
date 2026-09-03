@@ -1,11 +1,12 @@
 "use client";
 
-import { sponsors } from "@/data/sponsors";
+import { sponsors, getSortedSponsors } from "@/data/sponsors";
 import Image from "next/image";
 
 export default function Sponsors() {
-  // Duplicate sponsors array for seamless infinite marquee loop
-  const duplicatedSponsors = [...sponsors, ...sponsors];
+  const sortedSponsors = getSortedSponsors(sponsors);
+  // Duplicate sorted sponsors array for seamless infinite marquee loop
+  const duplicatedSponsors = [...sortedSponsors, ...sortedSponsors];
 
   return (
     <section id="sponsors" className="relative py-[90px] bg-white overflow-hidden border-b border-brand-primary/12">
