@@ -30,7 +30,7 @@ export default function Home() {
       {/* Interactive SVG route loop map & timeline */}
       <RouteInformation />
 
-      {/* Infinite marquee sponsors partner carousel */}
+      {/* Static 3-row sponsors partner grid */}
       <Sponsors />
 
       {/* Lightbox Pinterest masonry photo gallery */}
