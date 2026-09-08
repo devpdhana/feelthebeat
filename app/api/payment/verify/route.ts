@@ -23,7 +23,7 @@ async function sendConfirmationEmail(registration: any, categoryName: string) {
     });
 
     const mailOptions = {
-      from: process.env.SMTP_FROM || `"Feel The Beat Run 2026" <sjs.marathon@sreejayamschool.edu.in>`,
+      from: process.env.SMTP_FROM || `"Feel The Beat Run 2026" <marathon@sreejayamschool.edu.in>`,
       to: registration.email,
       subject: `Feel The Beat Run 2026 Registration Confirmation`,
       html: `

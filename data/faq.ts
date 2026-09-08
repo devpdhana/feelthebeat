@@ -33,7 +33,7 @@ export const faqData: FAQItem[] = [
   {
     id: "faq-support",
     question: "Who can I contact for registration and technical timing issues?",
-    answer: "For any registration queries or timing assistance, you can contact the support desk at sjs.marathon@sreejayamschool.edu.in.",
+    answer: "For any registration queries or timing assistance, you can contact the support desk at marathon@sreejayamschool.edu.in.",
   },
 ];
 
