@@ -154,7 +154,7 @@ export default function Footer() {
               </li>
               <li className="flex flex-col gap-0.5">
                 <span className="text-white/40 text-[9px] uppercase"> INQUIRIES</span>
-                <span className="text-white/85 font-semibold">marathon@sreejayamschool.edu.in</span>
+                <span className="text-white/85 font-semibold">sjs.marathon@sreejayamschool.edu.in</span>
               </li>
             </ul>
           </div>
