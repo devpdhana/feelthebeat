@@ -3,6 +3,7 @@ import EventHighlights from "@/components/sections/EventHighlights";
 import AboutEvent from "@/components/sections/AboutEvent";
 import WhyParticipate from "@/components/sections/WhyParticipate";
 import RaceCategories from "@/components/sections/RaceCategories";
+import PrizeMoney from "@/components/sections/PrizeMoney";
 import RouteInformation from "@/components/sections/RouteInformation";
 import Sponsors from "@/components/sections/Sponsors";
 import Gallery from "@/components/sections/Gallery";
@@ -26,6 +27,9 @@ export default function Home() {
 
       {/* Race Categories premium cards & gradients */}
       <RaceCategories />
+
+      {/* Official Prize Money distribution for 10KM & 5KM */}
+      <PrizeMoney />
 
       {/* Interactive SVG route loop map & timeline */}
       <RouteInformation />

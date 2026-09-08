@@ -31,6 +31,8 @@ export default function Footer() {
           "#highlights": "event-highlights",
           "#about": "about",
           "#categories": "categories",
+          "#prizes": "prizes",
+          "#prize-money": "prizes",
           "#route-map": "route",
           "#route": "route",
           "#sponsors": "sponsors",

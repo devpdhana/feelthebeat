@@ -33,7 +33,7 @@ const reasons = [
   {
     icon: <IoMedalOutline className="text-3xl text-brand-primary" />,
     title: "OFFICIAL FINISHER MEDAL",
-    desc: "Cross the fort gate finishing line and claim your custom World Heart Day finisher medal, certificate of timing, and gear.",
+    desc: "Cross the fort gate finishing line in the 5KM or 10KM run and claim your official Finisher Medal, timing certificate, and gear.",
   },
 ];
 

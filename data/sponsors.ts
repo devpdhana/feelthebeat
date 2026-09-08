@@ -5,6 +5,7 @@ export type SponsorCategory =
   | "CO-SPONSORS"
   | "TECHNOLOGY PARTNER"
   | "DIGITAL PARTNER"
+  | "APPAREL PARTNER"
   | "OTHER PARTNER";
 
 export interface Sponsor {
@@ -24,7 +25,8 @@ export const SPONSOR_CATEGORY_PRIORITY: Record<SponsorCategory, number> = {
   "CO-SPONSORS": 4,
   "TECHNOLOGY PARTNER": 5,
   "DIGITAL PARTNER": 6,
-  "OTHER PARTNER": 7,
+  "APPAREL PARTNER": 7,
+  "OTHER PARTNER": 8,
 };
 
 export const sponsors: Sponsor[] = [
@@ -86,13 +88,22 @@ export const sponsors: Sponsor[] = [
     order: 4,
   },
   {
+    id: 16,
+    name: "Dalmia Bharat Cement",
+    role: "Co-Sponsor",
+    category: "CO-SPONSORS",
+    logo: "/images/sponsors/Dalmia Bharat Cement.jpeg",
+    image: "/images/sponsors/Dalmia Bharat Cement.jpeg",
+    order: 1,
+  },
+  {
     id: 6,
     name: "Dr. Agarwals Eye Hospital",
     role: "Co-Sponsor",
     category: "CO-SPONSORS",
     logo: "/images/sponsors/Agarwals.jpg",
     image: "/images/sponsors/Agarwals.jpg",
-    order: 5,
+    order: 2,
   },
   {
     id: 7,
@@ -101,7 +112,25 @@ export const sponsors: Sponsor[] = [
     category: "CO-SPONSORS",
     logo: "/images/sponsors/thirumagal-tamil.png",
     image: "/images/sponsors/thirumagal-tamil.png",
-    order: 6,
+    order: 3,
+  },
+  {
+    id: 17,
+    name: "Darling Residency",
+    role: "Co-Sponsor",
+    category: "CO-SPONSORS",
+    logo: "/images/sponsors/Darling Residency logo.jpg",
+    image: "/images/sponsors/Darling Residency logo.jpg",
+    order: 4,
+  },
+  {
+    id: 18,
+    name: "Breeze Trends",
+    role: "Co-Sponsor",
+    category: "CO-SPONSORS",
+    logo: "/images/sponsors/breeze logo.webp",
+    image: "/images/sponsors/breeze logo.webp",
+    order: 5,
   },
 
   // ROW 3: OTHER SPONSORS & PARTNERS
@@ -124,13 +153,22 @@ export const sponsors: Sponsor[] = [
     order: 2,
   },
   {
+    id: 15,
+    name: "iknits",
+    role: "Apparel Partner",
+    category: "APPAREL PARTNER",
+    logo: "/images/sponsors/brand logo_page-0001.jpg",
+    image: "/images/sponsors/brand logo_page-0001.jpg",
+    order: 3,
+  },
+  {
     id: 9,
     name: "Kannan & Co",
     role: "Hydration Partner",
     category: "OTHER PARTNER",
     logo: "/images/sponsors/kannan-soda.jpeg",
     image: "/images/sponsors/kannan-soda.jpeg",
-    order: 3,
+    order: 4,
   },
   {
     id: 10,
@@ -139,7 +177,7 @@ export const sponsors: Sponsor[] = [
     category: "OTHER PARTNER",
     logo: "/images/sponsors/saranya.jpeg",
     image: "/images/sponsors/saranya.jpeg",
-    order: 4,
+    order: 5,
   },
   {
     id: 11,
@@ -148,7 +186,7 @@ export const sponsors: Sponsor[] = [
     category: "OTHER PARTNER",
     logo: "/images/sponsors/my-race.jpg",
     image: "/images/sponsors/my-race.jpg",
-    order: 5,
+    order: 6,
   },
   {
     id: 12,
@@ -157,7 +195,7 @@ export const sponsors: Sponsor[] = [
     category: "OTHER PARTNER",
     logo: "/images/sponsors/suryan.jpg",
     image: "/images/sponsors/suryan.jpg",
-    order: 6,
+    order: 7,
   },
 ];
 
@@ -181,7 +219,9 @@ export const getRow2GoldSponsors = (list: Sponsor[] = sponsors): Sponsor[] => {
 };
 
 export const getRow2CoSponsors = (list: Sponsor[] = sponsors): Sponsor[] => {
-  return list.filter((s) => s.category === "CO-SPONSORS");
+  return list
+    .filter((s) => s.category === "CO-SPONSORS")
+    .sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id));
 };
 
 export const getRow3OtherSponsors = (list: Sponsor[] = sponsors): Sponsor[] => {
@@ -189,6 +229,7 @@ export const getRow3OtherSponsors = (list: Sponsor[] = sponsors): Sponsor[] => {
     (s) =>
       s.category === "TECHNOLOGY PARTNER" ||
       s.category === "DIGITAL PARTNER" ||
+      s.category === "APPAREL PARTNER" ||
       s.category === "OTHER PARTNER"
   );
 };

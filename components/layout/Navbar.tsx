@@ -40,6 +40,8 @@ export default function Navbar() {
           "#highlights": "event-highlights",
           "#about": "about",
           "#categories": "categories",
+          "#prizes": "prizes",
+          "#prize-money": "prizes",
           "#route-map": "route",
           "#sponsors": "sponsors",
           "#gallery": "gallery",

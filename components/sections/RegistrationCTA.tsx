@@ -36,7 +36,7 @@ export default function RegistrationCTA() {
         </h2>
 
         <p className="max-w-md font-mono text-xs text-muted-default leading-relaxed">
-          Grid allocations for the Feel The Beat Run 2026 are now open. Secure your slots today to lock in your timed finisher medals and celebrate World Heart Day.
+          Grid allocations for the Feel The Beat Run 2026 are now open. Secure your slots today to earn your official 5KM &amp; 10KM Finisher Medal and celebrate World Heart Day.
         </p>
 
         {/* Dynamic telemetry status box */}

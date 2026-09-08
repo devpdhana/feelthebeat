@@ -131,7 +131,7 @@ export default function Sponsors() {
                 <div className="h-px bg-blue-200 w-10 sm:w-20" />
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-14 w-full max-w-2xl">
+              <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-14 w-full max-w-5xl">
                 {row2CoSponsors.map((sponsor) => (
                   <div
                     key={sponsor.id}
