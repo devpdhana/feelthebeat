@@ -4,7 +4,7 @@ export type SponsorCategory =
   | "GOLD SPONSORS"
   | "CO-SPONSORS"
   | "TECHNOLOGY PARTNER"
-  | "DIGITAL PARTNER"
+  | "PROMOTIONAL PARTNER"
   | "APPAREL PARTNER"
   | "OTHER PARTNER";
 
@@ -24,7 +24,7 @@ export const SPONSOR_CATEGORY_PRIORITY: Record<SponsorCategory, number> = {
   "GOLD SPONSORS": 3,
   "CO-SPONSORS": 4,
   "TECHNOLOGY PARTNER": 5,
-  "DIGITAL PARTNER": 6,
+  "PROMOTIONAL PARTNER": 6,
   "APPAREL PARTNER": 7,
   "OTHER PARTNER": 8,
 };
@@ -65,8 +65,8 @@ export const sponsors: Sponsor[] = [
     name: "Arani CMR",
     role: "Gold Sponsor",
     category: "GOLD SPONSORS",
-    logo: "/images/sponsors/cmr-logo.png",
-    image: "/images/sponsors/cmr-logo.png",
+    logo: "/images/sponsors/cmr-logo.jpeg",
+    image: "/images/sponsors/cmr-logo.jpeg",
     order: 2,
   },
   {
@@ -146,8 +146,8 @@ export const sponsors: Sponsor[] = [
   {
     id: 13,
     name: "Vybe Haus",
-    role: "Digital Partner",
-    category: "DIGITAL PARTNER",
+    role: "Promotional Partner",
+    category: "PROMOTIONAL PARTNER",
     logo: "/images/sponsors/The Vybe Haus Black.png",
     image: "/images/sponsors/The Vybe Haus Black.png",
     order: 2,
@@ -228,7 +228,7 @@ export const getRow3OtherSponsors = (list: Sponsor[] = sponsors): Sponsor[] => {
   return list.filter(
     (s) =>
       s.category === "TECHNOLOGY PARTNER" ||
-      s.category === "DIGITAL PARTNER" ||
+      s.category === "PROMOTIONAL PARTNER" ||
       s.category === "APPAREL PARTNER" ||
       s.category === "OTHER PARTNER"
   );

@@ -30,7 +30,7 @@ export const standardPrizes: PrizeTier[] = [
     rank: 1,
     amount: "₹10,000",
     rawAmount: 10000,
-    label: "WINNER",
+    label: "1ST PRIZE (10K)",
     tag: "1ST PLACE",
   },
   {
@@ -38,7 +38,7 @@ export const standardPrizes: PrizeTier[] = [
     rank: 2,
     amount: "₹7,000",
     rawAmount: 7000,
-    label: "RUNNER-UP",
+    label: "2ND PRIZE (7K)",
     tag: "2ND PLACE",
   },
   {
@@ -46,22 +46,24 @@ export const standardPrizes: PrizeTier[] = [
     rank: 3,
     amount: "₹5,000",
     rawAmount: 5000,
-    label: "2ND RUNNER-UP",
+    label: "3RD PRIZE (5K)",
     tag: "3RD PLACE",
   },
   {
     position: "4th Prize",
     rank: 4,
-    amount: "₹3,000",
-    rawAmount: 3000,
-    label: "4TH PLACE",
+    amount: "₹2,000",
+    rawAmount: 2000,
+    label: "4TH PRIZE (2K)",
+    tag: "4TH PLACE",
   },
   {
     position: "5th Prize",
     rank: 5,
-    amount: "₹2,000",
-    rawAmount: 2000,
-    label: "5TH PLACE",
+    amount: "₹1,000",
+    rawAmount: 1000,
+    label: "5TH PRIZE (1K)",
+    tag: "5TH PLACE",
   },
 ];
 
@@ -72,7 +74,7 @@ export const prizeDistributionData: DistancePrizeData[] = [
     title: "10 KM TIMED RUN",
     description:
       "Competitive 10K category cash prizes awarded separately for Men and Women top 5 finishers with official RFID chip timing.",
-    totalPurse: "₹54,000",
+    totalPurse: "₹50,000",
     timingType: "TIMED RUN",
     categories: [
       {
@@ -93,7 +95,7 @@ export const prizeDistributionData: DistancePrizeData[] = [
     title: "5 KM TIMED RUN",
     description:
       "Competitive 5K category cash prizes awarded separately for Men and Women top 5 finishers with official RFID chip timing.",
-    totalPurse: "₹54,000",
+    totalPurse: "₹50,000",
     timingType: "TIMED RUN",
     categories: [
       {
@@ -111,17 +113,17 @@ export const prizeDistributionData: DistancePrizeData[] = [
 ];
 
 export const finisherMedalInfo = {
-  badge: "FINISHER MEDAL",
-  title: "Earn Your Finisher Medal",
+  badge: "FINISHER RECOGNITION",
+  title: "Official Finisher Medal & Certificate",
   description:
-    "Every participant who successfully completes the 5KM or 10KM run will receive the official FEEL THE BEAT RUN 2026 Finisher Medal.",
+    "Every participant who successfully completes the 5KM or 10KM run will receive the official Feel The Beat Run 2026 Finisher Medal and downloadable Timing Certificate.",
   qualifyingDistances: ["5 KM", "10 KM"],
   ruleNote:
-    "There is one standard official Finisher Medal design. The same medal is awarded to every 5KM and 10KM finisher.",
+    "Awarded to ALL successful finishers of 5KM and 10KM, not only prize winners.",
 };
 
 export const prizeSummary = {
-  totalPrizePool: "₹1,08,000+",
+  totalPrizePool: "₹1,00,000",
   qualifyingDistances: ["10 KM", "5 KM"],
   nonCashDistancesNotice:
     "Prize money distribution is exclusively applicable to the timed 10KM and 5KM categories. Every participant who completes the 5KM or 10KM run receives the official Finisher Medal & Certificate.",
