@@ -69,6 +69,8 @@ interface StatsSummary {
   todayRegistrations: number;
   pendingPayments: number;
   successfulPayments: number;
+  boysCount?: number;
+  girlsCount?: number;
 }
 
 interface DashboardStats {
@@ -77,6 +79,7 @@ interface DashboardStats {
     daily: { date: string; count: number }[];
     categories: { category: string; count: number }[];
     tshirt?: { size: string; count: number }[];
+    gender?: { gender: string; count: number }[];
   };
 }
 
@@ -515,29 +518,55 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Analytics stats counters */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TOTAL REGISTRATIONS</span>
-            <div className="font-display text-3xl font-black text-default">{stats.summary.totalRegistrations}</div>
-          </Card>
-          <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TOTAL REVENUE</span>
-            <div className="font-display text-3xl font-black text-brand-primary">₹{stats.summary.totalRevenue}</div>
-          </Card>
-          <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TODAY&apos;S REGISTRATIONS</span>
-            <div className="font-display text-3xl font-black text-default">{stats.summary.todayRegistrations}</div>
-          </Card>
-          <Card className="p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">PENDING INVOICES</span>
-            <div className="font-display text-3xl font-black text-yellow-600">{stats.summary.pendingPayments}</div>
-          </Card>
-          <Card className="p-5 flex flex-col gap-1 col-span-2 lg:col-span-1 rounded-2xl shadow-sm">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">SUCCESSFUL PAYMENTS</span>
-            <div className="font-display text-3xl font-black text-green-600">{stats.summary.successfulPayments}</div>
-          </Card>
-        </div>
+        {/* Analytics stats counters with Boys and Girls count */}
+        {(() => {
+          const boysCount =
+            stats.summary.boysCount ??
+            (stats.charts?.gender?.find((g: any) => {
+              const raw = (g.gender || "").trim().toLowerCase();
+              return raw === "male" || raw === "boy" || raw === "boys" || raw === "m";
+            })?.count || 0);
+
+          const girlsCount =
+            stats.summary.girlsCount ??
+            (stats.charts?.gender?.find((g: any) => {
+              const raw = (g.gender || "").trim().toLowerCase();
+              return raw === "female" || raw === "girl" || raw === "girls" || raw === "f";
+            })?.count || 0);
+
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
+              <Card className="p-4 sm:p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
+                <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TOTAL REGISTRATIONS</span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-default">{stats.summary.totalRegistrations}</div>
+              </Card>
+              <Card className="p-4 sm:p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
+                <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">Male</span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-blue-600">{boysCount}</div>
+              </Card>
+              <Card className="p-4 sm:p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
+                <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">Female</span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-pink-600">{girlsCount}</div>
+              </Card>
+              <Card className="p-4 sm:p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
+                <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TOTAL REVENUE</span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-brand-primary">₹{stats.summary.totalRevenue}</div>
+              </Card>
+              <Card className="p-4 sm:p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
+                <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">TODAY&apos;S REGISTRATIONS</span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-default">{stats.summary.todayRegistrations}</div>
+              </Card>
+              <Card className="p-4 sm:p-5 flex flex-col gap-1 rounded-2xl shadow-sm">
+                <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">PENDING INVOICES</span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-yellow-600">{stats.summary.pendingPayments}</div>
+              </Card>
+              <Card className="p-4 sm:p-5 flex flex-col gap-1 col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-1 rounded-2xl shadow-sm">
+                <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-wider font-semibold">SUCCESSFUL PAYMENTS</span>
+                <div className="font-display text-2xl sm:text-3xl font-black text-green-600">{stats.summary.successfulPayments}</div>
+              </Card>
+            </div>
+          );
+        })()}
 
         {/* Charts Visualizations Grid */}
         {(() => {
@@ -1075,7 +1104,7 @@ export default function AdminDashboard() {
           {(pagination.total || 0) > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 font-mono text-xs border-t border-brand-primary/12 pt-4 mt-2">
               {/* Left: Summary and Rows per page selector */}
-              <div className="flex flex-wrap items-center gap-4 text-muted-default text-[11px]">
+              <div className="flex flex-wrap items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-4 text-muted-default text-[11px]">
                 <span>
                   Showing <strong className="text-default font-bold">{(page - 1) * limit + 1}–{Math.min(page * limit, pagination.total || 0)}</strong> of <strong className="text-brand-primary font-bold">{pagination.total || 0}</strong> runners
                 </span>
@@ -1098,18 +1127,19 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Right: Dynamic Pagination controls */}
+              {/* Right: Dynamic Responsive Pagination controls */}
               {pagination.totalPages > 1 && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-center gap-1 sm:gap-1.5 w-full sm:w-auto overflow-x-auto py-1">
                   <button
                     disabled={page === 1}
-                    onClick={() => setPage(page - 1)}
-                    className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-3 py-1 text-default text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm"
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-2.5 sm:px-3 py-1 text-default text-[10px] sm:text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm shrink-0"
                   >
-                    Previous
+                    &lt; Prev
                   </button>
 
-                  <div className="flex items-center gap-1 mx-1">
+                  {/* Desktop / Tablet Page Numbers (Expanded window) */}
+                  <div className="hidden sm:flex items-center gap-1 mx-0.5">
                     {(() => {
                       const totalPages = pagination.totalPages;
                       let pages: (number | string)[] = [];
@@ -1127,7 +1157,7 @@ export default function AdminDashboard() {
                       return pages.map((item, idx) => {
                         if (item === "...") {
                           return (
-                            <span key={`ellipsis-${idx}`} className="px-1.5 py-1 text-muted-default/40 font-bold text-xs">
+                            <span key={`desk-ellipsis-${idx}`} className="px-1.5 py-1 text-muted-default/40 font-bold text-xs">
                               ...
                             </span>
                           );
@@ -1136,11 +1166,53 @@ export default function AdminDashboard() {
                         const isActive = pageNum === page;
                         return (
                           <button
-                            key={`page-${pageNum}`}
+                            key={`desk-page-${pageNum}`}
                             onClick={() => setPage(pageNum)}
                             className={`min-w-[28px] h-7 px-2 font-bold text-[11px] rounded transition-all cursor-pointer flex items-center justify-center ${isActive
-                                ? "bg-brand-primary text-white shadow-sm font-black"
-                                : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
+                              ? "bg-brand-primary text-white shadow-sm font-black"
+                              : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
+                              }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      });
+                    })()}
+                  </div>
+
+                  {/* Mobile Compact Page Numbers (Optimized compact window) */}
+                  <div className="flex sm:hidden items-center gap-1 mx-0.5">
+                    {(() => {
+                      const totalPages = pagination.totalPages;
+                      let pages: (number | string)[] = [];
+
+                      if (totalPages <= 4) {
+                        pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+                      } else if (page <= 2) {
+                        pages = [1, 2, "...", totalPages];
+                      } else if (page >= totalPages - 1) {
+                        pages = [1, "...", totalPages - 1, totalPages];
+                      } else {
+                        pages = [1, "...", page, "...", totalPages];
+                      }
+
+                      return pages.map((item, idx) => {
+                        if (item === "...") {
+                          return (
+                            <span key={`mob-ellipsis-${idx}`} className="px-1 text-muted-default/40 font-bold text-[11px]">
+                              ...
+                            </span>
+                          );
+                        }
+                        const pageNum = Number(item);
+                        const isActive = pageNum === page;
+                        return (
+                          <button
+                            key={`mob-page-${pageNum}`}
+                            onClick={() => setPage(pageNum)}
+                            className={`min-w-[26px] h-6 px-1.5 font-bold text-[10px] rounded transition-all cursor-pointer flex items-center justify-center ${isActive
+                              ? "bg-brand-primary text-white shadow-sm font-black"
+                              : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
                               }`}
                           >
                             {pageNum}
@@ -1152,10 +1224,10 @@ export default function AdminDashboard() {
 
                   <button
                     disabled={page === pagination.totalPages}
-                    onClick={() => setPage(page + 1)}
-                    className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-3 py-1 text-default text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm"
+                    onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                    className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-2.5 sm:px-3 py-1 text-default text-[10px] sm:text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm shrink-0"
                   >
-                    Next
+                    Next &gt;
                   </button>
                 </div>
               )}

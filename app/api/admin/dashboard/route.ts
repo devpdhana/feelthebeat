@@ -174,6 +174,18 @@ export async function GET(req: Request) {
       count: ageBrackets[bracket as keyof typeof ageBrackets],
     }));
 
+    // Boys & Girls counts
+    let boysCount = 0;
+    let girlsCount = 0;
+    regsList.forEach((r) => {
+      const g = (r.gender || "").trim().toLowerCase();
+      if (g === "male" || g === "boy" || g === "boys" || g === "m") {
+        boysCount++;
+      } else if (g === "female" || g === "girl" || g === "girls" || g === "f") {
+        girlsCount++;
+      }
+    });
+
     return NextResponse.json({
       success: true,
       summary: {
@@ -182,6 +194,8 @@ export async function GET(req: Request) {
         todayRegistrations: todayRegistrations || 0,
         pendingPayments,
         successfulPayments,
+        boysCount,
+        girlsCount,
       },
       charts: {
         daily: dailyData,
