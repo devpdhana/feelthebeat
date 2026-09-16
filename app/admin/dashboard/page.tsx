@@ -264,7 +264,15 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchRegistrations = async (pageToFetch = page, limitToFetch = limit) => {
+  const [appliedSearch, setAppliedSearch] = useState("");
+
+  const fetchRegistrations = async (
+    pageToFetch: number = page,
+    limitToFetch: number = limit,
+    searchToFetch: string = appliedSearch,
+    categoryToFetch: string = category,
+    paymentStatusToFetch: string = paymentStatus
+  ) => {
     setLoading(true);
     setError(null);
     try {
@@ -272,12 +280,12 @@ export default function AdminDashboard() {
       const queryParams = new URLSearchParams({
         page: String(pageToFetch),
         limit: String(limitToFetch),
-        search,
-        category,
-        paymentStatus,
+        search: searchToFetch,
+        category: categoryToFetch,
+        paymentStatus: paymentStatusToFetch,
       });
 
-      const res = await fetch(`/api/admin/registrations?${queryParams}`, {
+      const res = await fetch(`/api/admin/registrations?${queryParams.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -300,10 +308,7 @@ export default function AdminDashboard() {
       setRegistrations(items);
       const pag = data.pagination || { totalPages: 1, page: pageToFetch, limit: limitToFetch, total: items.length };
       setPagination(pag);
-
-      if (pag.totalPages > 0 && pageToFetch > pag.totalPages) {
-        setPage(pag.totalPages);
-      }
+      setPage(pag.page || pageToFetch);
     } catch (err: any) {
       console.error("Registrations fetch error:", err);
       setError(err?.message || "Unable to load registrations. Please try again.");
@@ -313,24 +318,81 @@ export default function AdminDashboard() {
     }
   };
 
-  // Authenticated redirect checking
-  useEffect(() => {
-    fetchDashboardStats();
-    fetchBroadcastStats();
-  }, []);
+  const goToPage = (newPage: number) => {
+    if (newPage < 1) return;
+    if (pagination.totalPages > 0 && newPage > pagination.totalPages) return;
+    if (newPage === page) return;
+    setPage(newPage);
+    fetchRegistrations(newPage, limit, appliedSearch, category, paymentStatus);
+  };
 
-  useEffect(() => {
-    fetchRegistrations(page, limit);
-  }, [category, paymentStatus, page, limit]);
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory);
+    setPage(1);
+    fetchRegistrations(1, limit, appliedSearch, newCategory, paymentStatus);
+  };
+
+  const handlePaymentStatusChange = (newStatus: string) => {
+    setPaymentStatus(newStatus);
+    setPage(1);
+    fetchRegistrations(1, limit, appliedSearch, category, newStatus);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    fetchRegistrations(1, newLimit, appliedSearch, category, paymentStatus);
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (page === 1) {
-      fetchRegistrations(1, limit);
+    setAppliedSearch(search);
+    setPage(1);
+    fetchRegistrations(1, limit, search, category, paymentStatus);
+  };
+
+  const handleClearSearch = () => {
+    setSearch("");
+    setAppliedSearch("");
+    setPage(1);
+    fetchRegistrations(1, limit, "", category, paymentStatus);
+  };
+
+  // Helper for generating responsive page number arrays
+  const getPageNumbers = (currentPage: number, totalPages: number, isMobile: boolean) => {
+    if (totalPages <= 1) return [1];
+
+    if (isMobile) {
+      if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+      if (currentPage <= 2) {
+        return [1, 2, 3, "...", totalPages];
+      }
+      if (currentPage >= totalPages - 1) {
+        return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+      }
+      return [1, "...", currentPage, "...", totalPages];
     } else {
-      setPage(1);
+      if (totalPages <= 7) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+      if (currentPage <= 4) {
+        return [1, 2, 3, 4, 5, "...", totalPages];
+      }
+      if (currentPage >= totalPages - 3) {
+        return [1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+      }
+      return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
     }
   };
+
+  // Initial load
+  useEffect(() => {
+    fetchDashboardStats();
+    fetchBroadcastStats();
+    fetchRegistrations(1, limit, "", "", "");
+  }, []);
 
   const fetchIndividual = async (id: string) => {
     try {
@@ -950,63 +1012,120 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Data Search and Table controls */}
-        <Card className="p-6 flex flex-col gap-6 rounded-2xl shadow-sm">
+        <Card className="p-4 sm:p-6 flex flex-col gap-5 sm:gap-6 rounded-2xl shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-brand-primary/12 pb-4 gap-4">
-            <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold"> RUNNERS_TELEMETRY_LOG</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] text-muted-default/40 uppercase tracking-widest font-semibold">
+                RUNNERS_TELEMETRY_LOG
+              </span>
+              {(pagination.total || 0) > 0 && (
+                <span className="font-mono text-[10px] text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded font-bold">
+                  {pagination.total} TOTAL
+                </span>
+              )}
+            </div>
 
             {/* Search form bar */}
-            <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full md:w-auto max-w-sm">
+            <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full md:w-auto max-w-md">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="SEARCH NAME/EMAIL/PHONE/REG#"
-                className="bg-white border border-[#DCE8F8] px-4 py-2 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase w-full font-mono"
+                placeholder="SEARCH NAME / EMAIL / PHONE / REG#"
+                className="bg-white border border-[#DCE8F8] px-3 sm:px-4 py-2 text-xs text-default placeholder-muted-default/40 focus:border-brand-primary focus:outline-none transition-colors rounded uppercase w-full font-mono"
               />
-              <button type="submit" className="bg-brand-primary text-white px-4 py-2 font-mono text-xs font-black uppercase tracking-wider cursor-pointer rounded shadow">
+              <button
+                type="submit"
+                className="bg-brand-primary text-white px-3 sm:px-4 py-2 font-mono text-xs font-black uppercase tracking-wider cursor-pointer rounded shadow transition-all active:scale-95 shrink-0"
+              >
                 QUERY
               </button>
+              {appliedSearch && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-2 font-mono text-xs font-bold uppercase rounded cursor-pointer shrink-0"
+                  title="Clear Search"
+                >
+                  CLEAR
+                </button>
+              )}
             </form>
           </div>
 
-          {/* Filtering panels */}
-          <div className="flex flex-wrap gap-4 font-mono text-[10px]">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-default/50">CATEGORY:</span>
-              <select
-                value={category}
-                onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-                className="bg-white border border-[#DCE8F8] px-3 py-1.5 text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase"
-              >
-                <option value="">ALL CATEGORIES</option>
-                <option value="2 KM Kids Fun Run">2 KM Kids Fun Run</option>
-                <option value="2 KM Adults Fun Run">2 KM Adults Fun Run</option>
-                <option value="5 KM Run">5 KM Run</option>
-                <option value="10 KM Run">10 KM Run</option>
-              </select>
+          {/* Filtering and Top Quick Pagination bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-[10px] sm:text-[11px] bg-[#F8FAFD] p-3 rounded-xl border border-brand-primary/10">
+            {/* Filter Dropdowns */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-default/60 font-semibold uppercase text-[10px]">CATEGORY:</span>
+                <select
+                  value={category}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  className="bg-white border border-[#DCE8F8] px-2.5 py-1 text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase font-bold text-[11px]"
+                >
+                  <option value="">ALL CATEGORIES</option>
+                  <option value="2 KM Kids Fun Run">2 KM Kids Fun Run</option>
+                  <option value="2 KM Adults Fun Run">2 KM Adults Fun Run</option>
+                  <option value="5 KM Run">5 KM Run</option>
+                  <option value="10 KM Run">10 KM Run</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-default/60 font-semibold uppercase text-[10px]">PAYMENT:</span>
+                <select
+                  value={paymentStatus}
+                  onChange={(e) => handlePaymentStatusChange(e.target.value)}
+                  className="bg-white border border-[#DCE8F8] px-2.5 py-1 text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase font-bold text-[11px]"
+                >
+                  <option value="">ALL STATUSES</option>
+                  <option value="SUCCESSFUL">PAID / SUCCESSFUL</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="FAILED">FAILED</option>
+                </select>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-muted-default/50">PAYMENT:</span>
-              <select
-                value={paymentStatus}
-                onChange={(e) => { setPaymentStatus(e.target.value); setPage(1); }}
-                className="bg-white border border-[#DCE8F8] px-3 py-1.5 text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer uppercase"
-              >
-                <option value="">ALL STATUSES</option>
-                <option value="SUCCESSFUL">PAID / SUCCESSFUL</option>
-                <option value="PENDING">PENDING</option>
-                <option value="FAILED">FAILED</option>
-              </select>
-            </div>
+            {/* Top Quick Page Navigation (Prev / Next & Page indicator) */}
+            {(pagination.total || 0) > 0 && (
+              <div className="flex items-center justify-between sm:justify-end gap-2 text-[11px] pt-2 sm:pt-0 border-t sm:border-t-0 border-brand-primary/10">
+                <span className="text-muted-default font-semibold">
+                  Page <strong className="text-brand-primary font-bold">{page}</strong> of <strong className="text-default font-bold">{pagination.totalPages}</strong>
+                </span>
+
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={page <= 1}
+                      onClick={() => goToPage(page - 1)}
+                      className="border border-brand-primary/15 bg-white hover:border-brand-primary hover:text-brand-primary px-2 py-0.5 text-default text-[10px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase rounded shadow-xs"
+                      title="Previous Page"
+                    >
+                      &lt; Prev
+                    </button>
+                    <button
+                      type="button"
+                      disabled={page >= pagination.totalPages}
+                      onClick={() => goToPage(page + 1)}
+                      className="border border-brand-primary/15 bg-white hover:border-brand-primary hover:text-brand-primary px-2 py-0.5 text-default text-[10px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase rounded shadow-xs"
+                      title="Next Page"
+                    >
+                      Next &gt;
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Registrations List Grid */}
-          <div className="overflow-x-auto w-full">
+          <div className="overflow-x-auto w-full border border-brand-primary/10 rounded-xl">
             <table className="w-full text-left font-mono text-[11px] border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-brand-primary/12 text-muted-default/50 uppercase">
-                  <th className="py-3 px-2">ORDER / REG ID</th>
+                <tr className="border-b border-brand-primary/12 text-muted-default/50 uppercase bg-[#F8FAFD]">
+                  <th className="py-3 px-3">ORDER / REG ID</th>
                   <th className="py-3 px-2">BIB NO</th>
                   <th className="py-3 px-2">RUNNER / BIB NAME</th>
                   <th className="py-3 px-2">CATEGORY</th>
@@ -1014,27 +1133,35 @@ export default function AdminDashboard() {
                   <th className="py-3 px-2">GENDER/AGE</th>
                   <th className="py-3 px-2">PAYMENT</th>
                   <th className="py-3 px-2">WHATSAPP STATUS</th>
-                  <th className="py-3 px-2 text-right">ACTIONS</th>
+                  <th className="py-3 px-3 text-right">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-muted-default/40 uppercase"> RUNNING QUERY FOR TELEMETRY...</td>
+                    <td colSpan={9} className="py-8 text-center text-muted-default/60 uppercase font-bold">
+                      <span className="inline-block animate-spin mr-2">↻</span> RUNNING QUERY FOR TELEMETRY...
+                    </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-red-500 font-semibold uppercase"> ERROR: {error}</td>
+                    <td colSpan={9} className="py-8 text-center text-red-500 font-semibold uppercase">
+                      ERROR: {error}
+                    </td>
                   </tr>
                 ) : registrations.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-muted-default/40 uppercase"> NO REGISTRATIONS FOUND</td>
+                    <td colSpan={9} className="py-8 text-center text-muted-default/40 uppercase">
+                      NO REGISTRATIONS FOUND
+                    </td>
                   </tr>
                 ) : (
                   registrations.map((reg) => (
                     <tr key={reg.id} className="border-b border-brand-primary/8 hover:bg-[#F8FAFD] transition-colors">
-                      <td className="py-3 px-2">
-                        <span className="text-brand-primary font-bold block">{reg.orderId && reg.orderId !== "N/A" ? reg.orderId : reg.registrationNumber}</span>
+                      <td className="py-3 px-3">
+                        <span className="text-brand-primary font-bold block">
+                          {reg.orderId && reg.orderId !== "N/A" ? reg.orderId : reg.registrationNumber}
+                        </span>
                         {reg.orderId && reg.orderId !== "N/A" && reg.registrationNumber && (
                           <span className="text-[9px] text-muted-default/60 block">{reg.registrationNumber}</span>
                         )}
@@ -1051,33 +1178,48 @@ export default function AdminDashboard() {
                       <td className="py-3 px-2">
                         <span className="text-default font-bold block">{reg.fullName.toUpperCase()}</span>
                         {reg.bibName && reg.bibName !== "N/A" && (
-                          <span className="text-[9px] text-brand-primary font-semibold block">BIB: {reg.bibName.toUpperCase()}</span>
+                          <span className="text-[9px] text-brand-primary font-semibold block">
+                            BIB: {reg.bibName.toUpperCase()}
+                          </span>
                         )}
                       </td>
                       <td className="py-3 px-2 text-default font-medium">{reg.raceCategory.toUpperCase()}</td>
                       <td className="py-3 px-2 text-muted-default">{reg.mobile}</td>
-                      <td className="py-3 px-2 text-muted-default">{reg.gender.toUpperCase()} / {reg.age} YRS</td>
+                      <td className="py-3 px-2 text-muted-default">
+                        {reg.gender.toUpperCase()} / {reg.age} YRS
+                      </td>
                       <td className="py-3 px-2">
-                        <span className={`px-2 py-0.5 border text-[9px] rounded font-bold ${reg.paymentStatus === "SUCCESSFUL"
-                          ? "border-green-500/30 text-green-600 bg-green-50"
-                          : "border-yellow-500/30 text-yellow-600 bg-yellow-50"
-                          }`}>
+                        <span
+                          className={`px-2 py-0.5 border text-[9px] rounded font-bold ${
+                            reg.paymentStatus === "SUCCESSFUL"
+                              ? "border-green-500/30 text-green-600 bg-green-50"
+                              : "border-yellow-500/30 text-yellow-600 bg-yellow-50"
+                          }`}
+                        >
                           {reg.paymentStatus === "SUCCESSFUL" ? "PAID" : reg.paymentStatus}
                         </span>
                       </td>
                       <td className="py-3 px-2">
-                        <span className={`px-2 py-0.5 border text-[9px] rounded font-bold uppercase ${reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent
-                          ? "border-green-500/30 text-green-600 bg-green-50"
-                          : reg.whatsappStatus === "FAILED"
-                            ? "border-red-500/30 text-red-600 bg-red-50"
-                            : "border-gray-400/30 text-gray-600 bg-gray-50"
-                          }`}>
-                          {reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent ? "SENT" : reg.whatsappStatus === "FAILED" ? "FAILED" : "NOT SENT"}
+                        <span
+                          className={`px-2 py-0.5 border text-[9px] rounded font-bold uppercase ${
+                            reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent
+                              ? "border-green-500/30 text-green-600 bg-green-50"
+                              : reg.whatsappStatus === "FAILED"
+                              ? "border-red-500/30 text-red-600 bg-red-50"
+                              : "border-gray-400/30 text-gray-600 bg-gray-50"
+                          }`}
+                        >
+                          {reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent
+                            ? "SENT"
+                            : reg.whatsappStatus === "FAILED"
+                            ? "FAILED"
+                            : "NOT SENT"}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-right">
+                      <td className="py-3 px-3 text-right">
                         <div className="flex justify-end gap-2 text-sm">
                           <button
+                            type="button"
                             onClick={() => fetchIndividual(reg.id)}
                             className="p-1 border border-brand-primary/12 hover:border-brand-primary hover:text-brand-primary text-muted-default hover:bg-brand-primary/5 rounded cursor-pointer"
                             title="View Metrics"
@@ -1085,6 +1227,7 @@ export default function AdminDashboard() {
                             <HiOutlineEye />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDelete(reg.id)}
                             className="p-1 border border-red-500/25 hover:border-red-500 hover:text-red-500 text-red-500 hover:bg-red-50 rounded cursor-pointer"
                             title="Delete Node"
@@ -1100,9 +1243,9 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* Pagination controls */}
+          {/* Bottom Full Pagination Controls */}
           {(pagination.total || 0) > 0 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 font-mono text-xs border-t border-brand-primary/12 pt-4 mt-2">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 font-mono text-xs border-t border-brand-primary/12 pt-4 mt-1">
               {/* Left: Summary and Rows per page selector */}
               <div className="flex flex-wrap items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-4 text-muted-default text-[11px]">
                 <span>
@@ -1113,11 +1256,7 @@ export default function AdminDashboard() {
                   <span className="text-muted-default/60 text-[10px] uppercase">Rows per page:</span>
                   <select
                     value={limit}
-                    onChange={(e) => {
-                      const newLimit = Number(e.target.value);
-                      setLimit(newLimit);
-                      setPage(1);
-                    }}
+                    onChange={(e) => handleLimitChange(Number(e.target.value))}
                     className="bg-white border border-[#DCE8F8] px-2 py-1 text-[11px] text-default focus:border-brand-primary focus:outline-none rounded cursor-pointer font-bold"
                   >
                     <option value={10}>10</option>
@@ -1127,12 +1266,13 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Right: Dynamic Responsive Pagination controls */}
+              {/* Right: Dynamic Responsive Pagination buttons */}
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-1 sm:gap-1.5 w-full sm:w-auto overflow-x-auto py-1">
                   <button
-                    disabled={page === 1}
-                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    type="button"
+                    disabled={page <= 1}
+                    onClick={() => goToPage(page - 1)}
                     className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-2.5 sm:px-3 py-1 text-default text-[10px] sm:text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm shrink-0"
                   >
                     &lt; Prev
@@ -1140,91 +1280,66 @@ export default function AdminDashboard() {
 
                   {/* Desktop / Tablet Page Numbers (Expanded window) */}
                   <div className="hidden sm:flex items-center gap-1 mx-0.5">
-                    {(() => {
-                      const totalPages = pagination.totalPages;
-                      let pages: (number | string)[] = [];
-
-                      if (totalPages <= 7) {
-                        pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-                      } else if (page <= 3) {
-                        pages = [1, 2, 3, 4, "...", totalPages];
-                      } else if (page >= totalPages - 2) {
-                        pages = [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                      } else {
-                        pages = [1, "...", page - 1, page, page + 1, "...", totalPages];
-                      }
-
-                      return pages.map((item, idx) => {
-                        if (item === "...") {
-                          return (
-                            <span key={`desk-ellipsis-${idx}`} className="px-1.5 py-1 text-muted-default/40 font-bold text-xs">
-                              ...
-                            </span>
-                          );
-                        }
-                        const pageNum = Number(item);
-                        const isActive = pageNum === page;
+                    {getPageNumbers(page, pagination.totalPages, false).map((item, idx) => {
+                      if (item === "...") {
                         return (
-                          <button
-                            key={`desk-page-${pageNum}`}
-                            onClick={() => setPage(pageNum)}
-                            className={`min-w-[28px] h-7 px-2 font-bold text-[11px] rounded transition-all cursor-pointer flex items-center justify-center ${isActive
+                          <span key={`desk-ellipsis-${idx}`} className="px-1.5 py-1 text-muted-default/40 font-bold text-xs select-none">
+                            ...
+                          </span>
+                        );
+                      }
+                      const pageNum = Number(item);
+                      const isActive = pageNum === page;
+                      return (
+                        <button
+                          type="button"
+                          key={`desk-page-${pageNum}`}
+                          onClick={() => goToPage(pageNum)}
+                          className={`min-w-[28px] h-7 px-2 font-bold text-[11px] rounded transition-all cursor-pointer flex items-center justify-center ${
+                            isActive
                               ? "bg-brand-primary text-white shadow-sm font-black"
                               : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
-                              }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      });
-                    })()}
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   {/* Mobile Compact Page Numbers (Optimized compact window) */}
                   <div className="flex sm:hidden items-center gap-1 mx-0.5">
-                    {(() => {
-                      const totalPages = pagination.totalPages;
-                      let pages: (number | string)[] = [];
-
-                      if (totalPages <= 4) {
-                        pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-                      } else if (page <= 2) {
-                        pages = [1, 2, "...", totalPages];
-                      } else if (page >= totalPages - 1) {
-                        pages = [1, "...", totalPages - 1, totalPages];
-                      } else {
-                        pages = [1, "...", page, "...", totalPages];
-                      }
-
-                      return pages.map((item, idx) => {
-                        if (item === "...") {
-                          return (
-                            <span key={`mob-ellipsis-${idx}`} className="px-1 text-muted-default/40 font-bold text-[11px]">
-                              ...
-                            </span>
-                          );
-                        }
-                        const pageNum = Number(item);
-                        const isActive = pageNum === page;
+                    {getPageNumbers(page, pagination.totalPages, true).map((item, idx) => {
+                      if (item === "...") {
                         return (
-                          <button
-                            key={`mob-page-${pageNum}`}
-                            onClick={() => setPage(pageNum)}
-                            className={`min-w-[26px] h-6 px-1.5 font-bold text-[10px] rounded transition-all cursor-pointer flex items-center justify-center ${isActive
+                          <span key={`mob-ellipsis-${idx}`} className="px-1 text-muted-default/40 font-bold text-[11px] select-none">
+                            ...
+                          </span>
+                        );
+                      }
+                      const pageNum = Number(item);
+                      const isActive = pageNum === page;
+                      return (
+                        <button
+                          type="button"
+                          key={`mob-page-${pageNum}`}
+                          onClick={() => goToPage(pageNum)}
+                          className={`min-w-[26px] h-6 px-1.5 font-bold text-[10px] rounded transition-all cursor-pointer flex items-center justify-center ${
+                            isActive
                               ? "bg-brand-primary text-white shadow-sm font-black"
                               : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
-                              }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      });
-                    })()}
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <button
-                    disabled={page === pagination.totalPages}
-                    onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
+                    type="button"
+                    disabled={page >= pagination.totalPages}
+                    onClick={() => goToPage(page + 1)}
                     className="border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-2.5 sm:px-3 py-1 text-default text-[10px] sm:text-[11px] font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer uppercase transition-colors rounded shadow-sm shrink-0"
                   >
                     Next &gt;
