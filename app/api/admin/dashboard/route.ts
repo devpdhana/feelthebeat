@@ -29,42 +29,96 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Unauthorized access." }, { status: 401 });
     }
 
-    // 1. Overview counts
-    const { count: totalRegistrations } = await supabaseAdmin
-      .from("registrations")
-      .select("id", { count: "exact", head: true });
+    // 1. Calculate Start of Today in Indian Standard Time (IST - Asia/Kolkata)
+    const now = new Date();
+    const istDateString = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+    const startOfTodayIST = new Date(`${istDateString}T00:00:00+05:30`).toISOString();
 
-    const { data: paymentsList } = await supabaseAdmin
-      .from("payments")
-      .select("amount, status");
+    // 2. High-performance exact count queries (Database-side HEAD requests)
+    const [
+      { count: totalRegistrations, error: regCountErr },
+      { count: successfulPaymentsCount, error: paySuccessCountErr },
+      { count: pendingPaymentsCount, error: payPendingCountErr },
+      { count: todayRegistrationsCount, error: todayCountErr },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("registrations")
+        .select("id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("payments")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["SUCCESSFUL", "Successful", "PAID", "paid"]),
+      supabaseAdmin
+        .from("payments")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["PENDING", "pending", "CREATED", "created"]),
+      supabaseAdmin
+        .from("registrations")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", startOfTodayIST),
+    ]);
 
-    const totalRevenue = paymentsList
-      ?.filter((p) => (p.status || "").toLowerCase().includes("success") || (p.status || "").toLowerCase().includes("paid"))
-      .reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    if (regCountErr) console.error("[DASHBOARD] Total registrations count error:", regCountErr);
+    if (paySuccessCountErr) console.error("[DASHBOARD] Successful payments count error:", paySuccessCountErr);
+    if (payPendingCountErr) console.error("[DASHBOARD] Pending payments count error:", payPendingCountErr);
+    if (todayCountErr) console.error("[DASHBOARD] Today registrations count error:", todayCountErr);
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    
-    const { count: todayRegistrations } = await supabaseAdmin
-      .from("registrations")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", startOfToday.toISOString());
+    // 3. Paginated metadata collector for registrations (Guarantees no 1,000-row PostgREST cap)
+    const PAGE_SIZE = 1000;
+    const regsList: Array<{
+      race_category?: string | null;
+      tshirt_size?: string | null;
+      gender?: string | null;
+      dob?: string | null;
+      created_at?: string | null;
+      payment_amount?: number | null;
+    }> = [];
 
-    const pendingPayments = paymentsList?.filter((p) => (p.status || "").toLowerCase().includes("pending")).length || 0;
-    const successfulPayments = paymentsList?.filter((p) => (p.status || "").toLowerCase().includes("success") || (p.status || "").toLowerCase().includes("paid")).length || 0;
+    let from = 0;
+    let hasMore = true;
 
-    // 2. Query all registrations for aggregated metrics
-    const { data: allRegistrations, error: regError } = await supabaseAdmin
-      .from("registrations")
-      .select("id, race_category, tshirt_size, gender, dob, created_at");
+    while (hasMore) {
+      const { data, error: pageErr } = await supabaseAdmin
+        .from("registrations")
+        .select("race_category, tshirt_size, gender, dob, created_at, payment_amount")
+        .range(from, from + PAGE_SIZE - 1);
 
-    if (regError) {
-      console.error("[DASHBOARD] Registrations query error:", regError);
+      if (pageErr) {
+        console.error(`[DASHBOARD] Registrations metadata page query error (offset ${from}):`, pageErr);
+        break;
+      }
+
+      if (!data || data.length === 0) {
+        hasMore = false;
+      } else {
+        regsList.push(...data);
+        if (data.length < PAGE_SIZE) {
+          hasMore = false;
+        } else {
+          from += PAGE_SIZE;
+        }
+      }
     }
 
-    const regsList = allRegistrations || [];
+    // 4. Calculate total revenue accurately from registrations & payments
+    let totalRevenue = regsList.reduce((sum, r) => sum + (Number(r.payment_amount) || 0), 0);
 
-    // Categories distribution
+    // Fallback/validation if registration records haven't loaded
+    if (totalRevenue === 0 && (successfulPaymentsCount || 0) > 0) {
+      const { data: allPayData } = await supabaseAdmin
+        .from("payments")
+        .select("amount")
+        .in("status", ["SUCCESSFUL", "Successful", "PAID", "paid"])
+        .limit(10000);
+      totalRevenue = (allPayData || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    }
+
+    // 5. Categories distribution
     const categoryMap: Record<string, number> = {};
     regsList.forEach((r) => {
       const raw = (r.race_category || "").trim();
@@ -88,14 +142,14 @@ export async function GET(req: Request) {
       count: categoryMap[category],
     }));
 
-    // T-Shirt Size distribution
+    // 6. T-Shirt Size distribution
     const tshirtMap: Record<string, number> = {};
     const standardSizes = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 
     regsList.forEach((r) => {
       const raw = (r.tshirt_size || "").trim().toUpperCase();
       if (!raw || raw === "N/A" || raw === "NULL" || raw === "NONE") {
-        return; // Exclude empty/null values
+        return;
       }
       tshirtMap[raw] = (tshirtMap[raw] || 0) + 1;
     });
@@ -114,18 +168,30 @@ export async function GET(req: Request) {
         count: tshirtMap[size],
       }));
 
-    // Gender distribution
+    // 7. Gender distribution & Boys/Girls counts
     const genderMap: Record<string, number> = {};
+    let boysCount = 0;
+    let girlsCount = 0;
+
     regsList.forEach((r) => {
-      const g = r.gender || "Unknown";
-      genderMap[g] = (genderMap[g] || 0) + 1;
+      const g = (r.gender || "").trim();
+      const cleanGender = g || "Unknown";
+      genderMap[cleanGender] = (genderMap[cleanGender] || 0) + 1;
+
+      const lowerG = g.toLowerCase();
+      if (lowerG === "male" || lowerG === "boy" || lowerG === "boys" || lowerG === "m") {
+        boysCount++;
+      } else if (lowerG === "female" || lowerG === "girl" || lowerG === "girls" || lowerG === "f") {
+        girlsCount++;
+      }
     });
+
     const genderData = Object.keys(genderMap).map((gender) => ({
       gender,
       count: genderMap[gender],
     }));
 
-    // Daily registrations count (last 7 days)
+    // 8. Daily registrations count (last 7 days in event timezone)
     const dailyMap: Record<string, number> = {};
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -152,7 +218,7 @@ export async function GET(req: Request) {
       count: dailyMap[date],
     }));
 
-    // Age Bracket distribution
+    // 9. Age Bracket distribution
     const ageBrackets = {
       "Under 18": 0,
       "18-35": 0,
@@ -174,26 +240,14 @@ export async function GET(req: Request) {
       count: ageBrackets[bracket as keyof typeof ageBrackets],
     }));
 
-    // Boys & Girls counts
-    let boysCount = 0;
-    let girlsCount = 0;
-    regsList.forEach((r) => {
-      const g = (r.gender || "").trim().toLowerCase();
-      if (g === "male" || g === "boy" || g === "boys" || g === "m") {
-        boysCount++;
-      } else if (g === "female" || g === "girl" || g === "girls" || g === "f") {
-        girlsCount++;
-      }
-    });
-
     return NextResponse.json({
       success: true,
       summary: {
         totalRegistrations: totalRegistrations || 0,
         totalRevenue,
-        todayRegistrations: todayRegistrations || 0,
-        pendingPayments,
-        successfulPayments,
+        todayRegistrations: todayRegistrationsCount || 0,
+        pendingPayments: pendingPaymentsCount || 0,
+        successfulPayments: successfulPaymentsCount || 0,
         boysCount,
         girlsCount,
       },
@@ -206,7 +260,7 @@ export async function GET(req: Request) {
       },
     });
   } catch (err: any) {
-    console.error("Dashboard metrics load error:", err);
+    console.error("[DASHBOARD] Exception loading dashboard metrics:", err);
     return NextResponse.json(
       { message: "Failed to gather statistics logs." },
       { status: 500 }
