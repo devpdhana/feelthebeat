@@ -493,36 +493,68 @@ export default function AdminDashboard() {
     }
   };
 
-  const exportToExcel = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Order ID,Bib Number,Registration Number,Full Name,Bib Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,WhatsApp Status,Blood Group\n";
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isExportingBib, setIsExportingBib] = useState(false);
 
-    registrations.forEach((reg) => {
-      csvContent += `"${reg.orderId || ""}","${reg.bibNumber || ""}","${reg.registrationNumber}","${reg.fullName}","${reg.bibName || ""}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "FTB2026-Registrations-Log.csv");
-    link.click();
-  };
-
-  const exportToCSV = () => {
+  const exportToExcel = async () => {
     try {
-      let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "Order ID,Bib Number,Registration Number,Full Name,Bib Name,Email,Mobile,Category,School Name,T-Shirt Size,T-Shirt/Bib Venue,T-Shirt/Bib Address,D.A.V Member,D.A.V Role,How Heard About,Payment Status,WhatsApp Status,Blood Group\n";
-
-      registrations.forEach((reg) => {
-        csvContent += `"${reg.orderId || ""}","${reg.bibNumber || ""}","${reg.registrationNumber}","${reg.fullName}","${reg.bibName || ""}","${reg.email}","${reg.mobile}","${reg.raceCategory}","${reg.schoolName || ""}","${reg.tshirtSize}","${reg.tshirtBibVenue || ""}","${(reg.tshirtBibVenueAddress || "").replace(/\n/g, " ")}","${reg.davFamilyMember || ""}","${reg.davFamilyType || ""}","${reg.davHearAbout || ""}","${reg.paymentStatus}","${reg.whatsappStatus || (reg.whatsappSent ? "SENT" : "NOT_SENT")}","${reg.bloodGroup}"\n`;
+      setIsExportingExcel(true);
+      const token = await getAuthToken();
+      const res = await fetch("/api/admin/export?type=excel", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      const link = document.createElement("a");
-      link.setAttribute("href", encodeURI(csvContent));
-      link.setAttribute("download", "FTB2026-Registrations-Log.csv");
-      link.click();
-    } catch (err) {
-      alert("Failed to export CSV file.");
+      if (!res.ok) {
+        throw new Error("Failed to generate Excel file from server.");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "FTB2026-All-Registrations.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      console.error("Excel export error:", err);
+      alert(err.message || "Failed to export Excel file.");
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
+  const exportToBib = async () => {
+    try {
+      setIsExportingBib(true);
+      const token = await getAuthToken();
+      const res = await fetch("/api/admin/export?type=bib", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to generate Bib CSV file from server.");
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "feel-the-beat-bib-export.csv";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      console.error("Bib CSV export error:", err);
+      alert(err.message || "Failed to export Bib CSV file.");
+    } finally {
+      setIsExportingBib(false);
     }
   };
 
@@ -561,15 +593,17 @@ export default function AdminDashboard() {
           <div className="flex gap-3">
             <button
               onClick={exportToExcel}
-              className="flex items-center gap-2 border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-4 py-2 font-mono text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shadow-sm rounded"
+              disabled={isExportingExcel}
+              className="flex items-center gap-2 border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-4 py-2 font-mono text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shadow-sm rounded disabled:opacity-50"
             >
-              <HiOutlineDownload /> EXPORT EXCEL
+              <HiOutlineDownload /> {isExportingExcel ? "EXPORTING..." : "EXPORT EXCEL"}
             </button>
             <button
-              onClick={exportToCSV}
-              className="flex items-center gap-2 border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-4 py-2 font-mono text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shadow-sm rounded"
+              onClick={exportToBib}
+              disabled={isExportingBib}
+              className="flex items-center gap-2 border border-brand-primary/12 bg-white hover:border-brand-primary hover:text-brand-primary px-4 py-2 font-mono text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer shadow-sm rounded disabled:opacity-50"
             >
-              <HiOutlineDownload /> EXPORT CSV
+              <HiOutlineDownload /> {isExportingBib ? "EXPORTING..." : "EXPORT BIB"}
             </button>
             <button
               onClick={handleLogout}
