@@ -387,18 +387,30 @@ function RegisterForm() {
 
             {/* Event Details Category */}
             <Card className="flex flex-col gap-6 p-6 md:p-8">
-              <div className="border-b border-brand-primary/12 pb-4">
-                <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
-                  [01] RACE PARAMETERS
-                </span>
-                <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
-                  SELECT CATEGORY
-                </h3>
+              <div className="border-b border-brand-primary/12 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span className="font-mono text-[9px] text-brand-primary tracking-widest block uppercase mb-1 font-semibold">
+                    [01] RACE PARAMETERS
+                  </span>
+                  <h3 className="font-display text-lg font-bold uppercase tracking-tight text-default">
+                    SELECT CATEGORY
+                  </h3>
+                </div>
+              </div>
+
+              {/* 5 KM & 10 KM Registration Closing Notice */}
+              <div className="rounded-lg border border-amber-400/40 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-amber-500/15 p-3 sm:p-3.5 flex items-center gap-3 shadow-xs">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+                <div className="font-mono text-[11px] sm:text-xs text-amber-950 leading-tight">
+                  <strong className="font-bold text-amber-800 uppercase tracking-wide">5 KM &amp; 10 KM registrations close tomorrow!</strong>{" "}
+                  <span className="text-amber-800/80">Register now before entries close.</span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Object.values(racePrices).map((priceObj) => {
                   const isSelected = formData.raceCategory === priceObj.id;
+                  const isClosingTomorrow = priceObj.id === "5km" || priceObj.id === "10km";
                   return (
                     <div
                       key={priceObj.id}
@@ -412,6 +424,14 @@ function RegisterForm() {
                         <div className="absolute top-0 right-0 w-2 h-2 bg-brand-primary" />
                       )}
                       <div>
+                        {isClosingTomorrow && (
+                          <div className="mb-1.5">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[8px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-800 border border-amber-400/60">
+                              <span className="h-1 w-1 rounded-full bg-amber-500" />
+                              CLOSES TOMORROW
+                            </span>
+                          </div>
+                        )}
                         <span className={`font-mono text-[9px] uppercase tracking-wider block font-semibold ${priceObj.isTimed ? "text-muted-default" : "text-brand-primary"}`}>
                           {priceObj.timingType || (priceObj.isTimed ? "TIMED" : "NON-TIMED")}
                         </span>

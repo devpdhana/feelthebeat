@@ -49,9 +49,17 @@ export default function RaceCategories() {
               </div>
 
               <div>
-                <span className="font-mono text-[9px] tracking-widest text-muted-white uppercase">
-                  CLASSIFICATION: {category.isTimed ? "TIMED_RUN" : "NON_TIMED_RUN"}
-                </span>
+                <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                  <span className="font-mono text-[9px] tracking-widest text-muted-white uppercase">
+                    CLASSIFICATION: {category.isTimed ? "TIMED_RUN" : "NON_TIMED_RUN"}
+                  </span>
+                  {(category.id === "5km" || category.id === "10km") && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40 animate-pulse">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                      CLOSING TOMORROW
+                    </span>
+                  )}
+                </div>
                 <h3 className="font-display text-2xl font-black uppercase tracking-tight text-white-default mt-1 group-hover:text-brand-primary transition-colors">
                   {category.name}
                 </h3>

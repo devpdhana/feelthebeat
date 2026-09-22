@@ -39,8 +39,15 @@ export default function RegistrationCTA() {
           Grid allocations for the Feel The Beat Run 2026 are now open. Secure your slots today to earn your official 5KM &amp; 10KM Finisher Medal and celebrate World Heart Day.
         </p>
 
-        {/* Dynamic telemetry status box */}
-        <div className="border border-brand-primary/12 bg-white p-4 font-mono text-[10px] text-left text-muted-default w-full max-w-sm flex flex-col gap-1.5 backdrop-blur-sm rounded-xl shadow-sm">
+        {/* Dynamic telemetry status box with Closing Announcement */}
+        <div className="border border-brand-primary/12 bg-white p-4 font-mono text-[10px] text-left text-muted-default w-full max-w-sm flex flex-col gap-2 backdrop-blur-sm rounded-xl shadow-sm">
+          <div className="flex justify-between items-center border-b border-amber-500/20 pb-2 bg-amber-50/80 -mx-4 -mt-4 p-3 rounded-t-xl">
+            <span className="text-amber-800 font-bold flex items-center gap-1.5 text-[10px]">
+              <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
+              5 KM &amp; 10 KM CLOSING:
+            </span>
+            <span className="text-amber-700 font-extrabold text-[10px] uppercase">CLOSES TOMORROW!</span>
+          </div>
           <div className="flex justify-between">
             <span>REGISTRATION STATUS:</span>
             <span className="text-brand-primary font-bold">OPEN / REGISTER NOW</span>
