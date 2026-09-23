@@ -53,10 +53,15 @@ export default function RaceCategories() {
                   <span className="font-mono text-[9px] tracking-widest text-muted-white uppercase">
                     CLASSIFICATION: {category.isTimed ? "TIMED_RUN" : "NON_TIMED_RUN"}
                   </span>
-                  {(category.id === "5km" || category.id === "10km") && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40 animate-pulse">
-                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                      CLOSING TOMORROW
+                  {category.isOpen === false ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[9px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40">
+                      <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                      REGISTRATIONS CLOSED
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      REGISTRATIONS OPEN
                     </span>
                   )}
                 </div>

@@ -18,6 +18,7 @@ export interface RaceCategory {
   gradientTo: string;
   routeHighlights: string[];
   fee: number;
+  isOpen?: boolean;
 }
 
 export const raceCategories: RaceCategory[] = [
@@ -43,6 +44,7 @@ export const raceCategories: RaceCategory[] = [
       "Deboer Ground",
     ],
     fee: 199,
+    isOpen: true,
   },
   {
     id: "2km",
@@ -65,6 +67,7 @@ export const raceCategories: RaceCategory[] = [
       "Deboer Ground",
     ],
     fee: 199,
+    isOpen: true,
   },
   {
     id: "5km",
@@ -89,6 +92,7 @@ export const raceCategories: RaceCategory[] = [
       "Deboer Ground",
     ],
     fee: 299,
+    isOpen: false,
   },
   {
     id: "10km",
@@ -116,6 +120,7 @@ export const raceCategories: RaceCategory[] = [
       "Deboer Ground",
     ],
     fee: 399,
+    isOpen: false,
   },
 ];
 

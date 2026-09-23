@@ -211,9 +211,15 @@ export default function Navbar() {
                   <span className="font-display text-sm font-bold uppercase tracking-wider text-default group-hover:text-brand-primary transition-colors">
                     {category.name}
                   </span>
-                  <span className="font-mono text-xs text-brand-primary group-hover:translate-x-1 transition-transform">
-                    →
-                  </span>
+                  {category.isOpen === false ? (
+                    <span className="font-mono text-[8px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                      CLOSED
+                    </span>
+                  ) : (
+                    <span className="font-mono text-xs text-brand-primary group-hover:translate-x-1 transition-transform">
+                      →
+                    </span>
+                  )}
                 </div>
                 <p className="text-[11px] text-muted-default mt-2 line-clamp-2">
                   {category.description}

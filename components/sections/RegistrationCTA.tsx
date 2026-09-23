@@ -41,16 +41,16 @@ export default function RegistrationCTA() {
 
         {/* Dynamic telemetry status box with Closing Announcement */}
         <div className="border border-brand-primary/12 bg-white p-4 font-mono text-[10px] text-left text-muted-default w-full max-w-sm flex flex-col gap-2 backdrop-blur-sm rounded-xl shadow-sm">
-          <div className="flex justify-between items-center border-b border-amber-500/20 pb-2 bg-amber-50/80 -mx-4 -mt-4 p-3 rounded-t-xl">
-            <span className="text-amber-800 font-bold flex items-center gap-1.5 text-[10px]">
-              <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
-              5 KM &amp; 10 KM CLOSING:
+          <div className="flex justify-between items-center border-b border-brand-primary/10 pb-2 bg-slate-50/80 -mx-4 -mt-4 p-3 rounded-t-xl">
+            <span className="text-slate-700 font-bold flex items-center gap-1.5 text-[10px]">
+              <span className="h-2 w-2 rounded-full bg-rose-500" />
+              5 KM &amp; 10 KM:
             </span>
-            <span className="text-amber-700 font-extrabold text-[10px] uppercase">CLOSES TODAY!</span>
+            <span className="text-rose-700 font-extrabold text-[10px] uppercase">REGISTRATIONS CLOSED</span>
           </div>
           <div className="flex justify-between">
-            <span>REGISTRATION STATUS:</span>
-            <span className="text-brand-primary font-bold">OPEN / REGISTER NOW</span>
+            <span>2 KM KIDS &amp; ADULTS:</span>
+            <span className="text-emerald-600 font-bold">OPEN / REGISTER NOW</span>
           </div>
           <div className="flex justify-between">
             <span>RACE DAY GATE OFF:</span>

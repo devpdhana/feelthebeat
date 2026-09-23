@@ -125,21 +125,21 @@ export default function Hero() {
           <CountdownTimer targetDate="2026-09-27T05:00:00" light={false} />
         </motion.div>
 
-        {/* 5 KM & 10 KM Registration Closing Announcement */}
+        {/* 5 KM & 10 KM Registration Closed Announcement */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
           className="my-1 max-w-xl w-full px-2"
         >
-          <div className="relative overflow-hidden rounded-xl border border-amber-400/40 bg-gradient-to-r from-amber-500/20 via-black/80 to-amber-500/20 px-4 py-2.5 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.25)] flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center sm:text-left">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping shrink-0" />
+          <div className="relative overflow-hidden rounded-xl border border-rose-500/40 bg-gradient-to-r from-rose-500/20 via-black/80 to-rose-500/20 px-4 py-2.5 backdrop-blur-md shadow-[0_0_25px_rgba(244,63,94,0.25)] flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-center sm:text-left">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 shrink-0" />
             <div className="flex flex-col">
-              <span className="font-display text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300">
-                5 KM &amp; 10 KM Registrations Close Today!
+              <span className="font-display text-xs sm:text-sm font-black uppercase tracking-wider text-rose-300">
+                5 KM &amp; 10 KM Registrations Closed
               </span>
               <span className="font-mono text-[10px] sm:text-[11px] text-white/90">
-                Register now before entries close.
+                Only 2 KM Kids &amp; 2 KM Adults Fun Run entries are currently OPEN!
               </span>
             </div>
           </div>

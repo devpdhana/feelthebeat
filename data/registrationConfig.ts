@@ -11,6 +11,8 @@ export interface RaceFee {
   ageEligibility: string;
   minAge: number;
   maxAge?: number;
+  isOpen: boolean;
+  closedMessage?: string;
 }
 
 export const racePrices: Record<string, RaceFee> = {
@@ -26,6 +28,7 @@ export const racePrices: Record<string, RaceFee> = {
     ageEligibility: "8–16 Years",
     minAge: 8,
     maxAge: 16,
+    isOpen: true,
   },
   "2km": {
     id: "2km",
@@ -38,6 +41,7 @@ export const racePrices: Record<string, RaceFee> = {
     timingType: "NON-TIMED",
     ageEligibility: "18+ Years",
     minAge: 18,
+    isOpen: true,
   },
   "5km": {
     id: "5km",
@@ -51,6 +55,8 @@ export const racePrices: Record<string, RaceFee> = {
     timingType: "TIMED",
     ageEligibility: "12+ Years",
     minAge: 12,
+    isOpen: false,
+    closedMessage: "Registrations are currently closed for this category.",
   },
   "10km": {
     id: "10km",
@@ -64,5 +70,7 @@ export const racePrices: Record<string, RaceFee> = {
     timingType: "TIMED",
     ageEligibility: "14+ Years",
     minAge: 14,
+    isOpen: false,
+    closedMessage: "Registrations are currently closed for this category.",
   },
 };

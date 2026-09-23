@@ -36,8 +36,9 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Selected category from query string parameter
-  const initialCategory = searchParams.get("category") || "10km";
+  // Selected category from query string parameter (fallback to open category if closed)
+  const queryCat = searchParams.get("category");
+  const initialCategory = (queryCat && racePrices[queryCat]?.isOpen) ? queryCat : "2km";
 
   // Form State
   const [formData, setFormData] = useState({
@@ -79,10 +80,10 @@ function RegisterForm() {
     trackPixelEvent("ViewContent");
   }, []);
 
-  // Sync category from URL queries
+  // Sync category from URL queries (only if category is currently open)
   useEffect(() => {
     const cat = searchParams.get("category");
-    if (cat && racePrices[cat]) {
+    if (cat && racePrices[cat] && racePrices[cat].isOpen) {
       setFormData((prev) => ({ ...prev, raceCategory: cat }));
     }
   }, [searchParams]);
@@ -98,7 +99,7 @@ function RegisterForm() {
     };
   }, []);
 
-  const selectedCategory = racePrices[formData.raceCategory] || racePrices["10km"];
+  const selectedCategory = racePrices[formData.raceCategory] || racePrices["2km"];
 
   // Check payment status directly from server (safe recovery if money deducted)
   const handleCheckPaymentStatus = async (orderIdToCheck?: string) => {
@@ -154,6 +155,10 @@ function RegisterForm() {
   // Client side validation
   const validateForm = () => {
     const errs: { [key: string]: string } = {};
+
+    if (selectedCategory && selectedCategory.isOpen === false) {
+      errs.raceCategory = selectedCategory.closedMessage || "Registrations are currently closed for this category.";
+    }
 
     if (!formData.dob) {
       errs.dob = "Date of Birth is required";
@@ -217,6 +222,11 @@ function RegisterForm() {
   // Payment Handler with Double-Click & Rate-Limit Protection
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (selectedCategory && selectedCategory.isOpen === false) {
+      alert(selectedCategory.closedMessage || "Registrations are currently closed for this category.");
+      return;
+    }
 
     if (isSubmittingRef.current || loading) {
       return;
@@ -398,60 +408,80 @@ function RegisterForm() {
                 </div>
               </div>
 
-              {/* 5 KM & 10 KM Registration Closing Notice */}
-              <div className="rounded-lg border border-amber-400/40 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-amber-500/15 p-3 sm:p-3.5 flex items-center gap-3 shadow-xs">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-                <div className="font-mono text-[11px] sm:text-xs text-amber-950 leading-tight">
-                  <strong className="font-bold text-amber-800 uppercase tracking-wide">5 KM &amp; 10 KM registrations close today!</strong>{" "}
-                  <span className="text-amber-800/80">Register now before entries close.</span>
+              {/* Registration Status Notice */}
+              <div className="rounded-lg border border-brand-primary/20 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-blue-500/10 p-3 sm:p-3.5 flex items-center gap-3 shadow-xs">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-brand-primary shrink-0" />
+                <div className="font-mono text-[11px] sm:text-xs text-default leading-tight">
+                  <strong className="font-bold text-brand-primary uppercase tracking-wide">5 KM &amp; 10 KM Registrations are Closed.</strong>{" "}
+                  <span className="text-muted-default">2 KM Kids Fun Run &amp; 2 KM Adults Fun Run entries are currently OPEN.</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Object.values(racePrices).map((priceObj) => {
                   const isSelected = formData.raceCategory === priceObj.id;
-                  const isClosingToday = priceObj.id === "5km" || priceObj.id === "10km";
+                  const isClosed = priceObj.isOpen === false;
                   return (
                     <div
                       key={priceObj.id}
-                      onClick={() => setFormData({ ...formData, raceCategory: priceObj.id })}
-                      className={`border p-4 cursor-pointer flex flex-col justify-between gap-3 transition-all duration-300 relative rounded-lg ${isSelected
-                        ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm"
-                        : "bg-white border-brand-primary/12 text-muted-default hover:border-brand-primary/30 hover:text-default shadow-sm"
-                        }`}
+                      onClick={() => {
+                        if (isClosed) {
+                          alert(priceObj.closedMessage || "Registrations are currently closed for this category.");
+                          return;
+                        }
+                        setFormData({ ...formData, raceCategory: priceObj.id });
+                      }}
+                      className={`border p-4 flex flex-col justify-between gap-3 transition-all duration-300 relative rounded-lg ${
+                        isClosed
+                          ? "bg-slate-100/70 border-slate-200 text-slate-400 cursor-not-allowed opacity-75 select-none"
+                          : isSelected
+                          ? "bg-brand-primary/10 border-brand-primary text-brand-primary font-bold shadow-sm cursor-pointer"
+                          : "bg-white border-brand-primary/12 text-muted-default hover:border-brand-primary/30 hover:text-default shadow-sm cursor-pointer"
+                      }`}
                     >
-                      {isSelected && (
+                      {isSelected && !isClosed && (
                         <div className="absolute top-0 right-0 w-2 h-2 bg-brand-primary" />
                       )}
                       <div>
-                        {isClosingToday && (
+                        {isClosed ? (
                           <div className="mb-1.5">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[8px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-800 border border-amber-400/60">
-                              <span className="h-1 w-1 rounded-full bg-amber-500" />
-                              CLOSES TODAY
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[8px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-700 border border-rose-400/40">
+                              <span className="h-1 w-1 rounded-full bg-rose-500" />
+                              REGISTRATIONS CLOSED
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="mb-1.5">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[8px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-700 border border-emerald-400/40">
+                              <span className="h-1 w-1 rounded-full bg-emerald-500" />
+                              OPEN
                             </span>
                           </div>
                         )}
-                        <span className={`font-mono text-[9px] uppercase tracking-wider block font-semibold ${priceObj.isTimed ? "text-muted-default" : "text-brand-primary"}`}>
+                        <span className={`font-mono text-[9px] uppercase tracking-wider block font-semibold ${isClosed ? "text-slate-400" : priceObj.isTimed ? "text-muted-default" : "text-brand-primary"}`}>
                           {priceObj.timingType || (priceObj.isTimed ? "TIMED" : "NON-TIMED")}
                         </span>
-                        <span className="font-display text-base font-black text-default block mt-1">{priceObj.name}</span>
-                        <span className="font-mono text-lg font-extrabold text-brand-primary block mt-0.5">₹{priceObj.fee}</span>
+                        <span className={`font-display text-base font-black block mt-1 ${isClosed ? "text-slate-600 line-through decoration-slate-400/60" : "text-default"}`}>
+                          {priceObj.name}
+                        </span>
+                        <span className={`font-mono text-lg font-extrabold block mt-0.5 ${isClosed ? "text-slate-400" : "text-brand-primary"}`}>
+                          ₹{priceObj.fee}
+                        </span>
                       </div>
-                      <div className="border-t border-brand-primary/8 pt-2 font-mono text-[9px] text-muted-default flex flex-col gap-0.5">
+                      <div className={`border-t pt-2 font-mono text-[9px] flex flex-col gap-0.5 ${isClosed ? "border-slate-200 text-slate-400" : "border-brand-primary/8 text-muted-default"}`}>
                         <div className="flex justify-between">
                           <span>START:</span>
-                          <span className="text-default font-semibold">{priceObj.startTime}</span>
+                          <span className={isClosed ? "text-slate-500" : "text-default font-semibold"}>{priceObj.startTime}</span>
                         </div>
                         {priceObj.isTimed && priceObj.cutoffTime && (
                           <div className="flex justify-between">
                             <span>CUT-OFF:</span>
-                            <span className="text-brand-primary font-semibold">{priceObj.cutoffTime}</span>
+                            <span className={isClosed ? "text-slate-500" : "text-brand-primary font-semibold"}>{priceObj.cutoffTime}</span>
                           </div>
                         )}
                         <div className="flex justify-between">
                           <span>AGE:</span>
-                          <span className="text-default font-semibold">{priceObj.ageEligibility}</span>
+                          <span className={isClosed ? "text-slate-500" : "text-default font-semibold"}>{priceObj.ageEligibility}</span>
                         </div>
                       </div>
                     </div>
@@ -980,9 +1010,13 @@ function RegisterForm() {
                 type="submit"
                 variant="primary"
                 className="w-full py-4 text-xs font-black tracking-widest shadow-md disabled:opacity-50"
-                disabled={loading || checkingStatus}
+                disabled={loading || checkingStatus || selectedCategory?.isOpen === false}
               >
-                {loading ? "PROCESSING PAYMENT..." : "PROCEED TO PAYMENT"}
+                {loading
+                  ? "PROCESSING PAYMENT..."
+                  : selectedCategory?.isOpen === false
+                  ? "REGISTRATIONS CLOSED FOR THIS CATEGORY"
+                  : "PROCEED TO PAYMENT"}
               </Button>
 
               {paymentNotice && (

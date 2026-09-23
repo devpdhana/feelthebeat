@@ -99,12 +99,18 @@ export default function EventHighlights() {
                 )}
 
                 {/* Form trigger action */}
-                <Link
-                  href={`/register?category=${category.id}`}
-                  className="w-full mt-2 bg-brand-primary border border-brand-primary hover:bg-brand-primary-hover py-2.5 font-display text-[10px] font-black uppercase tracking-widest text-white transition-all duration-300 active:scale-95 cursor-pointer text-center block rounded shadow-sm"
-                >
-                  REGISTER NOW
-                </Link>
+                {category.isOpen === false ? (
+                  <span className="w-full mt-2 bg-slate-100 border border-slate-200 py-2.5 font-display text-[10px] font-black uppercase tracking-widest text-slate-400 text-center block rounded cursor-not-allowed select-none">
+                    REGISTRATIONS CLOSED
+                  </span>
+                ) : (
+                  <Link
+                    href={`/register?category=${category.id}`}
+                    className="w-full mt-2 bg-brand-primary border border-brand-primary hover:bg-brand-primary-hover py-2.5 font-display text-[10px] font-black uppercase tracking-widest text-white transition-all duration-300 active:scale-95 cursor-pointer text-center block rounded shadow-sm"
+                  >
+                    REGISTER NOW
+                  </Link>
+                )}
               </div>
             </Card>
           ))}
