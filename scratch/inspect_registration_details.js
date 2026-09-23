@@ -1,35 +1,45 @@
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 
-const envContent = fs.readFileSync('.env', 'utf8');
-const supabaseUrl = envContent.match(/NEXT_PUBLIC_SUPABASE_URL=["']?([^"'\r\n]+)/)?.[1] || '';
-const supabaseKey = envContent.match(/SUPABASE_SERVICE_ROLE_KEY=["']?([^"'\r\n]+)/)?.[1] || '';
+const envFile = fs.readFileSync('.env', 'utf8');
+const env = {};
+envFile.split('\n').forEach(line => {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('#')) return;
+  const eqIdx = trimmed.indexOf('=');
+  if (eqIdx !== -1) {
+    const k = trimmed.substring(0, eqIdx).trim();
+    const v = trimmed.substring(eqIdx + 1).trim().replace(/(^["']|["']$)/g, '');
+    env[k] = v;
+  }
+});
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  env.NEXT_PUBLIC_SUPABASE_URL,
+  env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
-function maskPhone(m) {
-  if (!m) return '[EMPTY]';
-  const str = String(m).trim();
-  if (str.length <= 4) return '****';
-  return '******' + str.slice(-4);
+async function inspectRegCols() {
+  const { data, error } = await supabase.from('registrations').select('*').limit(3);
+  if (error) {
+    console.error(error);
+    return;
+  }
+  console.log('Available columns in registrations:');
+  console.log(Object.keys(data[0]));
+  console.log('\nSample Registration 1:');
+  console.log(JSON.stringify(data[0], null, 2));
+
+  // Check unique values for payment_status and distribution fields
+  const { data: allData } = await supabase.from('registrations').select('payment_status, dav_family_member, dav_family_type, race_category, bib_number');
+  
+  const paymentStatuses = new Set(allData.map(d => d.payment_status));
+  const categories = new Set(allData.map(d => d.race_category));
+  const hasBibCount = allData.filter(d => d.bib_number).length;
+
+  console.log('\nUnique payment_status values:', Array.from(paymentStatuses));
+  console.log('Unique race_category values:', Array.from(categories));
+  console.log(`Total registrations with bib_number: ${hasBibCount} / ${allData.length}`);
 }
 
-async function inspect() {
-  const { data: regs } = await supabase
-    .from('registrations')
-    .select('id, registration_number, order_id, full_name, mobile, race_category, payment_status, payment_amount, whatsapp_sent, whatsapp_status, whatsapp_message_id, whatsapp_error, whatsapp_sent_at, created_at')
-    .order('created_at', { ascending: true });
-
-  console.log("=== ALL 16 REGISTRATIONS (FULL AUDIT) ===");
-  regs.forEach((r, idx) => {
-    console.log(`[#${idx+1}] Reg: ${r.registration_number} | ID: ${r.id}`);
-    console.log(`     Name: ${r.full_name} | Phone: ${maskPhone(r.mobile)} | Cat: ${r.race_category} | Order: ${r.order_id}`);
-    console.log(`     Created: ${r.created_at}`);
-    console.log(`     WhatsApp SentAt: ${r.whatsapp_sent_at}`);
-    console.log(`     WhatsApp Status: ${r.whatsapp_status} (sent=${r.whatsapp_sent})`);
-    console.log(`     WhatsApp GUID: ${r.whatsapp_message_id}`);
-    console.log(`     WhatsApp Err: ${r.whatsapp_error || 'none'}\n`);
-  });
-}
-
-inspect().catch(console.error);
+inspectRegCols();

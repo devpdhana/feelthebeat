@@ -538,21 +538,21 @@ export default function AdminDashboard() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to generate Bib CSV file from server.");
+        throw new Error("Failed to generate Bib Excel file from server.");
       }
 
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "feel-the-beat-bib-export.csv";
+      a.download = "FeelTheBeat_BIB_List.xlsx";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err: any) {
-      console.error("Bib CSV export error:", err);
-      alert(err.message || "Failed to export Bib CSV file.");
+      console.error("Bib Excel export error:", err);
+      alert(err.message || "Failed to export Bib Excel file.");
     } finally {
       setIsExportingBib(false);
     }
