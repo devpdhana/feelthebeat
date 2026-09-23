@@ -46,7 +46,7 @@ export default function RegistrationCTA() {
               <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
               5 KM &amp; 10 KM CLOSING:
             </span>
-            <span className="text-amber-700 font-extrabold text-[10px] uppercase">CLOSES TOMORROW!</span>
+            <span className="text-amber-700 font-extrabold text-[10px] uppercase">CLOSES TODAY!</span>
           </div>
           <div className="flex justify-between">
             <span>REGISTRATION STATUS:</span>

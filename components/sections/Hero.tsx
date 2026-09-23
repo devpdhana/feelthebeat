@@ -136,7 +136,7 @@ export default function Hero() {
             <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping shrink-0" />
             <div className="flex flex-col">
               <span className="font-display text-xs sm:text-sm font-black uppercase tracking-wider text-amber-300">
-                5 KM &amp; 10 KM Registrations Close Tomorrow!
+                5 KM &amp; 10 KM Registrations Close Today!
               </span>
               <span className="font-mono text-[10px] sm:text-[11px] text-white/90">
                 Register now before entries close.
