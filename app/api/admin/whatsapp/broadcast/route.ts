@@ -58,6 +58,55 @@ async function authenticateAdmin(req: Request) {
   }
 }
 
+interface BroadcastRegistrationRecord {
+  id: string;
+  full_name: string;
+  mobile: string;
+  race_category: string;
+  bib_number?: string | number | null;
+  payment_status: string;
+  whatsapp_sent?: boolean | null;
+  whatsapp_status?: string | null;
+}
+
+/**
+ * Helper function to paginate through all registrations in batches of 1,000,
+ * avoiding Supabase PostgREST default 1,000-row limit.
+ */
+async function fetchAllBroadcastRegistrations<T = BroadcastRegistrationRecord>(
+  selectCols: string = "id, full_name, mobile, race_category, bib_number, payment_status, whatsapp_sent, whatsapp_status"
+): Promise<T[]> {
+  const allRows: T[] = [];
+  let from = 0;
+  const step = 1000;
+
+  while (true) {
+    const { data, error } = await supabaseAdmin
+      .from("registrations")
+      .select(selectCols)
+      .order("created_at", { ascending: true })
+      .range(from, from + step - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    allRows.push(...(data as unknown as T[]));
+
+    if (data.length < step) {
+      break;
+    }
+
+    from += step;
+  }
+
+  return allRows;
+}
+
 /**
  * GET /api/admin/whatsapp/broadcast
  * Returns current broadcast stats, recipient readiness counts, and active/last campaign progress
@@ -69,17 +118,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
     }
 
-    // 1. Query all registrations
-    const { data: registrations, error } = await supabaseAdmin
-      .from("registrations")
-      .select("id, full_name, mobile, race_category, bib_number, payment_status, whatsapp_sent, whatsapp_status");
+    // 1. Query all registrations across all pages with batch pagination
+    const allRegs = await fetchAllBroadcastRegistrations(
+      "id, full_name, mobile, race_category, bib_number, payment_status, whatsapp_sent, whatsapp_status"
+    );
 
-    if (error) {
-      console.error("Broadcast stats query error:", error);
-      return NextResponse.json({ message: "Database query error." }, { status: 500 });
-    }
-
-    const allRegs = registrations || [];
     const paidRegs = allRegs.filter((r) => {
       const p = (r.payment_status || "").toLowerCase();
       return p.includes("success") || p.includes("paid");
@@ -170,13 +213,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch all eligible paid registrations across 2 KM, 5 KM, and 10 KM
-    const { data: registrations, error: fetchError } = await supabaseAdmin
-      .from("registrations")
-      .select("id, full_name, mobile, race_category, bib_number, payment_status")
-      .order("created_at", { ascending: true });
-
-    if (fetchError || !registrations) {
+    // Fetch all eligible paid registrations across 2 KM, 5 KM, and 10 KM with pagination
+    let registrations: BroadcastRegistrationRecord[] = [];
+    try {
+      registrations = await fetchAllBroadcastRegistrations(
+        "id, full_name, mobile, race_category, bib_number, payment_status"
+      );
+    } catch (fetchError) {
+      console.error("Broadcast recipient load error:", fetchError);
       return NextResponse.json({ message: "Failed to load recipient registrations." }, { status: 500 });
     }
 

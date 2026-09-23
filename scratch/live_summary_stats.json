@@ -1,0 +1,11 @@
+{
+  "totalPaymentsInDb": 1598,
+  "totalRegistrationsInDb": 1030,
+  "unlinkedPaymentAttempts": 568,
+  "totalCapturedMissingFromRegs": 82,
+  "groupA_zeroActiveRegistration": 55,
+  "groupB_doublePaid": 27,
+  "totalRevenueUnregisteredGroupA": 16247,
+  "totalRevenueDoublePaidGroupB": 6481,
+  "generatedAt": "2026-09-23T05:14:44.677Z"
+}
