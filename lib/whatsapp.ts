@@ -213,6 +213,31 @@ Bib & T-Shirt collection will NOT be available on the event day.`;
 }
 
 /**
+ * Builds the exact text for Event Day Details Broadcast WhatsApp Template
+ * Matching Approved Template 1805769
+ */
+export function buildEventDayDetailsWhatsAppMessage(): string {
+  return `Event day details for Feel The Beat Marathon 2026
+
+Event Date: 27th September 2026, Sunday
+
+Event Venue: Deboer Ground Vellore
+
+Location: https://maps.app.goo.gl/kCyBga27vVGB3mnQ8?g_st=ic
+
+Parking space is available but limited space please adjust accordingly
+
+Reporting time: 30 minutes before your start time
+
+Flag off time: 10K at 05:30 AM
+Flag off time: 5K at 05:45 AM
+Flag off time: 2K at 06:00 AM
+
+Regards,
+Sree Jayam School`;
+}
+
+/**
  * Helper to make secure HTTP/HTTPS request with agent options.
  */
 async function postJsonWithAgent(
@@ -412,6 +437,46 @@ export async function sendBroadcastWhatsApp(registration: {
 }
 
 /**
+ * Sends an Event Day Details Broadcast WhatsApp message.
+ * Matching Approved Template 1805769 (Static informational template, no dynamic variables).
+ */
+export async function sendEventDayDetailsWhatsApp(runner: {
+  id?: string;
+  mobile: string;
+  full_name?: string;
+}): Promise<WhatsAppResponse> {
+  const mobile = runner.mobile;
+
+  const normalized = normalizeMobileNumber(mobile);
+  if (!normalized.isValid) {
+    return {
+      success: false,
+      status: "FAILED",
+      error: `Invalid mobile number: ${mobile}`,
+    };
+  }
+
+  const messageText = buildEventDayDetailsWhatsAppMessage();
+
+  const templateId =
+    getEnvVar("WHATSAPP_EVENT_DAY_TEMPLATE_ID") ||
+    getEnvVar("EVENT_DAY_WHATSAPP_TEMPLATE_ID") ||
+    "1805769";
+
+  // Static template without variable placeholders
+  const variables: string[] = [];
+
+  return dispatchWhatsAppMessage({
+    recipientPhone: normalized.withCountryCode,
+    templateId,
+    variables,
+    messageText,
+    type: "EVENT_DAY_DETAILS",
+    customMessageId: runner.id ? `EVT_${runner.id}` : undefined,
+  });
+}
+
+/**
  * Unified dispatch engine supporting ValueFirst Unified v2, Meta Cloud API, and Mock Fallback
  */
 async function dispatchWhatsAppMessage(params: {
@@ -419,7 +484,7 @@ async function dispatchWhatsAppMessage(params: {
   templateId: string;
   variables: string[];
   messageText: string;
-  type: "REGISTRATION" | "BROADCAST";
+  type: "REGISTRATION" | "BROADCAST" | "EVENT_DAY_DETAILS";
   customMessageId?: string;
 }): Promise<WhatsAppResponse> {
   const { recipientPhone, templateId, variables, messageText, type, customMessageId } = params;
@@ -436,11 +501,17 @@ async function dispatchWhatsAppMessage(params: {
   if (unifiedUrl && unifiedClientId && unifiedClientPassword) {
     try {
       const cleanTo = recipientPhone.replace(/^\+/, "");
-      const templateInfoStr = `${templateId}~${variables.join("~")}`;
+      const templateInfoStr =
+        variables && variables.length > 0
+          ? `${templateId}~${variables.join("~")}`
+          : `${templateId}`;
+
       const messageIdParam =
         customMessageId ||
         (type === "BROADCAST"
           ? (getEnvVar("WHATSAPP_BROADCAST_MESSAGE_ID") || "1431909")
+          : type === "EVENT_DAY_DETAILS"
+          ? (getEnvVar("WHATSAPP_EVENT_DAY_MESSAGE_ID") || "1431910")
           : `FTB_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`);
 
       const payload = {

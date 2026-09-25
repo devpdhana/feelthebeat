@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { sendBroadcastWhatsApp } from "@/lib/whatsapp";
+import { sendBroadcastWhatsApp, sendEventDayDetailsWhatsApp } from "@/lib/whatsapp";
 
 async function authenticateAdmin(req: Request) {
   const authHeader = req.headers.get("Authorization");
@@ -45,6 +45,8 @@ export async function POST(req: Request) {
       race_category: string;
     }> = body.recipients || [];
 
+    let campaignTemplateId = body.template_id || "";
+
     // If no custom list passed in body, fetch all failed from whatsapp_campaign_recipients table
     if (targetsToRetry.length === 0) {
       const { data: failedRecips, error } = await supabaseAdmin
@@ -54,6 +56,17 @@ export async function POST(req: Request) {
 
       if (!error && failedRecips && failedRecips.length > 0) {
         targetsToRetry = failedRecips;
+        // Check campaign template ID from whatsapp_campaigns
+        if (failedRecips[0].campaign_id) {
+          const { data: camp } = await supabaseAdmin
+            .from("whatsapp_campaigns")
+            .select("template_id")
+            .eq("id", failedRecips[0].campaign_id)
+            .maybeSingle();
+          if (camp?.template_id) {
+            campaignTemplateId = camp.template_id;
+          }
+        }
       }
     }
 
@@ -67,18 +80,25 @@ export async function POST(req: Request) {
       });
     }
 
+    const isEventDayBroadcast = campaignTemplateId === "1805769";
     let retriedSuccess = 0;
     let retriedFailed = 0;
     const stillFailed: any[] = [];
 
     for (const runner of targetsToRetry) {
       try {
-        const res = await sendBroadcastWhatsApp({
-          mobile: runner.mobile,
-          full_name: runner.full_name,
-          bib_number: runner.bib_number,
-          race_category: runner.race_category,
-        });
+        const res = isEventDayBroadcast
+          ? await sendEventDayDetailsWhatsApp({
+              id: runner.registration_id || runner.id,
+              mobile: runner.mobile,
+              full_name: runner.full_name,
+            })
+          : await sendBroadcastWhatsApp({
+              mobile: runner.mobile,
+              full_name: runner.full_name,
+              bib_number: runner.bib_number,
+              race_category: runner.race_category,
+            });
 
         if (res.success) {
           retriedSuccess++;

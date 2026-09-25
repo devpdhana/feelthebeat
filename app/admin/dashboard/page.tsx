@@ -116,10 +116,11 @@ export default function AdminDashboard() {
       failed_recipients: any[];
     };
   } | null>(null);
+  const [broadcastNotice, setBroadcastNotice] = useState<string | null>(null);
   const [isBroadcastConfirmOpen, setIsBroadcastConfirmOpen] = useState(false);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [broadcastNotice, setBroadcastNotice] = useState<string | null>(null);
+  const [selectedBroadcastType, setSelectedBroadcastType] = useState<"BIB_COLLECTION" | "EVENT_DAY_DETAILS">("EVENT_DAY_DETAILS");
 
   const getAuthToken = async () => {
     try {
@@ -159,14 +160,23 @@ export default function AdminDashboard() {
   const startBroadcast = async () => {
     setIsBroadcastConfirmOpen(false);
     setIsBroadcasting(true);
-    setBroadcastNotice("Initiating broadcast to all registered participants...");
+    const templateName =
+      selectedBroadcastType === "EVENT_DAY_DETAILS"
+        ? "Event Day Details (Template: 1805769)"
+        : "Bib & T-Shirt Collection (Template: 1792730)";
+    setBroadcastNotice(`Initiating ${templateName} broadcast to all registered participants...`);
     try {
       const token = await getAuthToken();
       const res = await fetch("/api/admin/whatsapp/broadcast", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          template_type: selectedBroadcastType,
+          template_id: selectedBroadcastType === "EVENT_DAY_DETAILS" ? "1805769" : "1792730",
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -909,7 +919,7 @@ export default function AdminDashboard() {
         })()}
 
         {/* WhatsApp Broadcast Control Engine */}
-        <Card className="p-6 flex flex-col gap-5 rounded-2xl shadow-sm border border-brand-primary/15 bg-white relative overflow-hidden">
+        <Card className="p-6 flex flex-col gap-6 rounded-2xl shadow-sm border border-brand-primary/15 bg-white relative overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brand-primary/10 pb-4 gap-3">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 flex items-center justify-center text-[#25D366]">
@@ -922,7 +932,7 @@ export default function AdminDashboard() {
                   COMMUNICATION_DISPATCH_ENGINE
                 </span>
                 <h3 className="font-display text-base font-black uppercase text-default tracking-tight">
-                  WHATSAPP BROADCAST
+                  WHATSAPP BROADCAST CONTROL CENTER
                 </h3>
               </div>
             </div>
@@ -944,7 +954,7 @@ export default function AdminDashboard() {
                 type="button"
                 onClick={() => setIsBroadcastConfirmOpen(true)}
                 disabled={isBroadcasting || (broadcastStats ? broadcastStats.totalRegistered === 0 : false)}
-                className="bg-[#25D366] hover:bg-[#1EBE5D] text-white px-4 py-2 font-mono text-[11px] font-black uppercase tracking-wider rounded transition-colors shadow cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                className="bg-[#25D366] hover:bg-[#1EBE5D] text-white px-5 py-2.5 font-mono text-[11px] font-black uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-2 hover:scale-[1.02] active:scale-95"
               >
                 {isBroadcasting ? (
                   <>
@@ -953,10 +963,78 @@ export default function AdminDashboard() {
                   </>
                 ) : (
                   <>
-                    <span>SEND TO ALL</span>
+                    <span>
+                      {selectedBroadcastType === "EVENT_DAY_DETAILS"
+                        ? "SEND EVENT DAY DETAILS"
+                        : "SEND TO ALL (BIB INFO)"}
+                    </span>
                   </>
                 )}
               </button>
+            </div>
+          </div>
+
+          {/* Broadcast Template Selection Tabs */}
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-[9px] text-muted-default/60 uppercase tracking-widest font-semibold">
+              SELECT BROADCAST TEMPLATE:
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Option 1: Event Day Details (Template 1805769) */}
+              <div
+                onClick={() => setSelectedBroadcastType("EVENT_DAY_DETAILS")}
+                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+                  selectedBroadcastType === "EVENT_DAY_DETAILS"
+                    ? "border-[#25D366] bg-[#25D366]/5 shadow-sm ring-1 ring-[#25D366]/30"
+                    : "border-brand-primary/10 bg-[#F8FAFD] hover:border-brand-primary/30"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-display text-xs font-black uppercase tracking-tight text-default">
+                    EVENT DAY DETAILS — FEEL THE BEAT MARATHON 2026
+                  </span>
+                  <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shrink-0">
+                    ID: 1805769
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-default leading-relaxed font-sans">
+                  Race day schedule, Deboer Ground venue, Google Maps link, parking guidelines, and 10K, 5K, 2K flag-off timings.
+                </p>
+                <div className="flex items-center justify-between font-mono text-[9px] pt-1 border-t border-brand-primary/8">
+                  <span className="text-muted-default/70">EVENT DATE: 27TH SEP 2026</span>
+                  <span className={`font-bold ${selectedBroadcastType === "EVENT_DAY_DETAILS" ? "text-[#25D366]" : "text-muted-default"}`}>
+                    {selectedBroadcastType === "EVENT_DAY_DETAILS" ? "● SELECTED" : "SELECT TEMPLATE"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Option 2: Bib & T-Shirt Collection (Template 1792730) */}
+              <div
+                onClick={() => setSelectedBroadcastType("BIB_COLLECTION")}
+                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+                  selectedBroadcastType === "BIB_COLLECTION"
+                    ? "border-[#25D366] bg-[#25D366]/5 shadow-sm ring-1 ring-[#25D366]/30"
+                    : "border-brand-primary/10 bg-[#F8FAFD] hover:border-brand-primary/30"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-display text-xs font-black uppercase tracking-tight text-default">
+                    BIB &amp; T-SHIRT COLLECTION BROADCAST
+                  </span>
+                  <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary border border-brand-primary/20 shrink-0">
+                    ID: 1792730
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-default leading-relaxed font-sans">
+                  Personalized message with runner name, individual BIB number, race category, expo collection venue &amp; timings.
+                </p>
+                <div className="flex items-center justify-between font-mono text-[9px] pt-1 border-t border-brand-primary/8">
+                  <span className="text-muted-default/70">EXPO DATE: 26TH SEP 2026</span>
+                  <span className={`font-bold ${selectedBroadcastType === "BIB_COLLECTION" ? "text-[#25D366]" : "text-muted-default"}`}>
+                    {selectedBroadcastType === "BIB_COLLECTION" ? "● SELECTED" : "SELECT TEMPLATE"}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -994,6 +1072,7 @@ export default function AdminDashboard() {
               </span>
             </div>
           </div>
+
 
           {/* Active Live Progress Bar Panel (Only shown while actively broadcasting) */}
           {isBroadcasting && (
@@ -1600,7 +1679,13 @@ export default function AdminDashboard() {
 
             <div className="flex flex-col gap-3 text-xs text-muted-default leading-relaxed">
               <p className="text-default font-semibold">
-                Are you sure you want to send the WhatsApp broadcast message to all registered participants?
+                Are you sure you want to send the{" "}
+                <strong className="text-brand-primary">
+                  {selectedBroadcastType === "EVENT_DAY_DETAILS"
+                    ? "Event Day Details Broadcast"
+                    : "Bib & T-Shirt Collection Broadcast"}
+                </strong>{" "}
+                to all registered participants?
               </p>
 
               <div className="bg-[#F8FAFD] border border-brand-primary/10 rounded-xl p-4 flex flex-col gap-2">
@@ -1615,18 +1700,79 @@ export default function AdminDashboard() {
                   <span className="font-bold text-default">2 KM, 5 KM, 10 KM</span>
                 </div>
                 <div className="flex justify-between border-b border-brand-primary/8 pb-1.5">
-                  <span className="text-muted-default/60 uppercase">TEMPLATE:</span>
-                  <span className="font-bold text-default">Bib &amp; T-Shirt Collection Info</span>
+                  <span className="text-muted-default/60 uppercase">BROADCAST NAME:</span>
+                  <span className="font-bold text-default">
+                    {selectedBroadcastType === "EVENT_DAY_DETAILS"
+                      ? "EVENT DAY DETAILS — FEEL THE BEAT MARATHON 2026"
+                      : "BIB & T-SHIRT COLLECTION BROADCAST"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-brand-primary/8 pb-1.5">
+                  <span className="text-muted-default/60 uppercase">TEMPLATE ID:</span>
+                  <span className="font-bold text-brand-primary">
+                    {selectedBroadcastType === "EVENT_DAY_DETAILS" ? "1805769" : "1792730"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-default/60 uppercase">TEMPLATE ID:</span>
-                  <span className="font-bold text-brand-primary">1792730</span>
+                  <span className="text-muted-default/60 uppercase">SCHEDULE:</span>
+                  <span className="font-bold text-default">
+                    {selectedBroadcastType === "EVENT_DAY_DETAILS"
+                      ? "Race Day: Sunday, 27th Sep 2026"
+                      : "Expo: Saturday, 26th Sep 2026"}
+                  </span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-muted-default/70">
-                Each participant will receive their personalized Bib Number, Race Category, and Expo logistics without any placeholder tags.
-              </p>
+              {/* Message preview inside confirmation modal */}
+              <div className="flex flex-col gap-1">
+                <span className="font-mono text-[9px] text-muted-default/60 uppercase tracking-wider font-semibold">
+                  CONFIRMED MESSAGE PREVIEW:
+                </span>
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg font-sans text-[11px] text-default leading-relaxed whitespace-pre-line max-h-40 overflow-y-auto">
+                  {selectedBroadcastType === "EVENT_DAY_DETAILS" ? (
+                    `Event day details for Feel The Beat Marathon 2026
+
+Event Date: 27th September 2026, Sunday
+
+Event Venue: Deboer Ground Vellore
+
+Location: https://maps.app.goo.gl/kCyBga27vVGB3mnQ8?g_st=ic
+
+Parking space is available but limited space please adjust accordingly
+
+Reporting time: 30 minutes before your start time
+
+Flag off time: 10K at 05:30 AM
+Flag off time: 5K at 05:45 AM
+Flag off time: 2K at 06:00 AM
+
+Regards,
+Sree Jayam School`
+                  ) : (
+                    `Dear [Runner Name],
+
+Greetings from Feel The Beat 10K Marathon 2026! 🎉
+
+🎽 Your Bib Number: [Bib Number]
+🏃 Category: [Race Category]
+
+📍 Bib & T-Shirt Collection Venue:
+Sree Jayam School
+Ezhil Nagar Main Road, Allapuram, Vellore - 632002
+📌 Landmark: Near Mangalaraman Kalyana Mandapam
+
+🗺️ Location:
+https://maps.app.goo.gl/6p1x9f4yeCrU26saA
+
+📅 Date: Saturday, 26th September 2026
+⏰ Time: 10:00 AM - 08:00 PM
+
+⚠️ Important:
+Please collect your Bib & T-Shirt on 26th September 2026.
+Bib & T-Shirt collection will NOT be available on the event day.`
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -1640,9 +1786,13 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={startBroadcast}
-                className="flex-1 px-4 py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-lg text-xs font-black uppercase tracking-wider shadow cursor-pointer"
+                className="flex-1 px-4 py-2.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-lg text-xs font-black uppercase tracking-wider shadow cursor-pointer flex items-center justify-center gap-2"
               >
-                SEND TO ALL
+                <span>
+                  {selectedBroadcastType === "EVENT_DAY_DETAILS"
+                    ? "CONFIRM & SEND EVENT DAY DETAILS"
+                    : "CONFIRM & SEND TO ALL"}
+                </span>
               </button>
             </div>
           </motion.div>

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { sendBroadcastWhatsApp, normalizeMobileNumber } from "@/lib/whatsapp";
+import {
+  sendBroadcastWhatsApp,
+  sendEventDayDetailsWhatsApp,
+  normalizeMobileNumber,
+} from "@/lib/whatsapp";
 
 export interface CampaignState {
   id: string;
@@ -236,13 +240,22 @@ export async function POST(req: Request) {
       );
     }
 
+    const body = await req.json().catch(() => ({}));
+    const requestedTemplate = body.template_type || (body.template_id === "1805769" ? "EVENT_DAY_DETAILS" : "BIB_COLLECTION");
+    const isEventDayBroadcast = requestedTemplate === "EVENT_DAY_DETAILS" || body.template_id === "1805769";
+
+    const campaignTemplateId = isEventDayBroadcast ? "1805769" : "1792730";
+    const campaignName = isEventDayBroadcast
+      ? "EVENT DAY DETAILS — FEEL THE BEAT MARATHON 2026"
+      : "Bib & T-Shirt Collection Broadcast";
+
     const campaignId = `CAMP_WA_${Date.now()}`;
 
     // Initialize campaign state
     activeCampaign = {
       id: campaignId,
-      campaign_name: "Bib & T-Shirt Collection Broadcast",
-      template_id: "1792730",
+      campaign_name: campaignName,
+      template_id: campaignTemplateId,
       status: "PROCESSING",
       total_recipients: eligibleRecipients.length,
       sent_count: 0,
@@ -297,12 +310,18 @@ export async function POST(req: Request) {
         await Promise.all(
           batch.map(async (runner) => {
             try {
-              const res = await sendBroadcastWhatsApp({
-                mobile: runner.mobile,
-                full_name: runner.full_name,
-                bib_number: runner.bib_number,
-                race_category: runner.race_category,
-              });
+              const res = isEventDayBroadcast
+                ? await sendEventDayDetailsWhatsApp({
+                    id: runner.id,
+                    mobile: runner.mobile,
+                    full_name: runner.full_name,
+                  })
+                : await sendBroadcastWhatsApp({
+                    mobile: runner.mobile,
+                    full_name: runner.full_name,
+                    bib_number: runner.bib_number,
+                    race_category: runner.race_category,
+                  });
 
               if (res.success) {
                 activeCampaign.sent_count++;
