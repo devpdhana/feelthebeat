@@ -44,13 +44,17 @@ export default function RegistrationCTA() {
           <div className="flex justify-between items-center border-b border-brand-primary/10 pb-2 bg-slate-50/80 -mx-4 -mt-4 p-3 rounded-t-xl">
             <span className="text-slate-700 font-bold flex items-center gap-1.5 text-[10px]">
               <span className="h-2 w-2 rounded-full bg-rose-500" />
-              5 KM &amp; 10 KM:
+              ALL CATEGORIES:
             </span>
             <span className="text-rose-700 font-extrabold text-[10px] uppercase">REGISTRATIONS CLOSED</span>
           </div>
           <div className="flex justify-between">
             <span>2 KM KIDS &amp; ADULTS:</span>
-            <span className="text-emerald-600 font-bold">OPEN / REGISTER NOW</span>
+            <span className="text-rose-600 font-bold">CLOSED</span>
+          </div>
+          <div className="flex justify-between">
+            <span>5 KM &amp; 10 KM:</span>
+            <span className="text-rose-600 font-bold">CLOSED</span>
           </div>
           <div className="flex justify-between">
             <span>RACE DAY GATE OFF:</span>
