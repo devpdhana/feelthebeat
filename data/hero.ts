@@ -18,6 +18,6 @@ export const heroData: HeroConfig = {
     { label: "DATE", value: "27.09.2026" },
     { label: "LOCATION", value: "VELLORE, TAMIL NADU" },
     { label: "ORGANIZER", value: "Sree Jayam School" },
-    { label: "REGISTRATION", value: "OPEN / REGISTER NOW" },
+    { label: "REGISTRATION", value: "CLOSED" },
   ],
 };

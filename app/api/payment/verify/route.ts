@@ -176,6 +176,13 @@ export async function POST(req: Request) {
       );
     }
 
+    if (priceObj.isOpen === false) {
+      return NextResponse.json(
+        { message: priceObj.closedMessage || "Registrations are currently closed for this category." },
+        { status: 400 }
+      );
+    }
+
     // Backend Age eligibility validation
     if (dob) {
       const birthDate = new Date(dob);

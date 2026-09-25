@@ -409,11 +409,11 @@ function RegisterForm() {
               </div>
 
               {/* Registration Status Notice */}
-              <div className="rounded-lg border border-brand-primary/20 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-blue-500/10 p-3 sm:p-3.5 flex items-center gap-3 shadow-xs">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-brand-primary shrink-0" />
+              <div className="rounded-lg border border-rose-500/20 bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-rose-500/10 p-3 sm:p-3.5 flex items-center gap-3 shadow-xs">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 shrink-0" />
                 <div className="font-mono text-[11px] sm:text-xs text-default leading-tight">
-                  <strong className="font-bold text-brand-primary uppercase tracking-wide">5 KM &amp; 10 KM Registrations are Closed.</strong>{" "}
-                  <span className="text-muted-default">2 KM Kids Fun Run &amp; 2 KM Adults Fun Run entries are currently OPEN.</span>
+                  <strong className="font-bold text-rose-600 uppercase tracking-wide">Registrations are Closed for All Categories.</strong>{" "}
+                  <span className="text-muted-default">2 KM Kids, 2 KM Adults, 5 KM &amp; 10 KM registrations are now officially closed.</span>
                 </div>
               </div>
 
