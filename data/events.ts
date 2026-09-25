@@ -44,7 +44,7 @@ export const raceCategories: RaceCategory[] = [
       "Deboer Ground",
     ],
     fee: 199,
-    isOpen: false,
+    isOpen: true,
   },
   {
     id: "2km",
@@ -67,7 +67,7 @@ export const raceCategories: RaceCategory[] = [
       "Deboer Ground",
     ],
     fee: 199,
-    isOpen: false,
+    isOpen: true,
   },
   {
     id: "5km",
