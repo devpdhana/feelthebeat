@@ -152,9 +152,8 @@ function RegistrationFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Success! ${formData.name} is registered for the ${formData.category.toUpperCase()}.`);
+    alert("Registrations are now closed for all race categories.");
     onClose();
-    setFormData({ name: "", email: "", phone: "", category: "5k-run" });
   };
 
   return (
@@ -248,20 +247,21 @@ function RegistrationFormModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   RACE CATEGORY
                 </label>
                 <select
+                  disabled
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full bg-[#101010] border border-white/8 px-4 py-2.5 text-xs text-white focus:border-brand-primary focus:outline-none transition-colors uppercase appearance-none cursor-pointer"
+                  className="w-full bg-[#101010] border border-white/8 px-4 py-2.5 text-xs text-white focus:border-brand-primary focus:outline-none transition-colors uppercase appearance-none cursor-not-allowed opacity-60"
                 >
-                  <option value="2km-kids">2 KM KIDS FUN RUN — ₹199 (NON-TIMED | START: 6:30 AM | 8–16 YRS)</option>
-                  <option value="2km">2 KM ADULTS FUN RUN — ₹199 (NON-TIMED | START: 6:30 AM | 18+ YRS)</option>
-                  <option value="5km">5 KM RUN — ₹299 (TIMED | START: 6:00 AM | CUT-OFF: 7:00 AM | 12+ YRS)</option>
-                  <option value="10km">10 KM RUN — ₹399 (TIMED | START: 5:30 AM | CUT-OFF: 7:00 AM | 14+ YRS)</option>
+                  <option value="2km-kids">2 KM KIDS FUN RUN — [CLOSED]</option>
+                  <option value="2km">2 KM ADULTS FUN RUN — [CLOSED]</option>
+                  <option value="5km">5 KM RUN — [CLOSED]</option>
+                  <option value="10km">10 KM RUN — [CLOSED]</option>
                 </select>
               </div>
 
               {/* Submit CTA */}
-              <Button type="submit" variant="primary" className="w-full py-3.5 mt-4 text-xs font-black">
-                CONFIRM REGISTRATION
+              <Button type="submit" variant="primary" disabled className="w-full py-3.5 mt-4 text-xs font-black opacity-50 cursor-not-allowed">
+                REGISTRATIONS CLOSED
               </Button>
             </form>
           </motion.div>
