@@ -125,7 +125,7 @@ export default function Hero() {
           <CountdownTimer targetDate="2026-09-27T05:00:00" light={false} />
         </motion.div>
 
-        {/* Registration Closed Announcement */}
+        {/* 5 KM & 10 KM Registration Closed Announcement */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -136,10 +136,10 @@ export default function Hero() {
             <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 shrink-0" />
             <div className="flex flex-col">
               <span className="font-display text-xs sm:text-sm font-black uppercase tracking-wider text-rose-300">
-                Registrations Closed for All Categories
+                5 KM &amp; 10 KM Registrations Closed
               </span>
               <span className="font-mono text-[10px] sm:text-[11px] text-white/90">
-                2 KM Kids, 2 KM Adults, 5 KM &amp; 10 KM entries are now officially closed.
+                Only 2 KM Kids &amp; 2 KM Adults Fun Run entries are currently OPEN!
               </span>
             </div>
           </div>
