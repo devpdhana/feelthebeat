@@ -495,7 +495,8 @@ async function dispatchWhatsAppMessage(params: {
   const unifiedClientPassword = getEnvVar("WHATSAPP_CLIENT_PASSWORD");
   const unifiedSender = getEnvVar("WHATSAPP_SENDER") || "916369099925";
   const unifiedTag = getEnvVar("WHATSAPP_TAG") || "";
-  const siteUrl = getEnvVar("NEXT_PUBLIC_SITE_URL") || "https://marathon.sreejayamschool.edu.in";
+  const rawSiteUrl = getEnvVar("NEXT_PUBLIC_SITE_URL") || "https://marathon.sreejayamschool.edu.in";
+  const siteUrl = rawSiteUrl.replace(/\/+$/, "");
   const dlrCallbackUrl = getEnvVar("WHATSAPP_DLR_URL") || `${siteUrl}/api/whatsapp/dlr`;
 
   if (unifiedUrl && unifiedClientId && unifiedClientPassword) {

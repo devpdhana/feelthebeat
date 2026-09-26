@@ -983,11 +983,10 @@ export default function AdminDashboard() {
               {/* Option 1: Event Day Details (Template 1805769) */}
               <div
                 onClick={() => setSelectedBroadcastType("EVENT_DAY_DETAILS")}
-                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
-                  selectedBroadcastType === "EVENT_DAY_DETAILS"
-                    ? "border-[#25D366] bg-[#25D366]/5 shadow-sm ring-1 ring-[#25D366]/30"
-                    : "border-brand-primary/10 bg-[#F8FAFD] hover:border-brand-primary/30"
-                }`}
+                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${selectedBroadcastType === "EVENT_DAY_DETAILS"
+                  ? "border-[#25D366] bg-[#25D366]/5 shadow-sm ring-1 ring-[#25D366]/30"
+                  : "border-brand-primary/10 bg-[#F8FAFD] hover:border-brand-primary/30"
+                  }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-display text-xs font-black uppercase tracking-tight text-default">
@@ -1011,11 +1010,10 @@ export default function AdminDashboard() {
               {/* Option 2: Bib & T-Shirt Collection (Template 1792730) */}
               <div
                 onClick={() => setSelectedBroadcastType("BIB_COLLECTION")}
-                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
-                  selectedBroadcastType === "BIB_COLLECTION"
-                    ? "border-[#25D366] bg-[#25D366]/5 shadow-sm ring-1 ring-[#25D366]/30"
-                    : "border-brand-primary/10 bg-[#F8FAFD] hover:border-brand-primary/30"
-                }`}
+                className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${selectedBroadcastType === "BIB_COLLECTION"
+                  ? "border-[#25D366] bg-[#25D366]/5 shadow-sm ring-1 ring-[#25D366]/30"
+                  : "border-brand-primary/10 bg-[#F8FAFD] hover:border-brand-primary/30"
+                  }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-display text-xs font-black uppercase tracking-tight text-default">
@@ -1261,6 +1259,7 @@ export default function AdminDashboard() {
                     <td colSpan={9} className="py-8 text-center text-red-500 font-semibold uppercase">
                       ERROR: {error}
                     </td>
+
                   </tr>
                 ) : registrations.length === 0 ? (
                   <tr>
@@ -1303,30 +1302,28 @@ export default function AdminDashboard() {
                       </td>
                       <td className="py-3 px-2">
                         <span
-                          className={`px-2 py-0.5 border text-[9px] rounded font-bold ${
-                            reg.paymentStatus === "SUCCESSFUL"
-                              ? "border-green-500/30 text-green-600 bg-green-50"
-                              : "border-yellow-500/30 text-yellow-600 bg-yellow-50"
-                          }`}
+                          className={`px-2 py-0.5 border text-[9px] rounded font-bold ${reg.paymentStatus === "SUCCESSFUL"
+                            ? "border-green-500/30 text-green-600 bg-green-50"
+                            : "border-yellow-500/30 text-yellow-600 bg-yellow-50"
+                            }`}
                         >
                           {reg.paymentStatus === "SUCCESSFUL" ? "PAID" : reg.paymentStatus}
                         </span>
                       </td>
                       <td className="py-3 px-2">
                         <span
-                          className={`px-2 py-0.5 border text-[9px] rounded font-bold uppercase ${
-                            reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent
-                              ? "border-green-500/30 text-green-600 bg-green-50"
-                              : reg.whatsappStatus === "FAILED"
+                          className={`px-2 py-0.5 border text-[9px] rounded font-bold uppercase ${reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent
+                            ? "border-green-500/30 text-green-600 bg-green-50"
+                            : reg.whatsappStatus === "FAILED"
                               ? "border-red-500/30 text-red-600 bg-red-50"
                               : "border-gray-400/30 text-gray-600 bg-gray-50"
-                          }`}
+                            }`}
                         >
                           {reg.whatsappStatus === "SENT" || reg.whatsappStatus === "ACCEPTED" || reg.whatsappSent
                             ? "SENT"
                             : reg.whatsappStatus === "FAILED"
-                            ? "FAILED"
-                            : "NOT SENT"}
+                              ? "FAILED"
+                              : "NOT SENT"}
                         </span>
                       </td>
                       <td className="py-3 px-3 text-right">
@@ -1408,11 +1405,10 @@ export default function AdminDashboard() {
                           type="button"
                           key={`desk-page-${pageNum}`}
                           onClick={() => goToPage(pageNum)}
-                          className={`min-w-[28px] h-7 px-2 font-bold text-[11px] rounded transition-all cursor-pointer flex items-center justify-center ${
-                            isActive
-                              ? "bg-brand-primary text-white shadow-sm font-black"
-                              : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
-                          }`}
+                          className={`min-w-[28px] h-7 px-2 font-bold text-[11px] rounded transition-all cursor-pointer flex items-center justify-center ${isActive
+                            ? "bg-brand-primary text-white shadow-sm font-black"
+                            : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -1437,11 +1433,10 @@ export default function AdminDashboard() {
                           type="button"
                           key={`mob-page-${pageNum}`}
                           onClick={() => goToPage(pageNum)}
-                          className={`min-w-[26px] h-6 px-1.5 font-bold text-[10px] rounded transition-all cursor-pointer flex items-center justify-center ${
-                            isActive
-                              ? "bg-brand-primary text-white shadow-sm font-black"
-                              : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
-                          }`}
+                          className={`min-w-[26px] h-6 px-1.5 font-bold text-[10px] rounded transition-all cursor-pointer flex items-center justify-center ${isActive
+                            ? "bg-brand-primary text-white shadow-sm font-black"
+                            : "border border-brand-primary/12 bg-white text-default hover:border-brand-primary hover:text-brand-primary"
+                            }`}
                         >
                           {pageNum}
                         </button>

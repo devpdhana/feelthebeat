@@ -10,7 +10,7 @@ export interface CampaignState {
   id: string;
   campaign_name: string;
   template_id: string;
-  status: "IDLE" | "PROCESSING" | "COMPLETED" | "FAILED";
+  status: "IDLE" | "PROCESSING" | "SUBMITTED" | "COMPLETED" | "FAILED";
   total_recipients: number;
   sent_count: number;
   failed_count: number;
@@ -325,11 +325,11 @@ export async function POST(req: Request) {
 
               if (res.success) {
                 activeCampaign.sent_count++;
-                // Update recipient record in DB
+                // Update recipient record in DB as SUBMITTED (Gateway Accepted)
                 await supabaseAdmin
                   .from("whatsapp_campaign_recipients")
                   .update({
-                    status: "SENT",
+                    status: "SUBMITTED",
                     message_id: res.messageId || null,
                     error: null,
                     sent_at: new Date().toISOString(),
@@ -351,7 +351,7 @@ export async function POST(req: Request) {
                   .from("whatsapp_campaign_recipients")
                   .update({
                     status: "FAILED",
-                    error: res.error || "Delivery failed",
+                    error: res.error || "Submission failed",
                   })
                   .eq("campaign_id", campaignId)
                   .eq("registration_id", runner.id);
@@ -401,7 +401,7 @@ export async function POST(req: Request) {
         }
       }
 
-      activeCampaign.status = "COMPLETED";
+      activeCampaign.status = "SUBMITTED";
       activeCampaign.pending_count = 0;
       activeCampaign.updated_at = new Date().toISOString();
 
@@ -410,7 +410,7 @@ export async function POST(req: Request) {
         await supabaseAdmin
           .from("whatsapp_campaigns")
           .update({
-            status: "COMPLETED",
+            status: "SUBMITTED",
             sent_count: activeCampaign.sent_count,
             failed_count: activeCampaign.failed_count,
             updated_at: new Date().toISOString(),
